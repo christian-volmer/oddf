@@ -1,0 +1,95 @@
+
+
+
+	IMPORTANT:
+	Information in this file is partly outdated but kept here for reference.
+
+
+
+Supported data types
+--------------------
+
+As of now, the following data types are supported: 
+
+  bool
+  double
+  int 
+  std::int32_t 
+  std::int64_t
+  dynfix
+
+Unsigned integer data types are _not_ supported.
+
+
+Busses
+------
+
+Busses can be created in several ways.
+
+  bus<int> myBus;                   create an empty bus (zero elements)
+  myBus.append(...)                 then, append a node to the bus
+  
+  forward_bus<int> myBus(5)         create a forward_bus with 5 unconnected nodes.
+  
+  forward_bus<int> myBus;           create an empty forward_bus
+  myBus.create(7)                   then, create 7 unconnected nodes in the bus.
+  
+  node<int> value = ...
+  bus<int> myBus(value)             create a one-element bus with the node 'value'.
+  bus<int> myBus(value, n)          create a bus with 'n' copies of the node 'value'. Individual elements of the bus can be replaced later.
+
+
+New busses can be created by joining busses or nodes
+
+   dfx::join(some_node_or_bus, some_other_node_or_bus);
+   
+
+Individual elements or sub-ranges of elements can be accessed as follows:
+
+  myBus(1)                          first element using one-based indexing with the () operator
+  myBus[0]                          first element using zero-based indexing with the [] operator
+  myBus(-1)                         last element. Negative indices supplied to the () operator count from the end of the bus
+  myBus(-2)                         element before the last
+  myBus.first()                     first element
+  myBus.last()                      last element
+  myBus.most()                      all elements but the last
+  myBus.rest()                      all elements but the first
+  myBus.span(first, last, step)     some span of elements (indexing is one-based)
+
+
+Blocks
+------
+
+  BitCompose                        Inverse of BitExtract. Composes a number from its two's-complement representation given as a bus<bool>.
+  BitExtract                        Extracts the specified number of bits from the two's-complement representation of a number in the form of a bus<bool>.
+  Constant                          Drives a constant value into a node or a list of constant values into a bus
+  Decide                            Multiplexer. Depending on a boolean input node, outputs the value of either the 'true' input node or the 'false' input node.
+  Delay                             Delays by one clock cycle. Reset value is always 0, 0.0, or false, depending on data type.
+  Function                          Outputs an arbitrary unary function applied to the input node or bus.
+  Modulo                            Modulo
+  Plus, +, -
+  Sum                               Computes the sum of all the elements in a bus.
+  Times, *
+  /                                 Allows division by a constant power of two, e.g., y = x / 128.
+  Or, ReductionOr, ||               ReductionOr computes the logical OR of all the elements in a bus
+  And, ReductionAnd, &&             ReductionAnd computes the logical AND of all the elements in a bus
+  Xor, ReductionXor, !=             ReductionXor computes the logical XOR of all the elements in a bus. Note there is no dedicated XOR operator (like ^^) in C++.
+  ==, !=, <, >, <=, >=              Comparison
+  Negate, -                         Reverses the sign of a number
+  Not, !                            Boolean inversion
+  PowerOfTwo                        Computes two raised to the power of the argument node (integers only).
+[[Replace                           Replaces a continuous subrange in bus with values from another bus based on the value of an input node (index node).]]
+  Random                            Outputs a random integer in a given range
+  Select                            Barrel-shifter, big multiplexer. Selects a continuous subrange from a bus based on the value of an input node (index node)
+  Signal                            Converts a normal C++ variable to a node. When the value of the C++ variable changes so does the value of the node.
+
+
+Modules
+-------
+
+  Logger                            Supports logging of nodes to a table or to Varyplot. Useful for debugging.
+  Memory                            Memory model with configurable size and latency and read-only hardware access. Hardware write access will be implemented when required.
+  RegisterFile                      Supports named and hierarchical configuration registers (with write access) and observation register (with read access).
+  Sink                              A clocked sink to collect data from a design node. With write-enable input.
+  BusSink                           A clocked sink to collect data from a design bus. With write-enable input.
+  Source                            A clocked source to provide data to the design simulation.

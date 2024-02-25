@@ -1,0 +1,26 @@
+ODDF - Open Digital Design Framework
+Copyright Advantest Corporation
+
+
+Current Maintainer
+
+	Christian Volmer (christian.volmer@advantest.com)
+
+
+Main Contributors
+
+	Christian Volmer:
+		Design framework
+		Simulator
+		Code generator framework
+
+	Andreas Beermann:
+		Verilog code emission
+
+
+Additional Contributors
+
+	Pascal Digeser: testing and debugging
+	Sascha Kränzlein: testing and debugging
+	Kiran Challa: testing and debugging
+	Roland Neesen: synchronous FIFO
