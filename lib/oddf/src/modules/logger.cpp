@@ -714,7 +714,7 @@ void Logger::ExportToVaryPlot(std::string const &s_basePath, std::unordered_set<
 			if (column != nullptr && column->IsBus) {
 
 				int firstElement = (column->BusFlags & Flags::ReversedElementOrder) != 0 ? column->BusWidth - 1 : 0;
-				int direction = (column->BusFlags & Flags::ReversedElementOrder) != 0 != 0 ? -1 : 1;
+				int direction = (column->BusFlags & Flags::ReversedElementOrder) != 0 ? -1 : 1;
 
 				for (int i = 0; i < column->BusWidth; ++i) {
 
@@ -758,7 +758,7 @@ void Logger::ExportToVaryPlot(std::string const &s_basePath, std::unordered_set<
 			if (column != nullptr && column->IsBus) {
 
 				int firstElement = (column->BusFlags & Flags::ReversedElementOrder) != 0 ? column->BusWidth - 1 : 0;
-				int direction = (column->BusFlags & Flags::ReversedElementOrder) != 0 != 0 ? -1 : 1;
+				int direction = (column->BusFlags & Flags::ReversedElementOrder) != 0 ? -1 : 1;
 
 				for (int i = 0; i < column->BusWidth; ++i) {
 
