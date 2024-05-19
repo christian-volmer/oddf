@@ -33,6 +33,8 @@
 #include "messages.h"
 #include "types.h"
 
+#include <oddf/design/backend/IDesign.h>
+
 #if defined(_MSC_VER) && _MSC_VER < 1900
 #define NOEXCEPT
 #define ALIGN __declspec(align(8))
@@ -149,7 +151,7 @@ public:
 // design definition
 //
 
-class Design {
+class Design : public oddf::design::backend::IDesign {
 
 private:
 
@@ -180,6 +182,12 @@ public:
 	}
 
 	void Report(std::basic_ostream<char> &os) const;
+
+	//
+	// IDesign implementation
+	//
+
+	virtual std::unique_ptr<oddf::utility::IConstEnumerator<oddf::design::backend::IDesignBlock>> GetBlockEnumerator() const override;
 };
 
 namespace backend {

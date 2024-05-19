@@ -1,37 +1,40 @@
 /*
 
-	ODDF - Open Digital Design Framework
-	Copyright Advantest Corporation
-	
-	This program is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 3 of the License, or
-	(at your option) any later version.
-	
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <https://www.gnu.org/licenses/>.
+    ODDF - Open Digital Design Framework
+    Copyright Advantest Corporation
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 */
 
 /*
 
-	Declaration of class 'BlockBase', the base class of all blocks in the
-	design.
+    Declaration of class 'BlockBase', the base class of all blocks in the
+    design.
 
 */
 
 #pragma once
 
+#include <oddf/design/backend/IDesignBlock.h>
+
 namespace dfx {
 
 struct HierarchyLevel;
 class Simulator;
-template<typename T> class node;
+template<typename T>
+class node;
 
 namespace generator {
 
@@ -62,7 +65,7 @@ public:
 // BlockBase
 //
 
-class BlockBase {
+class BlockBase : public oddf::design::backend::IDesignBlock {
 
 public:
 
@@ -106,11 +109,10 @@ public:
 	BlockBase(BlockBase const &) = delete;
 	virtual ~BlockBase();
 
-	BlockBase &operator =(BlockBase const &) = delete;
-
-	std::string GetClassName() const;
+	BlockBase &operator=(BlockBase const &) = delete;
 
 	std::string GetName() const;
+	std::string GetClassName() const;
 	std::string GetFullName() const;
 
 	std::vector<InputPinBase *> const &GetInputPins() const;
@@ -139,7 +141,7 @@ public:
 	// Indicates a temporary block
 	virtual bool IsTemporary() const;
 
-	// Indicates whether a block has no function and can therefore be safely removed from the design. 
+	// Indicates whether a block has no function and can therefore be safely removed from the design.
 	// Default implementation returns 'true' if the block does not have any connections to other blocks.
 	virtual bool CanRemove() const;
 
@@ -154,7 +156,21 @@ public:
 	virtual std::size_t GetHash() const;
 
 	*/
+
+	//
+	// IDesignBlock interface implementation
+	//
+
+	virtual std::string GetBlockPath() const override
+	{
+		return GetFullName();
+	}
+
+	virtual oddf::design::backend::DesignBlockClass GetClass() const override
+	{
+		return GetClassName();
+	}
 };
 
-}
-}
+} // namespace backend
+} // namespace dfx

@@ -1,4 +1,8 @@
 add_library(oddf
+	src/_new/Simulator.cpp
+	src/_new/simulation/internal/SimulatorImpl.cpp
+	src/_new/simulation/internal/SimulatorImpl/RegisterDefaultBlockFactories.cpp
+	src/_new/simulation/internal/blocks/Delay.cpp
 	src/block_base.cpp
 	src/debug.cpp
 	src/design.cpp
