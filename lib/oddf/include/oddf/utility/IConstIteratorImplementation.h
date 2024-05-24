@@ -20,63 +20,26 @@
 
 /*
 
-    <no description>
+    Interface for providing an implementation to the ConstIteratorClass class.
 
 */
 
 #pragma once
 
-#include <oddf/design/backend/IDesignBlock.h>
-
-#include <vector>
-
 namespace oddf {
-namespace simulation {
-namespace backend {
+namespace utility {
 
-class SimulatorBlockBase;
-
-class BlockInput {
-
-private:
-
-	SimulatorBlockBase const *const m_parent;
+template<typename T>
+class IConstIteratorImplementation {
 
 public:
 
-	BlockInput(SimulatorBlockBase const *parentBlock) :
-		m_parent(parentBlock)
-	{
-	}
+	virtual ~IConstIteratorImplementation() { }
+
+	virtual T const &Dereference() const = 0;
+	virtual void Increment() = 0;
+	virtual bool Equals(IConstIteratorImplementation<T> const &other) const = 0;
 };
 
-class BlockOutput {
-
-private:
-
-	SimulatorBlockBase const *const m_parent;
-
-public:
-
-	BlockOutput(SimulatorBlockBase const *parentBlock) :
-		m_parent(parentBlock)
-	{
-	}
-};
-
-class SimulatorBlockBase {
-
-private:
-
-	std::vector<BlockInput> m_inputs;
-	std::vector<BlockOutput> m_outputs;
-
-public:
-
-	SimulatorBlockBase(design::backend::IDesignBlock const &designBlock);
-	virtual ~SimulatorBlockBase() { }
-};
-
-} // namespace backend
-} // namespace simulation
+} // namespace utility
 } // namespace oddf

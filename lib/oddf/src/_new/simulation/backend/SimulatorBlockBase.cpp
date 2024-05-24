@@ -24,58 +24,17 @@
 
 */
 
-#pragma once
-
-#include <oddf/design/backend/IDesignBlock.h>
-
-#include <vector>
+#include <oddf/simulation/backend/SimulatorBlockBase.h>
 
 namespace oddf {
 namespace simulation {
 namespace backend {
 
-class SimulatorBlockBase;
-
-class BlockInput {
-
-private:
-
-	SimulatorBlockBase const *const m_parent;
-
-public:
-
-	BlockInput(SimulatorBlockBase const *parentBlock) :
-		m_parent(parentBlock)
-	{
-	}
-};
-
-class BlockOutput {
-
-private:
-
-	SimulatorBlockBase const *const m_parent;
-
-public:
-
-	BlockOutput(SimulatorBlockBase const *parentBlock) :
-		m_parent(parentBlock)
-	{
-	}
-};
-
-class SimulatorBlockBase {
-
-private:
-
-	std::vector<BlockInput> m_inputs;
-	std::vector<BlockOutput> m_outputs;
-
-public:
-
-	SimulatorBlockBase(design::backend::IDesignBlock const &designBlock);
-	virtual ~SimulatorBlockBase() { }
-};
+SimulatorBlockBase::SimulatorBlockBase(design::backend::IDesignBlock const &designBlock)
+{
+/*	m_inputs.reserve(designBlock.GetInputs().GetCount());
+	m_outputs.reserve(designBlock.GetOutputs().GetCount());*/
+}
 
 } // namespace backend
 } // namespace simulation

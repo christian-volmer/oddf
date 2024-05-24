@@ -20,63 +20,30 @@
 
 /*
 
-    <no description>
+    Interface that allows the enumeration of (iteration over) contained objects.
 
 */
 
 #pragma once
 
-#include <oddf/design/backend/IDesignBlock.h>
-
-#include <vector>
+#include "ConstIterator.h"
 
 namespace oddf {
-namespace simulation {
-namespace backend {
+namespace utility {
 
-class SimulatorBlockBase;
-
-class BlockInput {
-
-private:
-
-	SimulatorBlockBase const *const m_parent;
+template<typename T>
+class IConstEnumerable {
 
 public:
 
-	BlockInput(SimulatorBlockBase const *parentBlock) :
-		m_parent(parentBlock)
-	{
-	}
+	virtual ~IConstEnumerable() { }
+
+	virtual ConstIterator<T> begin() const = 0;
+	virtual ConstIterator<T> end() const = 0;
+
+	ConstIterator<T> cbegin() const { return begin(); }
+	ConstIterator<T> cend() const { return end(); }
 };
 
-class BlockOutput {
-
-private:
-
-	SimulatorBlockBase const *const m_parent;
-
-public:
-
-	BlockOutput(SimulatorBlockBase const *parentBlock) :
-		m_parent(parentBlock)
-	{
-	}
-};
-
-class SimulatorBlockBase {
-
-private:
-
-	std::vector<BlockInput> m_inputs;
-	std::vector<BlockOutput> m_outputs;
-
-public:
-
-	SimulatorBlockBase(design::backend::IDesignBlock const &designBlock);
-	virtual ~SimulatorBlockBase() { }
-};
-
-} // namespace backend
-} // namespace simulation
+} // namespace utility
 } // namespace oddf

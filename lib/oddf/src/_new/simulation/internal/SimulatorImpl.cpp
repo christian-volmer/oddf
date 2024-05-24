@@ -32,6 +32,7 @@ namespace internal {
 
 SimulatorImpl::SimulatorImpl()
 {
+	RegisterDefaultBlockFactories();
 }
 
 SimulatorImpl::~SimulatorImpl()
@@ -51,7 +52,20 @@ void SimulatorImpl::TranslateDesign(design::backend::IDesign const &design)
 
 	while (designBlockEnumerator->MoveNext()) {
 
-		std::cout << designBlockEnumerator->GetCurrent().GetClass().ToString() << " : " << designBlockEnumerator->GetCurrent().GetBlockPath() << "\n";
+		auto const &designBlock = designBlockEnumerator->GetCurrent();
+		auto blockClass = designBlock.GetClass();
+
+		auto blockFactory = m_simulatorBlockFactories.find(blockClass);
+		if (blockFactory != m_simulatorBlockFactories.end()) {
+
+			blockFactory->second->CreateFromDesignBlock(designBlock);
+		}
+		else {
+
+			std::cout << "WARNING: do not know how to handle design block '"
+					  << designBlock.GetBlockPath()
+					  << "' of class '" << blockClass.ToString() << "'.\n";
+		}
 	}
 }
 

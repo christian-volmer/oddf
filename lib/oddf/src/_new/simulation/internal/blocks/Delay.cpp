@@ -31,6 +31,12 @@ namespace simulation {
 namespace internal {
 namespace blocks {
 
+DelaySimulatorBlock::DelaySimulatorBlock(design::backend::IDesignBlock const &designBlock) :
+	SimulatorBlockBase(designBlock)
+{
+	std::cout << "\nHallo\n\n";
+}
+
 } // namespace blocks
 } // namespace internal
 } // namespace simulation
