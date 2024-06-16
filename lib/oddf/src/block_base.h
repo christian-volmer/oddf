@@ -40,7 +40,7 @@ namespace generator {
 
 class Properties;
 
-}
+} // namespace generator
 
 namespace backend {
 
@@ -59,7 +59,6 @@ public:
 	virtual void Step() = 0;
 	virtual void AsyncReset() = 0;
 };
-
 
 //
 // BlockBase
@@ -170,6 +169,9 @@ public:
 	{
 		return GetClassName();
 	}
+
+	virtual oddf::utility::ListView<oddf::design::backend::IBlockInput> GetInputsList() const override;
+	virtual oddf::utility::ListView<oddf::design::backend::IBlockOutput> GetOutputsList() const override;
 };
 
 } // namespace backend

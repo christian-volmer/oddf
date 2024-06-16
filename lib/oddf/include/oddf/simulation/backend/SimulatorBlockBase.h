@@ -28,45 +28,21 @@
 
 #include <oddf/design/backend/IDesignBlock.h>
 
+#include "BlockInput.h"
+#include "BlockOutput.h"
+#include "IBlockMapping.h"
+
 #include <vector>
 
 namespace oddf {
 namespace simulation {
 namespace backend {
 
-class SimulatorBlockBase;
-
-class BlockInput {
-
-private:
-
-	SimulatorBlockBase const *const m_parent;
-
-public:
-
-	BlockInput(SimulatorBlockBase const *parentBlock) :
-		m_parent(parentBlock)
-	{
-	}
-};
-
-class BlockOutput {
-
-private:
-
-	SimulatorBlockBase const *const m_parent;
-
-public:
-
-	BlockOutput(SimulatorBlockBase const *parentBlock) :
-		m_parent(parentBlock)
-	{
-	}
-};
-
 class SimulatorBlockBase {
 
 private:
+
+	design::backend::IDesignBlock const *m_designBlockReference;
 
 	std::vector<BlockInput> m_inputs;
 	std::vector<BlockOutput> m_outputs;
@@ -74,6 +50,9 @@ private:
 public:
 
 	SimulatorBlockBase(design::backend::IDesignBlock const &designBlock);
+
+	void MapConnections(IBlockMapping const &blockMapping);
+
 	virtual ~SimulatorBlockBase() { }
 };
 

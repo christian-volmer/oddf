@@ -102,7 +102,7 @@ private:
 
 			for (; summandIt != sum.summands.end(); ++summandIt) {
 
-				dynfix value = (*summandIt).input.GetValue();
+				value = (*summandIt).input.GetValue();
 				value.AccumulateShiftLeft(sum.output.value, (*summandIt).align);
 			}
 		}

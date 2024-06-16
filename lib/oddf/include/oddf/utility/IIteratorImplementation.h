@@ -20,25 +20,29 @@
 
 /*
 
-    Interface for providing an implementation to the ConstIteratorClass class.
+    <no description>
 
 */
 
 #pragma once
 
+#include <memory>
+
 namespace oddf {
 namespace utility {
 
 template<typename T>
-class IConstIteratorImplementation {
+class IIteratorImplementation {
 
 public:
 
-	virtual ~IConstIteratorImplementation() { }
+	virtual ~IIteratorImplementation() { }
+
+	virtual std::unique_ptr<IIteratorImplementation<T>> Clone() const = 0;
 
 	virtual T const &Dereference() const = 0;
 	virtual void Increment() = 0;
-	virtual bool Equals(IConstIteratorImplementation<T> const &other) const = 0;
+	virtual bool Equals(IIteratorImplementation<T> const &other) const = 0;
 };
 
 } // namespace utility

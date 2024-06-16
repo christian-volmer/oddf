@@ -52,7 +52,6 @@ private:
 
 	std::vector<std::unique_ptr<simulation::backend::SimulatorBlockBase>> m_blocks;
 
-	std::unordered_map<design::backend::IDesignBlock const *, simulation::backend::SimulatorBlockBase *> m_blockMapping;
 	std::map<design::backend::DesignBlockClass, std::unique_ptr<simulation::backend::SimulatorBlockFactoryBase>> m_simulatorBlockFactories;
 
 	void RegisterDefaultBlockFactories();

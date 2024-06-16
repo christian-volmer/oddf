@@ -26,6 +26,11 @@
 
 #pragma once
 
+#include <oddf/utility/ListView.h>
+
+#include "IBlockInput.h"
+#include "IBlockOutput.h"
+
 #include <string>
 
 namespace oddf {
@@ -53,12 +58,20 @@ public:
 
 class IDesignBlock {
 
+protected:
+
+	IDesignBlock() = default;
+	virtual ~IDesignBlock() { }
+
 public:
+
+	IDesignBlock(IDesignBlock const &) = delete;
 
 	virtual std::string GetBlockPath() const = 0;
 	virtual DesignBlockClass GetClass() const = 0;
 
-	virtual ~IDesignBlock() { }
+	virtual utility::ListView<IBlockInput> GetInputsList() const = 0;
+	virtual utility::ListView<IBlockOutput> GetOutputsList() const = 0;
 };
 
 } // namespace backend

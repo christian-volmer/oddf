@@ -20,25 +20,42 @@
 
 /*
 
-    Generic interface for enumerating objects as const.
+    <no description>
 
 */
 
 #pragma once
 
+#include "IIteratorImplementation.h"
+
 namespace oddf {
 namespace utility {
 
 template<typename T>
-class IConstEnumerator {
+class Iterator {
+
+	std::unique_ptr<IIteratorImplementation<T>> m_implementation;
 
 public:
 
-	virtual T const &GetCurrent() const = 0;
-	virtual bool MoveNext() noexcept = 0;
-	virtual void Reset() noexcept = 0;
+	Iterator(std::unique_ptr<IIteratorImplementation<T>> &&implementation) :
+		m_implementation(std::move(implementation)) { }
 
-	virtual ~IConstEnumerator() { }
+	Iterator(Iterator<T> const &other) :
+		m_implementation(other.m_implementation->Clone()) { }
+
+	T const &operator*() const { return m_implementation->Dereference(); }
+
+	Iterator<T> &operator++()
+	{
+		m_implementation->Increment();
+		return *this;
+	}
+
+	void operator++(int) { m_implementation->Increment(); }
+
+	bool operator==(Iterator<T> const &other) const { return m_implementation->Equals(*other.m_implementation); }
+	bool operator!=(Iterator<T> const &other) const { return !m_implementation->Equals(*other.m_implementation); }
 };
 
 } // namespace utility

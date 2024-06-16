@@ -24,19 +24,25 @@
 
 */
 
-#include "Delay.h"
+#include "Iterator.h"
+
+#pragma once
 
 namespace oddf {
-namespace simulation {
-namespace internal {
-namespace blocks {
+namespace utility {
 
-DelaySimulatorBlock::DelaySimulatorBlock(design::backend::IDesignBlock const &designBlock) :
-	SimulatorBlockBase(designBlock)
-{
-}
+template<typename T>
+class ICollectionViewImplementation {
 
-} // namespace blocks
-} // namespace internal
-} // namespace simulation
+public:
+
+	virtual ~ICollectionViewImplementation() { }
+
+	virtual Iterator<T> begin() const = 0;
+	virtual Iterator<T> end() const = 0;
+
+	virtual size_t size() const = 0;
+};
+
+} // namespace utility
 } // namespace oddf

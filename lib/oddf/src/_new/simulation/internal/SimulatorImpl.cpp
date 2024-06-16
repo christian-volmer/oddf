@@ -25,6 +25,9 @@
 */
 
 #include "SimulatorImpl.h"
+#include <oddf/simulation/backend/IBlockMapping.h>
+
+#include <cassert>
 
 namespace oddf {
 namespace simulation {
@@ -48,17 +51,48 @@ bool SimulatorImpl::RegisterSimulatorBlockFactory(design::backend::DesignBlockCl
 
 void SimulatorImpl::TranslateDesign(design::backend::IDesign const &design)
 {
-	auto designBlockEnumerator = design.GetBlockEnumerator();
+	class BlockMapping : public backend::IBlockMapping {
 
-	while (designBlockEnumerator->MoveNext()) {
+		std::unordered_map<design::backend::IDesignBlock const *, backend::SimulatorBlockBase *> m_blockMapping;
 
-		auto const &designBlock = designBlockEnumerator->GetCurrent();
+	public:
+
+		void AddBlockMapping(design::backend::IDesignBlock const &fromDesignBlock, backend::SimulatorBlockBase &toSimulatorBlock)
+		{
+			assert(m_blockMapping.find(&fromDesignBlock) == m_blockMapping.end());
+			m_blockMapping[&fromDesignBlock] = &toSimulatorBlock;
+		}
+
+		virtual backend::SimulatorBlockBase *DesignBlockToSimulatorBlock(design::backend::IDesignBlock const &designBlock) const override
+		{
+			auto designBlockIt = m_blockMapping.find(&designBlock);
+
+			if (designBlockIt != m_blockMapping.end())
+				return designBlockIt->second;
+			else
+				return nullptr;
+		}
+	};
+
+	BlockMapping blockMapping;
+
+	auto designBlocks = design.GetBlockCollection();
+
+	//
+	// Map blocks
+	//
+
+	m_blocks.reserve(designBlocks.size());
+
+	for (auto const &designBlock : designBlocks) {
+
 		auto blockClass = designBlock.GetClass();
 
 		auto blockFactory = m_simulatorBlockFactories.find(blockClass);
 		if (blockFactory != m_simulatorBlockFactories.end()) {
 
-			blockFactory->second->CreateFromDesignBlock(designBlock);
+			m_blocks.push_back(blockFactory->second->CreateFromDesignBlock(designBlock));
+			blockMapping.AddBlockMapping(designBlock, *m_blocks.back());
 		}
 		else {
 
@@ -66,6 +100,18 @@ void SimulatorImpl::TranslateDesign(design::backend::IDesign const &design)
 					  << designBlock.GetBlockPath()
 					  << "' of class '" << blockClass.ToString() << "'.\n";
 		}
+	}
+
+	//
+	// Map connections
+	//
+
+	for (auto &pBlock : m_blocks) {
+
+		assert(pBlock);
+		auto &block = *pBlock;
+
+		block.MapConnections(blockMapping);
 	}
 }
 

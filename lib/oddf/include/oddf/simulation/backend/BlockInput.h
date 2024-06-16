@@ -20,30 +20,38 @@
 
 /*
 
-    Interface that allows the enumeration of (iteration over) contained objects.
+    <no description>
 
 */
 
 #pragma once
 
-#include "ConstIterator.h"
-
 namespace oddf {
-namespace utility {
+namespace simulation {
+namespace backend {
 
-template<typename T>
-class IConstEnumerable {
+class BlockOutput;
+class SimulatorBlockBase;
+
+class BlockInput {
+
+private:
+
+	friend BlockOutput;
+
+	SimulatorBlockBase const *m_owningBlock;
+	BlockOutput *m_driver;
+	size_t m_index;
 
 public:
 
-	virtual ~IConstEnumerable() { }
+	BlockInput(SimulatorBlockBase const *owningBlock, size_t index);
 
-	virtual ConstIterator<T> begin() const = 0;
-	virtual ConstIterator<T> end() const = 0;
-
-	ConstIterator<T> cbegin() const { return begin(); }
-	ConstIterator<T> cend() const { return end(); }
+	bool IsConnected() const;
+	void ConnectTo(BlockOutput &output);
+	void Disconnect();
 };
 
-} // namespace utility
+} // namespace backend
+} // namespace simulation
 } // namespace oddf

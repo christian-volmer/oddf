@@ -30,6 +30,8 @@
 #include "node.h"
 #include "hierarchy.h"
 
+#include <oddf/utility/ContainerViews.h>
+
 namespace dfx {
 
 namespace debug {
@@ -190,6 +192,18 @@ void BlockBase::SetDirty()
 	if (component)
 		component->outdated = true;
 }
+
+oddf::utility::ListView<oddf::design::backend::IBlockInput> BlockBase::GetInputsList() const
+{
+	return oddf::utility::CreateListView<oddf::design::backend::IBlockInput>(inputPins);
+}
+
+oddf::utility::ListView<oddf::design::backend::IBlockOutput> BlockBase::GetOutputsList() const
+{
+	return oddf::utility::CreateListView<oddf::design::backend::IBlockOutput>(outputPins);
+}
+
+
 
 /*
 

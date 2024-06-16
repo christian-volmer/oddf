@@ -1,27 +1,27 @@
 /*
 
-	ODDF - Open Digital Design Framework
-	Copyright Advantest Corporation
-	
-	This program is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 3 of the License, or
-	(at your option) any later version.
-	
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <https://www.gnu.org/licenses/>.
+    ODDF - Open Digital Design Framework
+    Copyright Advantest Corporation
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 */
 
 /*
 
-	Classes that make up a design: node, forward_node, InputPin,
-	OutputPin
+    Classes that make up a design: node, forward_node, InputPin,
+    OutputPin
 
 */
 
@@ -34,11 +34,13 @@
 #include "types.h"
 
 #include <oddf/design/backend/IDesign.h>
+#include <oddf/design/backend/IBlockInput.h>
+#include <oddf/design/backend/IBlockOutput.h>
 
 #if defined(_MSC_VER) && _MSC_VER < 1900
 #define NOEXCEPT
 #define ALIGN __declspec(align(8))
-#pragma warning(disable: 4324) // warning about alignment
+#pragma warning(disable : 4324) // warning about alignment
 #else
 #define NOEXCEPT noexcept
 #define ALIGN
@@ -47,16 +49,21 @@
 namespace dfx {
 
 class Design;
-template<typename T> class forward_bus;
+template<typename T>
+class forward_bus;
 
 namespace backend {
 
-template<typename T> class InputPin;
-template<typename T> class OutputPin;
-template<typename T> class temporary_block;
-template<typename T> class identity_block;
+template<typename T>
+class InputPin;
+template<typename T>
+class OutputPin;
+template<typename T>
+class temporary_block;
+template<typename T>
+class identity_block;
 
-}
+} // namespace backend
 
 //
 // node<T> definition
@@ -75,12 +82,13 @@ protected:
 
 	bool IsDriven() const;
 
-	void operator <<=(node<T> const &rhs);
+	void operator<<=(node<T> const &rhs);
 
 	friend class Design;
 	friend backend::OutputPin<internalType>;
 	friend backend::InputPin<internalType>;
-	template<typename> friend class forward_bus;
+	template<typename>
+	friend class forward_bus;
 
 public:
 
@@ -88,12 +96,12 @@ public:
 	node(node<T> const &other);
 
 	// TODO: According to https://stackoverflow.com/questions/8001823/how-to-enforce-move-semantics-when-a-vector-grows
-	// the move constructor should be noexcept in order to avoid copying when an std::vector resizes. (Our copy constructor 
-	// is non-trivial with significant side-effects.). Visual Studio 2013 does not support 'noexcept', but std::vector moves 
+	// the move constructor should be noexcept in order to avoid copying when an std::vector resizes. (Our copy constructor
+	// is non-trivial with significant side-effects.). Visual Studio 2013 does not support 'noexcept', but std::vector moves
 	// anyway.
 	node(node<T> &&other) NOEXCEPT;
-	
-	node<T> &operator =(node<T> const &other);
+
+	node<T> &operator=(node<T> const &other);
 
 	backend::OutputPin<internalType> *GetDriver() const
 	{
@@ -106,8 +114,6 @@ public:
 	}
 };
 
-
-
 //
 // forware_node<T> definition
 //
@@ -115,7 +121,7 @@ public:
 template<typename T>
 class forward_node : public node<typename types::TypeTraits<T>::internalType> {
 
-	// TODO: forward_node is a hack, which is OK for the time being. Need to streamline node-interface. What happens to nodes passed as non-const reference 
+	// TODO: forward_node is a hack, which is OK for the time being. Need to streamline node-interface. What happens to nodes passed as non-const reference
 	// to function? Function is allowed to call = or <<=, but which is not obvious from the function interface.
 	// Something along those lines (or completely different)
 	// E.g. remove operator <<= from node, only have it in forward_node
@@ -133,19 +139,18 @@ public:
 	forward_node(forward_node<T> &&other) NOEXCEPT;
 
 	// TODO: do we allow moving if the left hand side has no consumer? Helps to support reg_Something = regFile.AddReadRegister<...>(...); with reg_Something being a class field.
-	void operator =(forward_node<T> &&other) = delete;
+	void operator=(forward_node<T> &&other) = delete;
 
-	using node<internalType>::operator <<=;
+	using node<internalType>::operator<<=;
 
-	friend void operator >>=(node<internalType> const &other, forward_node<T> &self)
+	friend void operator>>=(node<internalType> const &other, forward_node<T> &self)
 	{
 		self <<= other;
 	}
 
 	// Hide the = operator to avoid calling it accidentally.
-	node<internalType> &operator =(node<internalType> const &other) = delete;
+	node<internalType> &operator=(node<internalType> const &other) = delete;
 };
-
 
 //
 // design definition
@@ -187,7 +192,7 @@ public:
 	// IDesign implementation
 	//
 
-	virtual std::unique_ptr<oddf::utility::IConstEnumerator<oddf::design::backend::IDesignBlock>> GetBlockEnumerator() const override;
+	virtual oddf::utility::CollectionView<oddf::design::backend::IDesignBlock> GetBlockCollection() const override;
 };
 
 namespace backend {
@@ -196,7 +201,7 @@ namespace backend {
 // backend::OutputPin<T> definition
 //
 
-class OutputPinBase {
+class OutputPinBase : public oddf::design::backend::IBlockOutput {
 
 protected:
 
@@ -234,6 +239,18 @@ public:
 	{
 		return owner;
 	}
+
+	virtual oddf::design::backend::IDesignBlock const &GetOwningBlock() const override
+	{
+		assert(GetOwner());
+		return *GetOwner();
+	}
+
+	virtual size_t GetIndex() const override
+	{
+		assert(GetOwner());
+		return index;
+	}
 };
 
 template<typename T>
@@ -265,16 +282,15 @@ public:
 
 	OutputPin(OutputPin<T> const &) = delete;
 	OutputPin(OutputPin<T> &&) = delete;
-	void operator =(OutputPin<T> const &) = delete;
-	void operator =(OutputPin<T> &&) = delete;
+	void operator=(OutputPin<T> const &) = delete;
+	void operator=(OutputPin<T> &&) = delete;
 };
-
 
 //
 // backend::InputPin<T> definition
 //
 
-class InputPinBase {
+class InputPinBase : public oddf::design::backend::IBlockInput {
 
 protected:
 
@@ -293,8 +309,6 @@ public:
 	virtual ~InputPinBase()
 	{
 	}
-
-	virtual bool IsConnected() const = 0;
 
 	std::string GetName() const
 	{
@@ -342,6 +356,12 @@ public:
 			return nullptr;
 	}
 
+	virtual oddf::design::backend::IBlockOutput &GetDriver() const override
+	{
+		assert(driver);
+		return *driver;
+	}
+
 	virtual bool IsConnected() const override
 	{
 		return GetDrivingBlock() != nullptr;
@@ -352,13 +372,11 @@ public:
 		return driver;
 	}
 
-
 	InputPin(InputPin<T> const &) = delete;
 	InputPin(InputPin<T> &&) = delete;
-	void operator =(InputPin<T> const &) = delete;
-	void operator =(InputPin<T> &&) = delete;
+	void operator=(InputPin<T> const &) = delete;
+	void operator=(InputPin<T> &&) = delete;
 };
-
 
 //
 // backend::temporary_block<T> definition
@@ -375,14 +393,14 @@ private:
 	bool CanEvaluate() const override;
 	void Evaluate() override;
 
-	template<typename S> friend class node;
+	template<typename S>
+	friend class node;
 
 public:
 
 	OutputPin<T> Output;
 	temporary_block(T const &init);
 };
-
 
 //
 // backend::identity_block<T> definition
@@ -409,13 +427,11 @@ public:
 	identity_block(node<T> const &other);
 };
 
-}
-
+} // namespace backend
 
 ////////////////////////////////////////////////////////////////////////////////
 // implementation
 ////////////////////////////////////////////////////////////////////////////////
-
 
 //
 // node<T> implementation
@@ -434,8 +450,7 @@ inline node<T>::node(node<T> const &other) :
 }
 
 template<typename T>
-inline node<T>::node(node<T> &&other) NOEXCEPT :
-	driver(std::move(other.driver))
+inline node<T>::node(node<T> &&other) NOEXCEPT : driver(std::move(other.driver))
 {
 }
 
@@ -446,7 +461,7 @@ inline node<T>::node(backend::OutputPin<internalType> *outputPin) :
 }
 
 template<typename T>
-inline node<T> &node<T>::operator =(node<T> const &rhs)
+inline node<T> &node<T>::operator=(node<T> const &rhs)
 {
 	// same as copy constructor
 	if (rhs.GetDriver() != nullptr)
@@ -465,7 +480,7 @@ inline bool node<T>::IsDriven() const
 }
 
 template<typename T>
-inline void node<T>::operator <<=(node<T> const &rhs)
+inline void node<T>::operator<<=(node<T> const &rhs)
 {
 	if (IsDriven())
 		// We already have a OutputPin and the <<= operator cannot be used to change this.
@@ -473,8 +488,7 @@ inline void node<T>::operator <<=(node<T> const &rhs)
 		throw design_error("Operator <<= : this operator can only be used if the left-hand side node has no driver.");
 
 	if (!types::IsCompatible(driver->value, rhs.GetDriver()->value))
-		throw design_error("Operator <<= : requires both side to have the same type. Here you are trying to do '" +
-		types::GetDescription(driver->value).ToString() + "' <<= '" + types::GetDescription(rhs.GetDriver()->value).ToString() + "'.");
+		throw design_error("Operator <<= : requires both side to have the same type. Here you are trying to do '" + types::GetDescription(driver->value).ToString() + "' <<= '" + types::GetDescription(rhs.GetDriver()->value).ToString() + "'.");
 
 	// We take all pin driven by this node an connect them to the OutputPin of 'rhs'.
 	while (!driver->drivenPins.empty())
@@ -484,20 +498,21 @@ inline void node<T>::operator <<=(node<T> const &rhs)
 	driver = rhs.IsDriven() ? rhs.driver : &Design::GetCurrent().NewBlock<backend::identity_block<internalType>>(rhs).Output;
 }
 
-
 //
 // forward_node<T> implementation
 //
 
 template<typename T>
-inline forward_node<T>::forward_node() : node<internalType>(&Design::GetCurrent().NewBlock<backend::temporary_block<internalType>>(T()).Output)
+inline forward_node<T>::forward_node() :
+	node<internalType>(&Design::GetCurrent().NewBlock<backend::temporary_block<internalType>>(T()).Output)
 {
 	if (!types::IsInitialised(this->driver->value))
 		throw design_error("The given data type cannot be used with forward_node.");
 }
 
 template<typename T>
-inline forward_node<T>::forward_node(internalType const &templateType) : node<internalType>(&Design::GetCurrent().NewBlock<backend::temporary_block<internalType>>(templateType).Output)
+inline forward_node<T>::forward_node(internalType const &templateType) :
+	node<internalType>(&Design::GetCurrent().NewBlock<backend::temporary_block<internalType>>(templateType).Output)
 {
 	if (!types::IsInitialised(this->driver->value))
 		throw design_error("The given data type cannot be used with forward_node.");
@@ -507,7 +522,6 @@ template<typename T>
 inline forward_node<T>::forward_node(forward_node<T> &&other) NOEXCEPT : node<internalType>(std::move(other))
 {
 }
-
 
 //
 // Design::new_block implementation
@@ -520,8 +534,6 @@ inline blockT &Design::NewBlock(argTs &&...args)
 	blocks.push_back(std::unique_ptr<blockT>(block));
 	return *block;
 }
-
-
 
 namespace backend {
 
@@ -575,9 +587,6 @@ inline types::TypeDescription OutputPin<T>::GetType() const
 	return types::GetDescription(value);
 }
 
-
-
-
 //
 // backend::InputPin<T> implementation
 //
@@ -589,7 +598,6 @@ inline InputPin<T>::InputPin(BlockBase *owner, node<T> const &other) :
 {
 	Connect(other);
 }
-
 
 template<typename T>
 inline InputPin<T>::~InputPin()
@@ -620,7 +628,6 @@ inline void InputPin<T>::Connect(node<T> const &Other)
 	if (driver)
 		driver->RegisterPin(this);
 }
-
 
 //
 // backend::temporary_block<T> implementation
@@ -667,8 +674,6 @@ bool temporary_block<T>::IsTemporary() const
 {
 	return true;
 }
-
-
 
 //
 // backend::identity_block<T> implementation
@@ -724,9 +729,8 @@ inline void identity_block<T>::Simplify()
 	}
 }
 
+} // namespace backend
 
-}
-
-}
+} // namespace dfx
 
 #undef NOEXCEPT

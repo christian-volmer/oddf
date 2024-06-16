@@ -26,10 +26,11 @@
 
 #pragma once
 
-#include <memory>
 
 #include <oddf/design/backend/IDesignBlock.h>
-#include <oddf/utility/IConstEnumerator.h>
+#include <oddf/utility/CollectionView.h>
+
+#include <memory>
 
 namespace oddf {
 namespace design {
@@ -37,11 +38,16 @@ namespace backend {
 
 class IDesign {
 
-public:
+protected:
 
+	IDesign() = default;
 	virtual ~IDesign() { }
 
-	virtual std::unique_ptr<utility::IConstEnumerator<IDesignBlock>> GetBlockEnumerator() const = 0;
+public:
+
+	IDesign(IDesign const &) = delete;
+
+	virtual utility::CollectionView<IDesignBlock> GetBlockCollection() const = 0;
 };
 
 } // namespace backend

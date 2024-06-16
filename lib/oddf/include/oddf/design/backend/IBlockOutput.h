@@ -24,19 +24,29 @@
 
 */
 
-#include "Delay.h"
+#pragma once
 
 namespace oddf {
-namespace simulation {
-namespace internal {
-namespace blocks {
+namespace design {
+namespace backend {
 
-DelaySimulatorBlock::DelaySimulatorBlock(design::backend::IDesignBlock const &designBlock) :
-	SimulatorBlockBase(designBlock)
-{
-}
+class IDesignBlock;
 
-} // namespace blocks
-} // namespace internal
-} // namespace simulation
+class IBlockOutput {
+
+protected:
+
+	IBlockOutput() = default;
+	virtual ~IBlockOutput() { }
+
+public:
+
+	IBlockOutput(IBlockOutput const &) = delete;
+
+	virtual IDesignBlock const &GetOwningBlock() const = 0;
+	virtual size_t GetIndex() const = 0;
+};
+
+} // namespace backend
+} // namespace design
 } // namespace oddf

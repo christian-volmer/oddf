@@ -1,5 +1,7 @@
 add_library(oddf
 	src/_new/Simulator.cpp
+	src/_new/simulation/backend/BlockInput.cpp
+	src/_new/simulation/backend/BlockOutput.cpp
 	src/_new/simulation/backend/SimulatorBlockBase.cpp
 	src/_new/simulation/internal/SimulatorImpl.cpp
 	src/_new/simulation/internal/SimulatorImpl/RegisterDefaultBlockFactories.cpp

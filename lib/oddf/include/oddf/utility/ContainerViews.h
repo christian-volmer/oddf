@@ -24,19 +24,24 @@
 
 */
 
-#include "Delay.h"
+#include "ContainerViewFactory.h"
+
+#pragma once
 
 namespace oddf {
-namespace simulation {
-namespace internal {
-namespace blocks {
+namespace utility {
 
-DelaySimulatorBlock::DelaySimulatorBlock(design::backend::IDesignBlock const &designBlock) :
-	SimulatorBlockBase(designBlock)
+template<typename targetT = void, typename containerT>
+inline auto CreateCollectionView(containerT const &container)
 {
+	return ContainerViewFactory<containerT, targetT>::CreateCollectionView(container);
 }
 
-} // namespace blocks
-} // namespace internal
-} // namespace simulation
+template<typename targetT = void, typename containerT>
+inline auto CreateListView(containerT const &container)
+{
+	return ContainerViewFactory<containerT, targetT>::CreateListView(container);
+}
+
+} // namespace utility
 } // namespace oddf

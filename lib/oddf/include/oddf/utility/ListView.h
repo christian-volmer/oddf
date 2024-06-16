@@ -24,19 +24,31 @@
 
 */
 
-#include "Delay.h"
+#include "CollectionView.h"
+#include "IListViewImplementation.h"
+
+#pragma once
 
 namespace oddf {
-namespace simulation {
-namespace internal {
-namespace blocks {
+namespace utility {
 
-DelaySimulatorBlock::DelaySimulatorBlock(design::backend::IDesignBlock const &designBlock) :
-	SimulatorBlockBase(designBlock)
-{
-}
+template<typename T>
+class ListView : public CollectionView<T> {
 
-} // namespace blocks
-} // namespace internal
-} // namespace simulation
+	using CollectionView<T>::m_implementation;
+
+public:
+
+	ListView(std::shared_ptr<IListViewImplementation<T>> const &implementation) :
+		CollectionView<T>(implementation)
+	{
+	}
+
+	T const &operator[](size_t pos) const
+	{
+		return static_cast<IListViewImplementation<T> *>(m_implementation.get())->at(pos);
+	}
+};
+
+} // namespace utility
 } // namespace oddf

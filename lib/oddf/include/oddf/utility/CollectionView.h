@@ -24,19 +24,32 @@
 
 */
 
-#include "Delay.h"
+#include "ICollectionViewImplementation.h"
+
+#pragma once
 
 namespace oddf {
-namespace simulation {
-namespace internal {
-namespace blocks {
+namespace utility {
 
-DelaySimulatorBlock::DelaySimulatorBlock(design::backend::IDesignBlock const &designBlock) :
-	SimulatorBlockBase(designBlock)
-{
-}
+template<typename T>
+class CollectionView {
 
-} // namespace blocks
-} // namespace internal
-} // namespace simulation
+protected:
+
+	std::shared_ptr<ICollectionViewImplementation<T>> m_implementation;
+
+public:
+
+	CollectionView(std::shared_ptr<ICollectionViewImplementation<T>> const &implementation) :
+		m_implementation(implementation)
+	{
+	}
+
+	Iterator<T> begin() const { return m_implementation->begin(); }
+	Iterator<T> end() const { return m_implementation->end(); }
+
+	size_t size() const { return m_implementation->size(); }
+};
+
+} // namespace utility
 } // namespace oddf

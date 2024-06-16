@@ -24,19 +24,19 @@
 
 */
 
-#include "Delay.h"
+#include <oddf/simulation/backend/SimulatorBlockBase.h>
 
 namespace oddf {
 namespace simulation {
-namespace internal {
-namespace blocks {
+namespace backend {
 
-DelaySimulatorBlock::DelaySimulatorBlock(design::backend::IDesignBlock const &designBlock) :
-	SimulatorBlockBase(designBlock)
+BlockOutput::BlockOutput(SimulatorBlockBase const *owningBlock, size_t index) :
+	m_owningBlock(owningBlock),
+	m_targets(),
+	m_index(index)
 {
 }
 
-} // namespace blocks
-} // namespace internal
+} // namespace backend
 } // namespace simulation
 } // namespace oddf

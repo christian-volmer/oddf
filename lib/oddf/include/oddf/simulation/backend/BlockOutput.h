@@ -24,19 +24,30 @@
 
 */
 
-#include "Delay.h"
+#pragma once
 
 namespace oddf {
 namespace simulation {
-namespace internal {
-namespace blocks {
+namespace backend {
 
-DelaySimulatorBlock::DelaySimulatorBlock(design::backend::IDesignBlock const &designBlock) :
-	SimulatorBlockBase(designBlock)
-{
-}
+class BlockInput;
+class SimulatorBlockBase;
 
-} // namespace blocks
-} // namespace internal
+class BlockOutput {
+
+private:
+
+	friend BlockInput;
+
+	SimulatorBlockBase const *m_owningBlock;
+	std::list<BlockInput *> m_targets;
+	size_t m_index;
+
+public:
+
+	BlockOutput(SimulatorBlockBase const *owningBlock, size_t index);
+};
+
+} // namespace backend
 } // namespace simulation
 } // namespace oddf

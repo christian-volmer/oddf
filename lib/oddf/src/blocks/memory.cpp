@@ -1,27 +1,27 @@
 /*
 
-	ODDF - Open Digital Design Framework
-	Copyright Advantest Corporation
-	
-	This program is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 3 of the License, or
-	(at your option) any later version.
-	
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <https://www.gnu.org/licenses/>.
+    ODDF - Open Digital Design Framework
+    Copyright Advantest Corporation
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 */
 
 /*
 
-	Memory() implements a single-clock domain two-port memory with output
-	register.
+    Memory() implements a single-clock domain two-port memory with output
+    register.
 
 */
 
@@ -33,10 +33,10 @@ namespace dfx {
 namespace backend {
 namespace blocks {
 
-template<typename T> class memory_block : public BlockBase, private IStep, private dfx::blocks::IMemoryBackdoor<T> {
+template<typename T>
+class memory_block : public BlockBase, private IStep, private dfx::blocks::IMemoryBackdoor<T> {
 
 private:
-
 
 	int depth;
 	int width;
@@ -65,15 +65,15 @@ private:
 		for (auto &output : rdDataOutput)
 			types::Copy<T>(output.value, *(registerIt++));
 
-			/*int size = (int)content.size();
-		int rdaddress = rdAddressInput.GetValue().data[0]; // lazy conversion from ufix to int
+		/*int size = (int)content.size();
+	int rdaddress = rdAddressInput.GetValue().data[0]; // lazy conversion from ufix to int
 
-		if ((rdaddress < 0) || (rdaddress >= size))
-			throw design_error(string_printf(GetFullName() + ": read address input (address = %d) is beyond the size of the memory (size = %d).", rdaddress, size));
+	if ((rdaddress < 0) || (rdaddress >= size))
+		throw design_error(string_printf(GetFullName() + ": read address input (address = %d) is beyond the size of the memory (size = %d).", rdaddress, size));
 
-		int flatAddress = rdaddress * width;
-		for (auto &output : rdDataOutput)
-			types::Copy<T>(output.value, content[flatAddress++]);*/
+	int flatAddress = rdaddress * width;
+	for (auto &output : rdDataOutput)
+		types::Copy<T>(output.value, content[flatAddress++]);*/
 	}
 
 	void Step() override
@@ -86,21 +86,23 @@ private:
 			// Read from 'rdAddress' and put data into outputRegister
 			//
 
-			int rdaddress = rdAddressInput.GetValue().data[0]; // lazy conversion from ufix to int
+			{
+				int rdaddress = rdAddressInput.GetValue().data[0]; // lazy conversion from ufix to int
 
-			if ((rdaddress < 0) || (rdaddress >= size))
-				throw design_error(string_printf(GetFullName() + ": read address input (address = %d) is beyond the size of the memory (size = %d).", rdaddress, size));
+				if ((rdaddress < 0) || (rdaddress >= size))
+					throw design_error(string_printf(GetFullName() + ": read address input (address = %d) is beyond the size of the memory (size = %d).", rdaddress, size));
 
-			int flatAddress = rdaddress * width;
-			for (int i = 0; i < width; ++i) {
+				int flatAddress = rdaddress * width;
+				for (int i = 0; i < width; ++i) {
 
-				T tmp;
-				types::Copy<T>(tmp, content[flatAddress + i]);
-				outputRegister[i] = tmp;
+					T tmp;
+					types::Copy<T>(tmp, content[flatAddress + i]);
+					outputRegister[i] = tmp;
+				}
 			}
 
 			//
-			// Write data to 'wrAddress' 
+			// Write data to 'wrAddress'
 			//
 
 			if (wrDataEnable.GetValue()) {
@@ -201,7 +203,7 @@ public:
 		if (readAddressTypeDesc != writeAddressTypeDesc)
 			throw design_error(GetFullName() + ": the types of the 'ReadAddress' input ('" + readAddressTypeDesc.ToString() + "') and the 'WriteAddress' input ('" + writeAddressTypeDesc.ToString() + "') must be the same.");
 
-		content.resize(depth*width, defaultValue);
+		content.resize(depth * width, defaultValue);
 
 		if (memoryBackdoor)
 			*memoryBackdoor = this;
@@ -227,8 +229,8 @@ public:
 		int size = (int)content.size();
 		if ((address < 0) || ((address + count - 1) >= size))
 			throw design_error(string_printf(GetFullName() + ": write address input (address = %d) is beyond the size of the memory (size = %d).", address, size));
-			
-		for (int i = 0; i < count; i++){
+
+		for (int i = 0; i < count; i++) {
 			content[address + i] = *data;
 			data++;
 		}
@@ -242,29 +244,29 @@ public:
 		if ((address < 0) || ((address + count - 1) >= size))
 			throw design_error(string_printf(GetFullName() + ": write address input (address = %d) is beyond the size of the memory (size = %d).", address, size));
 
-		for (int i = 0; i < count; i++){
+		for (int i = 0; i < count; i++) {
 			*(data + i) = content[address + i];
 		}
 	}
 };
 
-}
-}
+} // namespace blocks
+} // namespace backend
 
 namespace blocks {
 
-#define IMPLEMENT_MEMORY_FUNCTION(_type_) \
-	node<_type_> InternalMemory(int size, node<dynfix> const &readAddress, node<bool> const &writeEnable, node<dynfix> const &writeAddress, node<_type_> const &writeData, IMemoryBackdoor<_type_> **memoryBackdoor) \
-		{ \
-		auto &block = Design::GetCurrent().NewBlock<backend::blocks::memory_block<_type_>>(size, readAddress, writeAddress, bus<_type_>(writeData), writeEnable, memoryBackdoor); \
-		return block.get_output_bus()[0]; \
-		} \
- \
+#define IMPLEMENT_MEMORY_FUNCTION(_type_)                                                                                                                                                                                 \
+	node<_type_> InternalMemory(int size, node<dynfix> const &readAddress, node<bool> const &writeEnable, node<dynfix> const &writeAddress, node<_type_> const &writeData, IMemoryBackdoor<_type_> **memoryBackdoor)      \
+	{                                                                                                                                                                                                                     \
+		auto &block = Design::GetCurrent().NewBlock<backend::blocks::memory_block<_type_>>(size, readAddress, writeAddress, bus<_type_>(writeData), writeEnable, memoryBackdoor);                                         \
+		return block.get_output_bus()[0];                                                                                                                                                                                 \
+	}                                                                                                                                                                                                                     \
+                                                                                                                                                                                                                          \
 	bus<_type_> InternalMemory(int size, node<dynfix> const &readAddress, node<bool> const &writeEnable, node<dynfix> const &writeAddress, bus_access<_type_> const &writeData, IMemoryBackdoor<_type_> **memoryBackdoor) \
-		{ \
-		auto &block = Design::GetCurrent().NewBlock<backend::blocks::memory_block<_type_>>(size, readAddress, writeAddress, writeData, writeEnable, memoryBackdoor); \
-		return block.get_output_bus(); \
-		}
+	{                                                                                                                                                                                                                     \
+		auto &block = Design::GetCurrent().NewBlock<backend::blocks::memory_block<_type_>>(size, readAddress, writeAddress, writeData, writeEnable, memoryBackdoor);                                                      \
+		return block.get_output_bus();                                                                                                                                                                                    \
+	}
 
 IMPLEMENT_MEMORY_FUNCTION(bool)
 IMPLEMENT_MEMORY_FUNCTION(double)
@@ -272,5 +274,5 @@ IMPLEMENT_MEMORY_FUNCTION(std::int32_t)
 IMPLEMENT_MEMORY_FUNCTION(std::int64_t)
 IMPLEMENT_MEMORY_FUNCTION(dynfix)
 
-}
-}
+} // namespace blocks
+} // namespace dfx

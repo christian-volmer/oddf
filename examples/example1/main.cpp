@@ -27,6 +27,8 @@
 #include "../../lib/oddf/src/dfx.h"
 
 #include <oddf/Simulator.h>
+#include <oddf/utility/ContainerViews.h>
+#include <set>
 
 namespace b = dfx::blocks;
 
@@ -36,6 +38,8 @@ int main()
 	using dfx::ufix;
 
 	dfx::Design design;
+
+#if 0
 
 	using type = ufix<16>;
 	dfx::forward_node<type> current_value;
@@ -67,6 +71,10 @@ int main()
 
 	dfx::debug::Logger.Log("reset", reset);
 	dfx::debug::Logger.Log("out", current_value);
+
+#endif
+
+	b::Terminate(b::Delay(b::Delay(b::Constant(true))));
 
 	/*
 	    dfx::Simulator simulator(design);

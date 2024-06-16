@@ -33,6 +33,8 @@
 
 #include "blocks/constant.h"
 
+#include <oddf/utility/ContainerViews.h>
+
 namespace dfx {
 
 using backend::BlockBase;
@@ -99,46 +101,9 @@ void Design::Report(std::basic_ostream<char> &os) const
 	os << endl;
 }
 
-std::unique_ptr<oddf::utility::IConstEnumerator<oddf::design::backend::IDesignBlock>> Design::GetBlockEnumerator() const
+oddf::utility::CollectionView<oddf::design::backend::IDesignBlock> Design::GetBlockCollection() const
 {
-	class BlockEnumerator : public oddf::utility::IConstEnumerator<oddf::design::backend::IDesignBlock> {
-
-	private:
-
-		std::vector<std::unique_ptr<dfx::backend::BlockBase>> const &m_Blocks;
-		size_t m_Position;
-
-	public:
-
-		BlockEnumerator(dfx::Design const &design) :
-			m_Blocks(design.GetBlocks()),
-			m_Position(size_t(-1))
-		{
-		}
-
-		virtual oddf::design::backend::IDesignBlock const &GetCurrent() const
-		{
-			if (m_Position < m_Blocks.size())
-				return *m_Blocks[m_Position].get();
-			else
-				throw std::out_of_range("BlockEnumerator::GetCurrent(): there is no current element.");
-		}
-
-		virtual bool MoveNext() noexcept
-		{
-			if (m_Position == size_t(-1) || m_Position < m_Blocks.size())
-				++m_Position;
-
-			return m_Position < m_Blocks.size();
-		}
-
-		virtual void Reset() noexcept
-		{
-			m_Position = size_t(-1);
-		}
-	};
-
-	return std::unique_ptr<oddf::utility::IConstEnumerator<oddf::design::backend::IDesignBlock>> { new BlockEnumerator(*this) };
+	return oddf::utility::CreateCollectionView<oddf::design::backend::IDesignBlock>(blocks);
 }
 
 } // namespace dfx
