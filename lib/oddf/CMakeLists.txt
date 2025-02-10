@@ -38,6 +38,7 @@ add_library(oddf
 	src/blocks/select.cpp
 	src/blocks/select_dynfix.cpp
 	src/blocks/signal.cpp
+	src/blocks/signal_dynfix.cpp
 	src/blocks/spare.cpp
 	src/blocks/terminate.cpp
 	src/configuration/configuration_access.cpp

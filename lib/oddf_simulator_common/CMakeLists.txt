@@ -7,7 +7,7 @@ add_library(oddf_simulator_common
 	"src/oddf/simulator/common/backend/blocks/not/NotMaster.cpp"
 	"src/oddf/simulator/common/backend/blocks/Probe/Probe.cpp"
 	"src/oddf/simulator/common/backend/blocks/Probe/ProbeAccessObject.cpp"
-	"src/oddf/simulator/common/backend/blocks/signal/SignalMaster.cpp"
+	"src/oddf/simulator/common/backend/blocks/Signal/Signal.cpp"
 	"src/oddf/simulator/common/backend/blocks/Temp.cpp"
 	"src/oddf/simulator/common/backend/SimulatorCore/BuildComponents.cpp"
 	"src/oddf/simulator/common/backend/SimulatorCore/ElaborateBlocks.cpp"

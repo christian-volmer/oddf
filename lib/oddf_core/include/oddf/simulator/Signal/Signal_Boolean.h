@@ -26,32 +26,31 @@
 
 #pragma once
 
-#include <oddf/simulator/common/backend/Types.h>
+#include "../backend/ISignalAccess.h"
 
-namespace oddf::simulator::common::backend::blocks {
+namespace oddf::simulator {
 
-struct I_Signal_Bool : public SimulatorInstructionBase {
+template<>
+class Signal<bool> {
 
 private:
 
-	SignalAccessObject const *m_signalAccessObject;
-	types::Boolean m_output;
-
-	static size_t InstructionFunction(I_Signal_Bool &instruction)
-	{
-		instruction.m_output.m_value = instruction.m_signalAccessObject->m_value;
-		return sizeof(instruction);
-	}
+	backend::ISignalAccess &m_signalAccess;
 
 public:
 
-	I_Signal_Bool(ISimulatorCodeGenerationContext &context, SignalAccessObject const &signalAccessObject) :
-		SimulatorInstructionBase(&InstructionFunction),
-		m_signalAccessObject(&signalAccessObject),
-		m_output()
+	Signal(oddf::simulator::ISimulator &simulator, std::string const &name) :
+		m_signalAccess(simulator.GetSimulatorAccess().GetNamedObjectInterface<backend::ISignalAccess>(name))
 	{
-		context.RegisterOutput(0, m_output);
+		if (m_signalAccess.GetType().GetTypeId() != design::NodeType::BOOLEAN)
+			throw Exception(ExceptionCode::Unsupported);
+	}
+
+	void SetValue(bool value)
+	{
+		std::uint8_t value_uint8 = value ? 1 : 0;
+		m_signalAccess.Write(&value_uint8, sizeof(value_uint8));
 	}
 };
 
-} // namespace oddf::simulator::common::backend::blocks
+} // namespace oddf::simulator

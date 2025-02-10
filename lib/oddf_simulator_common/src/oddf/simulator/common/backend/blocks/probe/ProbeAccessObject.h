@@ -31,6 +31,8 @@
 #include <oddf/simulator/common/backend/ISimulatorComponent.h>
 #include <oddf/simulator/common/backend/SimulatorBlockOutput.h>
 
+#include <oddf/utility/GetInterfaceHelper.h>
+
 #include <oddf/design/NodeType.h>
 
 namespace oddf::simulator::common::backend::blocks {
@@ -63,13 +65,24 @@ public:
 	{
 	}
 
-	virtual void *GetInterface(Uid const &iid) override;
+	virtual void *GetInterface(Uid const &iid) override
+	{
+		return utility::GetInterfaceHelper<
+			simulator::backend::IProbeAccess,
+			IObject>::GetInterface(this, iid);
+	}
 
-	virtual design::NodeType GetType() const noexcept override;
+	virtual design::NodeType GetType() const noexcept override
+	{
+		return m_nodeType;
+	}
+
+	virtual size_t GetSize() const noexcept override
+	{
+		return types::GetRequiredByteSize(m_nodeType);
+	}
 
 	virtual void Read(void *buffer, size_t count) const override;
-
-	virtual size_t GetSize() const noexcept override;
 };
 
 } // namespace oddf::simulator::common::backend::blocks

@@ -65,7 +65,10 @@ public:
 	std::string ToString() const;
 
 	TypeId GetTypeId() const noexcept;
-	int IsSigned() const noexcept;
+
+	bool IsSigned() const noexcept;
+	bool IsUnsigned() const noexcept;
+
 	int GetWordWidth() const noexcept;
 	int GetFraction() const noexcept;
 

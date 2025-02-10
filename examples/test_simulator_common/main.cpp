@@ -36,6 +36,7 @@ namespace sim = oddf::simulator;
 int main()
 {
 	using dfx::dynfix;
+	using dfx::sfix;
 	using dfx::ufix;
 
 	//
@@ -44,18 +45,11 @@ int main()
 
 	dfx::Design design;
 
-	/*
-	    bool temp = false;
-	    b::Probe(!b::Delay(b::Signal(&temp)));
-	*/
+	//	b::Probe(b::Signal(oddf::design::NodeType::FixedPoint(true, 16, 0)));
+	b::Probe(b::Constant<sfix<17, -1>>(-32768));
 
-	/*
-	    dfx::forward_node<bool> x;
-	    b::Probe(x);
-	    x <<= b::Delay(!x);
-	*/
-
-	b::Probe(b::Constant<dynfix>(257));
+	/*bool temp = 0;
+	b::Probe(b::Delay(b::Signal(&temp)));*/
 
 	//
 	// Simulation
@@ -65,29 +59,21 @@ int main()
 
 	simulator.TranslateDesign(design);
 
-	auto myProbe = sim::Probe<unsigned short>(simulator, "myprobe");
-	// auto mySignal = sim::Signal<bool>(simulator, "mysignal");
+	auto myProbe = sim::Probe<std::int16_t>(simulator, "myprobe");
+	//	auto mySignal = sim::Signal<unsigned>(simulator, "mysignal");
 
+	std::cout << "myprobe = " << myProbe.GetValue() << "\n";
+	std::cout << "run\n";
 	simulator.Run(1);
-	std::cout << myProbe.GetValue() << "\n";
 
+	std::cout << "myprobe = " << myProbe.GetValue() << "\n";
+	std::cout << "signal = 1\n";
+	//	mySignal.SetValue(123);
+	std::cout << "myprobe = " << myProbe.GetValue() << "\n";
+
+	std::cout << "run\n";
 	simulator.Run(1);
-	std::cout << myProbe.GetValue() << "\n";
-
-	simulator.Run(1);
-	std::cout << myProbe.GetValue() << "\n";
-
-	// mySignal.SetValue(true);
-	std::cout << myProbe.GetValue() << "\n";
-
-	simulator.Run(1);
-	std::cout << myProbe.GetValue() << "\n";
-
-	simulator.Run(1);
-	std::cout << myProbe.GetValue() << "\n";
-
-	simulator.Run(1);
-	std::cout << myProbe.GetValue() << "\n";
+	std::cout << "myprobe = " << myProbe.GetValue() << "\n";
 
 	return 0;
 }

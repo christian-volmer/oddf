@@ -64,7 +64,34 @@ void CopyUnsignedInteger(void *destination, size_t destinationSize, void const *
 
 void CopySignedInteger(void *destination, size_t destinationSize, void const *source, size_t sourceSize)
 {
-	throw Exception(ExceptionCode::NotImplemented);
+	using uchar = unsigned char;
+
+	uchar const *sourceAsUchar = static_cast<uchar const *>(source);
+	uchar *destinationAsUchar = static_cast<uchar *>(destination);
+
+	if (destinationSize >= sourceSize) {
+
+		size_t i = 0;
+		for (; i < sourceSize; ++i)
+			destinationAsUchar[i] = sourceAsUchar[i];
+
+		uchar signExtension = (sourceSize > 0) && (sourceAsUchar[sourceSize - 1] >= 0x80) ? 0xff : 0;
+
+		for (; i < destinationSize; ++i)
+			destinationAsUchar[i] = signExtension;
+	}
+	else {
+
+		size_t i = 0;
+		for (; i < destinationSize; ++i)
+			destinationAsUchar[i] = sourceAsUchar[i];
+
+		uchar signExtension = (destinationSize > 0) && (sourceAsUchar[destinationSize - 1] >= 0x80) ? 0xff : 0;
+
+		for (; i < sourceSize; ++i)
+			if (sourceAsUchar[i] != signExtension)
+				throw Exception(ExceptionCode::Overflow);
+	}
 }
 
 } // namespace oddf::utility

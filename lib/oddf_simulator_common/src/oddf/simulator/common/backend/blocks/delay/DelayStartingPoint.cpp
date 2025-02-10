@@ -26,7 +26,7 @@
 
 #include "../Delay.h"
 
-#include "I_DelayStartingPoint_Bool.h"
+#include "../../instructions/Copy.h"
 #include "DelayObject.h"
 
 namespace oddf::simulator::common::backend::blocks {
@@ -50,7 +50,7 @@ void DelayStartingPoint::GenerateCode(ISimulatorCodeGenerationContext &context)
 
 	m_pState = delayObject.AddState<types::Boolean>();
 
-	context.EmitInstruction<I_DelayStartingPoint_Bool>(&m_pState->m_value);
+	context.EmitInstruction<instructions::Copy<types::Boolean>>(m_pState->m_value);
 }
 
 void DelayStartingPoint::Finalise(ISimulatorFinalisationContext &)

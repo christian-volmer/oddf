@@ -20,7 +20,7 @@
 
 /*
 
-    Simulator support for the 'constant' design block.
+    Simulator support for the 'signal' design block.
 
 */
 
@@ -31,14 +31,14 @@
 namespace oddf::simulator::common::backend::blocks {
 
 //
-// SignalMaster
+// Signal
 //
 
-class SignalMaster : public SimulatorBlockBase {
+class Signal : public SimulatorBlockBase {
 
 public:
 
-	SignalMaster(design::blocks::backend::IDesignBlock const &designBlock);
+	Signal(design::blocks::backend::IDesignBlock const &designBlock);
 
 	virtual std::string GetDesignPathHint() const override;
 

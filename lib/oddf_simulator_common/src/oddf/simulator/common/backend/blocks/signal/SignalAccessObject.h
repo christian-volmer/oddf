@@ -26,27 +26,57 @@
 
 #pragma once
 
-#include <oddf/utility/GetInterfaceHelper.h>
 #include <oddf/simulator/backend/ISignalAccess.h>
+
 #include <oddf/simulator/common/backend/ISimulatorComponent.h>
 
-#include <cstring>
+#include <oddf/simulator/common/backend/Types.h>
+
+#include <oddf/utility/GetInterfaceHelper.h>
+#include <oddf/utility/CopyBoolean.h>
+#include <oddf/utility/CopyInteger.h>
+
+#include <memory>
 
 namespace oddf::simulator::common::backend::blocks {
 
+template<typename T, typename = void>
+struct InternalTypeHelper;
+
+template<typename T>
+struct InternalTypeHelper<T, std::void_t<typename T::ValueType>> {
+
+	using type = typename T::ValueType;
+};
+
+template<typename T>
+struct InternalTypeHelper<T, std::void_t<typename T::ElementType>> {
+
+	using type = typename T::ElementType;
+};
+
+template<typename T>
+using InternalType = typename InternalTypeHelper<T>::type;
+
+template<typename simulatorT>
 class SignalAccessObject : public virtual simulator::backend::ISignalAccess {
 
-public:
+private:
+
+	using SimulatorType = simulatorT;
 
 	ISimulatorComponent &m_component;
 	design::NodeType m_nodeType;
-	types::Boolean::ValueType m_value;
 
-	SignalAccessObject(ISimulatorComponent &component, design::NodeType const &nodeType) :
-		m_component(component),
-		m_nodeType(nodeType),
-		m_value()
+	std::unique_ptr<InternalType<SimulatorType>[]> m_value;
+
+public:
+
+	SignalAccessObject(ISimulatorComponent &component, design::NodeType const &nodeType);
+
+	InternalType<SimulatorType> const &GetSource() const
 	{
+		return m_value[0];
 	}
 
 	virtual void *GetInterface(Uid const &iid) override
@@ -61,31 +91,54 @@ public:
 		return m_nodeType;
 	}
 
-	virtual void Write(void const *buffer, size_t count) override
-	{
-		if (count > 1)
-			throw Exception(ExceptionCode::Bounds);
-
-		if (count == 1) {
-
-			std::uint8_t newValue = 0;
-
-			std::memcpy(&newValue, buffer, 1);
-
-			newValue = newValue != 0;
-
-			if (newValue != m_value) {
-
-				m_value = newValue;
-				m_component.InvalidateState();
-			}
-		}
-	}
-
 	virtual size_t GetSize() const noexcept override
 	{
-		return 1;
+		return types::GetRequiredByteSize(m_nodeType);
 	}
+
+	virtual void Write(void const *buffer, size_t count) override;
 };
+
+//
+// Implementation for types::Boolean
+//
+
+template<>
+inline SignalAccessObject<types::Boolean>::SignalAccessObject(ISimulatorComponent &component, design::NodeType const &nodeType) :
+	m_component(component),
+	m_nodeType(nodeType),
+	m_value(new InternalType<SimulatorType>[1] {})
+{
+}
+
+template<>
+inline void SignalAccessObject<types::Boolean>::Write(void const *buffer, size_t count)
+{
+	utility::CopyBoolean(m_value.get(), types::GetStoredByteSize(m_nodeType), buffer, count);
+	m_component.InvalidateState();
+}
+
+//
+// Implementation for types::FixedPointElement
+//
+
+template<>
+inline SignalAccessObject<types::FixedPointElement>::SignalAccessObject(ISimulatorComponent &component, design::NodeType const &nodeType) :
+	m_component(component),
+	m_nodeType(nodeType),
+	m_value(new InternalType<SimulatorType>[SimulatorType::RequiredElementCount(nodeType)] { })
+{
+}
+
+template<>
+inline void SignalAccessObject<types::FixedPointElement>::Write(void const *buffer, size_t count)
+{
+	if (m_nodeType.IsSigned())
+		utility::CopySignedInteger(m_value.get(), types::GetStoredByteSize(m_nodeType), buffer, count);
+	else
+		utility::CopyUnsignedInteger(m_value.get(), types::GetStoredByteSize(m_nodeType), buffer, count);
+
+	m_component.InvalidateState();
+}
 
 } // namespace oddf::simulator::common::backend::blocks

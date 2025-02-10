@@ -20,7 +20,7 @@
 
 /*
 
-    Implementation of the fixed-point Probe() block for the common
+    Implementation of the fixed-point Signal() block for the common
     simulator backend.
 
 */
@@ -31,20 +31,20 @@ namespace dfx {
 namespace backend {
 namespace blocks {
 
-class probe_block_dynfix : public BlockBase {
+class signal_block_dynfix : public BlockBase {
 
 private:
 
-	InputPin<dynfix> input;
+	OutputPin<dynfix> output;
 
 	source_blocks_t GetSourceBlocks() const override
 	{
-		return source_blocks_t({ input.GetDrivingBlock() });
+		return source_blocks_t();
 	}
 
 	bool CanEvaluate() const override
 	{
-		return false;
+		return true;
 	}
 
 	void Evaluate() override
@@ -53,14 +53,19 @@ private:
 
 public:
 
-	probe_block_dynfix(node<dynfix> const &theNode) :
-		BlockBase("probe"),
-		input(this, theNode)
+	signal_block_dynfix(oddf::design::NodeType const &nodeType) :
+		BlockBase("signal"),
+		output(this, dynfix(nodeType.IsSigned(), nodeType.GetWordWidth(), nodeType.GetFraction()))
 	{
 	}
 
-	probe_block_dynfix(probe_block_dynfix const &) = delete;
-	void operator=(probe_block_dynfix const &) = delete;
+	signal_block_dynfix(signal_block_dynfix const &) = delete;
+	void operator=(signal_block_dynfix const &) = delete;
+
+	node<dynfix> get_node()
+	{
+		return output.GetNode();
+	}
 };
 
 } // namespace blocks
@@ -68,9 +73,10 @@ public:
 
 namespace blocks {
 
-void Probe(node<dynfix> const &theNode)
+node<dynfix> Signal(oddf::design::NodeType const &nodeType)
 {
-	Design::GetCurrent().NewBlock<backend::blocks::probe_block_dynfix>(theNode);
+	auto &block = Design::GetCurrent().NewBlock<backend::blocks::signal_block_dynfix>(nodeType);
+	return block.get_node();
 }
 
 } // namespace blocks

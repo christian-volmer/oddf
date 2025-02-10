@@ -60,6 +60,8 @@ public:
 		alignas(classT) char tempStorage[sizeof(classT)];
 		size_t offset = reinterpret_cast<char const *>(&(reinterpret_cast<classT const *>(&tempStorage)->*variaticMember)) - tempStorage;
 
+		// TODO: hier sollten wir checken, dass der variadic member auch der letzte member ist...
+
 		size_t size = offset + count * sizeof(memberT);
 
 		// Round up to the next multiple of alignof(classT)

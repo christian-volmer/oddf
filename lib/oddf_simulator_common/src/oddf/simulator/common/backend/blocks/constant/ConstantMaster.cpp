@@ -80,7 +80,8 @@ void ConstantMaster::GenerateCode(ISimulatorCodeGenerationContext &context)
 			size_t elementCount = types::FixedPointElement::RequiredElementCount(outputType);
 
 			context.EmitInstructionVariadic<I_Const_FixedPoint>(
-				I_Const_FixedPoint::GetVariadicMember(), elementCount, constantBlock, elementCount);
+				I_Const_FixedPoint::GetVariadicMember(), elementCount,
+				constantBlock, elementCount);
 			break;
 		}
 

@@ -24,37 +24,34 @@
 
 */
 
-#include "../Probe.h"
+#include "../Signal.h"
 
-#include "ProbeAccessObject.h"
+#include "SignalAccessObject.h"
+
+#include "../../instructions/Copy.h"
 
 #include <oddf/Exception.h>
 
 namespace oddf::simulator::common::backend::blocks {
 
-Probe::Probe(design::blocks::backend::IDesignBlock const &designBlock) :
+Signal::Signal(design::blocks::backend::IDesignBlock const &designBlock) :
 	SimulatorBlockBase(designBlock)
 {
 }
 
-std::string Probe::GetDesignPathHint() const
+std::string Signal::GetDesignPathHint() const
 {
 	return GetDesignBlockReference()->GetPath();
 }
 
-void Probe::Elaborate(ISimulatorElaborationContext &)
+void Signal::Elaborate(ISimulatorElaborationContext &)
 {
 	auto outputs = GetOutputsList();
 
-	if (outputs.GetSize() != 0)
+	if (outputs.GetSize() != 1)
 		throw Exception(ExceptionCode::Unsupported);
 
-	auto inputs = GetInputsList();
-
-	if (inputs.GetSize() != 1)
-		throw Exception(ExceptionCode::Unsupported);
-
-	auto typeId = inputs[0].GetType().GetTypeId();
+	auto typeId = outputs[0].GetType().GetTypeId();
 
 	switch (typeId) {
 
@@ -65,31 +62,43 @@ void Probe::Elaborate(ISimulatorElaborationContext &)
 		default:
 			throw Exception(ExceptionCode::Unsupported);
 	}
+
+	auto inputs = GetInputsList();
+
+	if (inputs.GetSize() != 0)
+		throw Exception(ExceptionCode::Unsupported);
 }
 
-void Probe::Finalise(ISimulatorFinalisationContext &context)
+void Signal::GenerateCode(ISimulatorCodeGenerationContext &context)
 {
-	auto inputs = GetInputsList();
-	auto const &input = inputs[0];
+	auto outputs = GetOutputsList();
+	auto const &output = outputs[0];
 
-	switch (input.GetType().GetTypeId()) {
+	auto type = output.GetType();
+
+	switch (type.GetTypeId()) {
 
 		case design::NodeType::BOOLEAN: {
 
-			context.ConstructGlobalObject<ProbeAccessObject<types::Boolean>>(
-				"myprobe",
-				context.GetCurrentComponent(),
-				input.GetDriver());
+			auto &signalAccessObject = context.ConstructGlobalObject<SignalAccessObject<types::Boolean>>("mysignal",
+				context.GetCurrentComponent(), type);
+
+			context.EmitInstruction<instructions::Copy<types::Boolean>>(signalAccessObject.GetSource());
+
 			break;
 		}
 
 		case design::NodeType::FIXED_POINT: {
 
-			context.ConstructGlobalObject<ProbeAccessObject<types::FixedPointElement>>(
-				"myprobe",
-				context.GetCurrentComponent(),
-				input.GetDriver(),
-				types::FixedPointElement::RequiredElementCount(input.GetType()));
+			auto &signalAccessObject = context.ConstructGlobalObject<SignalAccessObject<types::FixedPointElement>>("mysignal",
+				context.GetCurrentComponent(), type);
+
+			size_t elementCount = types::FixedPointElement::RequiredElementCount(type);
+
+			context.EmitInstructionVariadic<instructions::Copy<types::FixedPointElement>>(
+				instructions::Copy<types::FixedPointElement>::GetVariadicMember(), elementCount,
+				signalAccessObject.GetSource(), elementCount);
+
 			break;
 		}
 

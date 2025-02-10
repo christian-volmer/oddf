@@ -36,10 +36,14 @@ struct FixedPointElement {
 
 	using ElementType = std::uint8_t;
 
-	ElementType m_value;
+private:
+
+	ElementType m_content;
+
+public:
 
 	FixedPointElement() :
-		m_value() {};
+		m_content() {};
 
 	FixedPointElement(FixedPointElement const &) = delete;
 	void operator=(FixedPointElement const &) = delete;

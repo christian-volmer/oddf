@@ -128,9 +128,14 @@ int NodeType::GetWordWidth() const noexcept
 		return -m_param1;
 }
 
-int NodeType::IsSigned() const noexcept
+bool NodeType::IsSigned() const noexcept
 {
 	return m_param1 < 0;
+}
+
+bool NodeType::IsUnsigned() const noexcept
+{
+	return !IsSigned();
 }
 
 int NodeType::GetFraction() const noexcept

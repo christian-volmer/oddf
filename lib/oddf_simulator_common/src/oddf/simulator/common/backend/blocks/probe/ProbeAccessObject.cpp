@@ -28,41 +28,14 @@
 
 #include <oddf/simulator/common/backend/Types.h>
 
-#include <oddf/utility/GetInterfaceHelper.h>
 #include <oddf/utility/CopyBoolean.h>
 #include <oddf/utility/CopyInteger.h>
 
-#include <type_traits>
-
 namespace oddf::simulator::common::backend::blocks {
-
-template<typename simulatorT>
-void *ProbeAccessObject<simulatorT>::GetInterface(Uid const &iid)
-{
-	return utility::GetInterfaceHelper<
-		simulator::backend::IProbeAccess,
-		IObject>::GetInterface(this, iid);
-}
-
-template<typename simulatorT>
-design::NodeType ProbeAccessObject<simulatorT>::GetType() const noexcept
-{
-	return m_nodeType;
-}
-
-template<typename simulatorT>
-size_t ProbeAccessObject<simulatorT>::GetSize() const noexcept
-{
-	return types::GetRequiredByteSize(m_nodeType);
-}
 
 //
 // types::Boolean
 //
-
-template void *ProbeAccessObject<types::Boolean>::GetInterface(Uid const &iid);
-template design::NodeType ProbeAccessObject<types::Boolean>::GetType() const noexcept;
-template size_t ProbeAccessObject<types::Boolean>::GetSize() const noexcept;
 
 template<>
 void ProbeAccessObject<types::Boolean>::Read(void *buffer, size_t count) const
@@ -75,15 +48,14 @@ void ProbeAccessObject<types::Boolean>::Read(void *buffer, size_t count) const
 // types::FixedPointElement
 //
 
-template void *ProbeAccessObject<types::FixedPointElement>::GetInterface(Uid const &iid);
-template design::NodeType ProbeAccessObject<types::FixedPointElement>::GetType() const noexcept;
-template size_t ProbeAccessObject<types::FixedPointElement>::GetSize() const noexcept;
-
 template<>
 void ProbeAccessObject<types::FixedPointElement>::Read(void *buffer, size_t count) const
 {
 	m_component.EnsureValidState();
-	utility::CopyUnsignedInteger(buffer, count, m_probedOutputPointer, types::GetStoredByteSize(m_nodeType));
+	if (m_nodeType.IsSigned())
+		utility::CopySignedInteger(buffer, count, m_probedOutputPointer, types::GetStoredByteSize(m_nodeType));
+	else
+		utility::CopyUnsignedInteger(buffer, count, m_probedOutputPointer, types::GetStoredByteSize(m_nodeType));
 }
 
 } // namespace oddf::simulator::common::backend::blocks

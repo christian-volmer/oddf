@@ -51,40 +51,112 @@ public:
 			case design::NodeType::FIXED_POINT:
 
 				if (m_type.GetFraction() > 0)
-					throw Exception(ExceptionCode::Unsupported);
+					throw Exception(ExceptionCode::Unsupported, "Reading a non-integer node through a C++ integer type is not supported.");
+
+				if (m_type.IsSigned() && std::is_unsigned_v<integralT>)
+					throw Exception(ExceptionCode::Unsupported, "Reading a signed integer node through an unsigned C++ integer type is not supported.");
+
 				break;
 
 			default:
-				throw Exception(ExceptionCode::Unsupported);
+				throw Exception(ExceptionCode::Unsupported, "The node type cannot be read through a C++ integer type.");
 		}
 	}
 
 	integralT GetValue()
 	{
-		integralT rawValue { 0 };
+		size_t const bitShift = size_t(-m_type.GetFraction());
 
-		m_probeAccess.Read(&rawValue, sizeof(rawValue));
-		if (rawValue == 0)
-			return rawValue;
+		if (m_type.IsUnsigned()) {
 
-		if constexpr (std::is_unsigned_v<integralT>) {
+			using unsignedT = std::make_unsigned_t<integralT>;
 
-			if (static_cast<size_t>(-m_type.GetFraction()) >= sizeof(integralT) * 8)
-				throw Exception(ExceptionCode::Overflow);
+			unsignedT unsignedValue { 0 };
 
-			integralT scale = integralT { 1 } << static_cast<integralT>(-m_type.GetFraction());
+			// Read will throw if the value is outside the range of `unsignedT`.
+			m_probeAccess.Read(&unsignedValue, sizeof(unsignedValue));
 
-			// Unsigned integer overflow is not undefined behaviour, so we can let it happen.
-			integralT value = rawValue * scale;
+			if (unsignedValue && bitShift) {
 
-			if (value / scale != rawValue)
-				throw Exception(ExceptionCode::Overflow);
+				// Since `unsignedValue` is > 0, any bit shift larger than the word width
+				// of `integralT` minus 1 will overflow.
+				if (bitShift > 8 * sizeof(unsignedValue) - 1)
+					throw Exception(ExceptionCode::Overflow);
 
-			return value;
+				unsignedT overflow = unsignedT(1) << (8 * sizeof(unsignedValue) - bitShift);
+
+				if (unsignedValue >= overflow)
+					throw Exception(ExceptionCode::Overflow);
+
+				unsignedT scale = unsignedT(1) << bitShift;
+
+				unsignedValue *= scale;
+			}
+
+			if constexpr (std::is_unsigned_v<integralT>) {
+
+				return unsignedValue;
+			}
+			else {
+
+				unsignedT overflowForSigned = unsignedT(1) << (8 * sizeof(unsignedValue) - 1);
+
+				if (unsignedValue >= overflowForSigned)
+					throw Exception(ExceptionCode::Overflow);
+
+				return integralT(unsignedValue);
+			}
 		}
-		else
-			// TODO: implement for signed integer. Careful with undefined behaviour and unexpected overflows.
-			throw Exception(ExceptionCode::NotImplemented);
+		else {
+
+			if constexpr (std::is_unsigned_v<integralT>) {
+
+				// Should have been cought in constructor.
+				throw Exception(ExceptionCode::Unexpected);
+			}
+			else {
+
+				using signedT = integralT;
+
+				signedT signedValue { 0 };
+
+				// Read will throw if the value is outside the range of `signedT`.
+				m_probeAccess.Read(&signedValue, sizeof(signedValue));
+
+				if (signedValue && bitShift) {
+
+					if (signedValue >= 0) {
+
+						if (bitShift > 8 * sizeof(signedValue) - 2)
+							throw Exception(ExceptionCode::Overflow);
+
+						signedT overflow = signedT(1) << (8 * sizeof(signedValue) - 1 - bitShift);
+
+						if (signedValue >= overflow)
+							throw Exception(ExceptionCode::Overflow);
+					}
+					else {
+
+						if (bitShift > 8 * sizeof(signedValue) - 1)
+							throw Exception(ExceptionCode::Overflow);
+
+						signedT overflow = signedT(1) << (8 * sizeof(signedValue) - 1 - bitShift);
+						overflow = -overflow;
+
+						if (signedValue < overflow)
+							throw Exception(ExceptionCode::Overflow);
+					}
+
+					// `bitShift` is > 0. Subtract 1 to avoid overflow with signed `scale`.
+					signedT scale = signedT(1) << (bitShift - 1);
+
+					signedValue *= scale;
+					signedValue *= 2;
+				}
+
+				return signedValue;
+			}
+		}
 	}
 };
 

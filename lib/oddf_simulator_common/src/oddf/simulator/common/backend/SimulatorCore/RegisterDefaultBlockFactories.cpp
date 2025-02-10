@@ -45,7 +45,7 @@ void SimulatorCore::RegisterDefaultBlockFactories()
 	RegisterSimulatorBlockFactory(DesignBlockClass("delay"), MakeSimulatorBlockFactory<blocks::DelayMaster>());
 	RegisterSimulatorBlockFactory(DesignBlockClass("not"), MakeSimulatorBlockFactory<blocks::NotMaster>());
 	RegisterSimulatorBlockFactory(DesignBlockClass("probe"), MakeSimulatorBlockFactory<blocks::Probe>());
-	RegisterSimulatorBlockFactory(DesignBlockClass("signal"), MakeSimulatorBlockFactory<blocks::SignalMaster>());
+	RegisterSimulatorBlockFactory(DesignBlockClass("signal"), MakeSimulatorBlockFactory<blocks::Signal>());
 	RegisterSimulatorBlockFactory(DesignBlockClass("temporary"), MakeSimulatorBlockFactory<blocks::TempMaster>());
 }
 
