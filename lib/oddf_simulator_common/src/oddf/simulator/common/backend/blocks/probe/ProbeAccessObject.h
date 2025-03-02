@@ -31,6 +31,8 @@
 #include <oddf/simulator/common/backend/ISimulatorComponent.h>
 #include <oddf/simulator/common/backend/SimulatorBlockOutput.h>
 
+#include <oddf/utility/CopyBoolean.h>
+#include <oddf/utility/CopyInteger.h>
 #include <oddf/utility/GetInterfaceHelper.h>
 
 #include <oddf/design/NodeType.h>
@@ -84,5 +86,30 @@ public:
 
 	virtual void Read(void *buffer, size_t count) const override;
 };
+
+//
+// Implementation for types::Boolean
+//
+
+template<>
+inline void ProbeAccessObject<types::Boolean>::Read(void *buffer, size_t count) const
+{
+	m_component.EnsureValidState();
+	utility::CopyBoolean(buffer, count, m_probedOutputPointer, types::GetStoredByteSize(m_nodeType));
+}
+
+//
+// Implementation for types::FixedPointElement
+//
+
+template<>
+inline void ProbeAccessObject<types::FixedPointElement>::Read(void *buffer, size_t count) const
+{
+	m_component.EnsureValidState();
+	if (m_nodeType.IsSigned())
+		utility::CopySignedInteger(buffer, count, m_probedOutputPointer, types::GetStoredByteSize(m_nodeType));
+	else
+		utility::CopyUnsignedInteger(buffer, count, m_probedOutputPointer, types::GetStoredByteSize(m_nodeType));
+}
 
 } // namespace oddf::simulator::common::backend::blocks

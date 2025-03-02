@@ -40,24 +40,6 @@
 
 namespace oddf::simulator::common::backend::blocks {
 
-template<typename T, typename = void>
-struct InternalTypeHelper;
-
-template<typename T>
-struct InternalTypeHelper<T, std::void_t<typename T::ValueType>> {
-
-	using type = typename T::ValueType;
-};
-
-template<typename T>
-struct InternalTypeHelper<T, std::void_t<typename T::ElementType>> {
-
-	using type = typename T::ElementType;
-};
-
-template<typename T>
-using InternalType = typename InternalTypeHelper<T>::type;
-
 template<typename simulatorT>
 class SignalAccessObject : public virtual simulator::backend::ISignalAccess {
 
@@ -68,13 +50,13 @@ private:
 	ISimulatorComponent &m_component;
 	design::NodeType m_nodeType;
 
-	std::unique_ptr<InternalType<SimulatorType>[]> m_value;
+	std::unique_ptr<SimulatorType[]> m_value;
 
 public:
 
 	SignalAccessObject(ISimulatorComponent &component, design::NodeType const &nodeType);
 
-	InternalType<SimulatorType> const &GetSource() const
+	SimulatorType const &GetSource() const
 	{
 		return m_value[0];
 	}
@@ -107,7 +89,7 @@ template<>
 inline SignalAccessObject<types::Boolean>::SignalAccessObject(ISimulatorComponent &component, design::NodeType const &nodeType) :
 	m_component(component),
 	m_nodeType(nodeType),
-	m_value(new InternalType<SimulatorType>[1] {})
+	m_value(new SimulatorType[1] {})
 {
 }
 
@@ -126,7 +108,7 @@ template<>
 inline SignalAccessObject<types::FixedPointElement>::SignalAccessObject(ISimulatorComponent &component, design::NodeType const &nodeType) :
 	m_component(component),
 	m_nodeType(nodeType),
-	m_value(new InternalType<SimulatorType>[SimulatorType::RequiredElementCount(nodeType)] { })
+	m_value(new SimulatorType[SimulatorType::RequiredElementCount(nodeType)] {})
 {
 }
 

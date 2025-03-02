@@ -44,19 +44,29 @@ void DelayMaster::Elaborate(ISimulatorElaborationContext &context)
 {
 	auto outputs = GetOutputsList();
 
-	if (outputs.GetSize() != 1)
+	size_t pathCount = outputs.GetSize();
+
+	if (pathCount != 1)
 		throw Exception(ExceptionCode::Unsupported);
 
-	if (outputs[0].GetType().GetTypeId() != design::NodeType::BOOLEAN)
+	auto type = outputs[0].GetType();
+
+	if (!((type.GetTypeId() == design::NodeType::BOOLEAN)
+			|| (type.GetTypeId() == design::NodeType::FIXED_POINT)))
 		throw Exception(ExceptionCode::Unsupported);
+
+	for (size_t i = 1; i < pathCount; ++i)
+		if (outputs[i].GetType() != type)
+			throw Exception(ExceptionCode::Unsupported);
 
 	auto inputs = GetInputsList();
 
-	if (inputs.GetSize() != 1)
+	if (inputs.GetSize() != pathCount)
 		throw Exception(ExceptionCode::Unsupported);
 
-	if (inputs[0].GetType().GetTypeId() != design::NodeType::BOOLEAN)
-		throw Exception(ExceptionCode::Unsupported);
+	for (size_t i = 0; i < pathCount; ++i)
+		if (inputs[i].GetType() != type)
+			throw Exception(ExceptionCode::Unsupported);
 
 	/*
 
@@ -72,10 +82,35 @@ void DelayMaster::Elaborate(ISimulatorElaborationContext &context)
 	*/
 
 	auto &endpoint = context.AddSimulatorBlock<DelayEndpoint>(GetDesignBlockReference());
-	auto &startingPoint = context.AddSimulatorBlock<DelayStartingPoint>(GetDesignBlockReference(), design::NodeType::Boolean(), endpoint);
+
+	SimulatorBlockBase *startingPoint;
+
+	switch (type.GetTypeId()) {
+
+		case design::NodeType::BOOLEAN: {
+
+			startingPoint = &context.AddSimulatorBlock<DelayStartingPoint<types::Boolean>>(
+				GetDesignBlockReference(),
+				type,
+				endpoint);
+			break;
+		}
+
+		case design::NodeType::FIXED_POINT: {
+
+			startingPoint = &context.AddSimulatorBlock<DelayStartingPoint<types::FixedPointElement>>(
+				GetDesignBlockReference(),
+				type,
+				endpoint);
+			break;
+		}
+
+		default:
+			throw Exception(ExceptionCode::NotImplemented);
+	}
 
 	context.TransferConnectivity(inputs[0], endpoint.GetInputsList()[0]);
-	context.TransferConnectivity(outputs[0], startingPoint.GetOutputsList()[0]);
+	context.TransferConnectivity(outputs[0], startingPoint->GetOutputsList()[0]);
 
 	context.RemoveThisBlock();
 }

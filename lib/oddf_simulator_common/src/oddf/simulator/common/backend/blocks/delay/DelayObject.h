@@ -38,17 +38,88 @@ namespace oddf {
 
 namespace simulator::common::backend::blocks {
 
+class DelayStateBase {
+public:
+
+	DelayStateBase() = default;
+	virtual ~DelayStateBase() = default;
+
+	DelayStateBase(DelayStateBase const &) = delete;
+	void operator=(DelayStateBase const &) = delete;
+
+	virtual void Clock() = 0;
+};
+
+template<typename T, typename = void>
+class DelayState;
+
 template<typename T>
-struct DelayState;
+class DelayState<T, std::void_t<typename T::ValueType>> : public DelayStateBase {
 
-template<>
-struct DelayState<types::Boolean> {
+private:
 
-	types::Boolean const *m_pSource;
-	types::Boolean::ValueType m_value;
+	T const *m_pSource;
+	T m_current;
+
+	virtual void Clock() override
+	{
+		m_current.m_value = m_pSource->m_value;
+	}
+
+public:
 
 	DelayState() :
-		m_pSource(), m_value() { }
+		m_pSource(), m_current() { }
+
+	DelayState(DelayState const &) = delete;
+	void operator=(DelayState const &) = delete;
+
+	T const &ReferenceToCurrent()
+	{
+		return m_current;
+	}
+
+	void SetSource(T const *pSource)
+	{
+		m_pSource = pSource;
+	}
+};
+
+template<typename T>
+class DelayState<T, std::void_t<typename T::ElementType>> : public DelayStateBase {
+
+private:
+
+	size_t m_byteCount;
+	T const *m_pSource;
+	std::unique_ptr<T[]> m_current;
+
+	virtual void Clock() override
+	{
+		memcpy(static_cast<void *>(&m_current[0]), m_pSource, m_byteCount);
+	}
+
+public:
+
+	DelayState(size_t elementCount) :
+		m_byteCount(elementCount * sizeof(T)),
+		m_pSource(),
+		m_current(new T[elementCount] {})
+	{
+	}
+
+	DelayState(DelayState const &) = delete;
+	void operator=(DelayState const &) = delete;
+
+	T const &ReferenceToCurrent()
+	{
+		return m_current[0];
+	}
+
+	void SetSource(T const *pSource)
+	{
+		m_pSource = pSource;
+	}
 };
 
 class DelayObject : public virtual IClockable {
@@ -57,18 +128,37 @@ private:
 
 	ISimulatorComponent &m_component;
 
-	std::list<DelayState<types::Boolean>> m_booleanStates;
+	std::list<std::unique_ptr<DelayStateBase>> m_states;
 
 public:
 
 	DelayObject(ISimulatorComponent &component) :
 		m_component(component),
-		m_booleanStates()
+		m_states()
 	{
 	}
 
 	template<typename T>
-	DelayState<types::Boolean> *AddState();
+	DelayState<T> *AddState()
+	{
+		static_assert(types::IsValueType<T>);
+
+		auto state = std::make_unique<DelayState<T>>();
+		auto *ptr = state.get();
+		m_states.emplace_back(std::move(state));
+		return ptr;
+	}
+
+	template<typename T>
+	DelayState<T> *AddState(size_t elementCount)
+	{
+		static_assert(!types::IsValueType<T>);
+
+		auto state = std::make_unique<DelayState<T>>(elementCount);
+		auto *ptr = state.get();
+		m_states.emplace_back(std::move(state));
+		return ptr;
+	}
 
 	//
 	// IObject
@@ -85,18 +175,12 @@ public:
 
 	virtual void Clock() override
 	{
-		for (auto &state : m_booleanStates)
-			state.m_value = state.m_pSource->m_value;
+		for (auto &state : m_states)
+			state->Clock();
 
 		m_component.InvalidateState();
 	}
 };
-
-template<>
-inline DelayState<types::Boolean> *DelayObject::AddState<types::Boolean>()
-{
-	return &m_booleanStates.emplace_back();
-}
 
 } // namespace simulator::common::backend::blocks
 

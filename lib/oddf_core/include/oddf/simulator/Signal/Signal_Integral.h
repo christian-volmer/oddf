@@ -50,7 +50,7 @@ public:
 
 			case design::NodeType::FIXED_POINT:
 
-				if (m_type.GetFraction() > 0)
+				if (m_type.GetFraction() != 0)
 					throw Exception(ExceptionCode::Unsupported);
 				break;
 
@@ -61,9 +61,6 @@ public:
 
 	void SetValue(integralT const value)
 	{
-		if (m_type.GetFraction() != 0)
-			throw Exception(ExceptionCode::IllegalMethodCall);
-
 		m_signalAccess.Write(&value, sizeof(value));
 	}
 };

@@ -31,3 +31,25 @@
 
 #include "types/GetRequiredByteSize.h"
 #include "types/GetStoredByteSize.h"
+
+namespace oddf::simulator::common::backend::types {
+
+namespace detail {
+
+template<typename T, typename = void>
+struct IsValueType_t;
+
+template<typename T>
+struct IsValueType_t<T, std::void_t<typename T::ValueType>> : public std::bool_constant<true> {
+};
+
+template<typename T>
+struct IsValueType_t<T, std::void_t<typename T::ElementType>> : public std::bool_constant<false> {
+};
+
+} // namespace detail
+
+template<typename T>
+inline bool constexpr IsValueType = detail::IsValueType_t<T>::value;
+
+} // namespace oddf::simulator::common::backend::types

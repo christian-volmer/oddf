@@ -39,18 +39,18 @@ struct Copy<T, std::void_t<typename T::ValueType>> : public SimulatorInstruction
 
 private:
 
-	typename T::ValueType const *m_pSource;
+	T const *m_pSource;
 	T m_output;
 
 	static size_t InstructionFunction(Copy &instruction)
 	{
-		memcpy(&instruction.m_output.m_value, instruction.m_pSource, sizeof(T));
+		instruction.m_output.m_value = instruction.m_pSource->m_value;
 		return sizeof(instruction);
 	}
 
 public:
 
-	Copy(ISimulatorCodeGenerationContext &context, typename T::ValueType const &source) :
+	Copy(ISimulatorCodeGenerationContext &context, T const &source) :
 		SimulatorInstructionBase(&InstructionFunction),
 		m_pSource(&source),
 		m_output()
@@ -65,13 +65,13 @@ struct Copy<T, std::void_t<typename T::ElementType>> : public SimulatorInstructi
 private:
 
 	size_t m_byteCount;
-	typename T::ElementType const *m_pSource;
+	T const *m_pSource;
 	T m_output[1];
 
 	static size_t InstructionFunction(Copy &instruction)
 	{
-		memcpy(&instruction.m_output, instruction.m_pSource, instruction.m_byteCount);
-		return sizeof(instruction);
+		memcpy(static_cast<void *>(&instruction.m_output[0]), instruction.m_pSource, instruction.m_byteCount);
+		return sizeof(instruction) - sizeof(T) + instruction.m_byteCount;
 	}
 
 public:
@@ -81,7 +81,7 @@ public:
 		return &Copy::m_output;
 	}
 
-	Copy(ISimulatorCodeGenerationContext &context, typename T::ElementType const &source, size_t elementCount) :
+	Copy(ISimulatorCodeGenerationContext &context, T const &source, size_t elementCount) :
 		SimulatorInstructionBase(&InstructionFunction),
 		m_byteCount(elementCount * sizeof(T)),
 		m_pSource(&source),

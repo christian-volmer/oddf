@@ -46,7 +46,7 @@ int main()
 	dfx::Design design;
 
 	//	b::Probe(b::Signal(oddf::design::NodeType::FixedPoint(true, 16, 0)));
-	b::Probe(b::Constant<sfix<17, -1>>(-32768));
+	b::Probe(b::Delay(b::Delay(b::Signal(oddf::design::NodeType::FixedPoint(true, 111, 0)))));
 
 	/*bool temp = 0;
 	b::Probe(b::Delay(b::Signal(&temp)));*/
@@ -59,8 +59,8 @@ int main()
 
 	simulator.TranslateDesign(design);
 
-	auto myProbe = sim::Probe<std::int16_t>(simulator, "myprobe");
-	//	auto mySignal = sim::Signal<unsigned>(simulator, "mysignal");
+	auto myProbe = sim::Probe<int>(simulator, "myprobe");
+	auto mySignal = sim::Signal<int>(simulator, "mysignal");
 
 	std::cout << "myprobe = " << myProbe.GetValue() << "\n";
 	std::cout << "run\n";
@@ -68,7 +68,11 @@ int main()
 
 	std::cout << "myprobe = " << myProbe.GetValue() << "\n";
 	std::cout << "signal = 1\n";
-	//	mySignal.SetValue(123);
+	mySignal.SetValue(-123);
+	std::cout << "myprobe = " << myProbe.GetValue() << "\n";
+
+	std::cout << "run\n";
+	simulator.Run(1);
 	std::cout << "myprobe = " << myProbe.GetValue() << "\n";
 
 	std::cout << "run\n";

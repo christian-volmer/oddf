@@ -29,6 +29,7 @@
 #include <oddf/simulator/common/backend/SimulatorBlockBase.h>
 
 #include "delay/DelayObject.h"
+#include "../instructions/Copy.h"
 
 namespace oddf::simulator::common::backend::blocks {
 
@@ -74,26 +75,69 @@ public:
 // DelayStartingPoint
 //
 
+template<typename T>
 class DelayStartingPoint : public SimulatorBlockBase {
 
 private:
 
 	design::blocks::backend::IDesignBlock const *m_originalDesignBlock;
+	design::NodeType m_type;
 	DelayEndpoint const &m_endpoint;
-	DelayState<types::Boolean> *m_pState;
+	DelayState<T> *m_pState;
 
 public:
 
-	DelayStartingPoint(design::blocks::backend::IDesignBlock const *originalDesignBlock, design::NodeType const &type, DelayEndpoint const &endpoint);
+	DelayStartingPoint(design::blocks::backend::IDesignBlock const *originalDesignBlock, design::NodeType const &type, DelayEndpoint const &endpoint) :
+		SimulatorBlockBase(0, { type }),
+		m_originalDesignBlock(originalDesignBlock),
+		m_type(type),
+		m_endpoint(endpoint),
+		m_pState()
+	{
+	}
 
-	DelayStartingPoint(DelayStartingPoint const &) = delete;
-	void operator=(DelayStartingPoint const &) = delete;
+	DelayStartingPoint(DelayStartingPoint<T> const &) = delete;
+	void operator=(DelayStartingPoint<T> const &) = delete;
 
-	virtual std::string GetDesignPathHint() const override;
+	virtual std::string GetDesignPathHint() const override
+	{
+		return m_originalDesignBlock->GetPath() + ":StartingPoint";
+	}
 
 	virtual void Elaborate(ISimulatorElaborationContext &) override { }
-	virtual void GenerateCode(ISimulatorCodeGenerationContext &) override;
-	virtual void Finalise(ISimulatorFinalisationContext &context) override;
+
+	virtual void GenerateCode(ISimulatorCodeGenerationContext &context) override
+	{
+		auto &delayObject = context.GetOrConstructComponentObject<DelayObject>(context.GetCurrentComponent());
+
+		if constexpr (types::IsValueType<T>) {
+
+			m_pState = delayObject.AddState<T>();
+			context.EmitInstruction<instructions::Copy<T>>(m_pState->ReferenceToCurrent());
+		}
+		else {
+
+			size_t elementCount = T::RequiredElementCount(m_type);
+			m_pState = delayObject.AddState<T>(elementCount);
+
+			context.EmitInstructionVariadic<instructions::Copy<T>>(
+				instructions::Copy<T>::GetVariadicMember(), elementCount,
+				m_pState->ReferenceToCurrent(), elementCount);
+		}
+	}
+
+	virtual void Finalise(ISimulatorFinalisationContext &) override
+	{
+		if constexpr (types::IsValueType<T>) {
+
+			m_pState->SetSource(m_endpoint.GetInputsList()[0].GetDriver().GetPointer<T>());
+		}
+		else {
+
+			size_t elementCount = T::RequiredElementCount(m_type);
+			m_pState->SetSource(m_endpoint.GetInputsList()[0].GetDriver().GetPointer<T>(elementCount));
+		}
+	}
 };
 
 } // namespace oddf::simulator::common::backend::blocks
