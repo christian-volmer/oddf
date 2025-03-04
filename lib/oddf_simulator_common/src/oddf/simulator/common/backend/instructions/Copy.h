@@ -26,69 +26,70 @@
 
 #pragma once
 
-#include <oddf/simulator/common/backend/Types.h>
-#include <oddf/simulator/common/backend/SimulatorInstructionBase.h>
+#include <oddf/simulator/common/backend/SimulatorBlockOutput.h>
+#include <oddf/simulator/common/backend/ISimulatorCodeGenerationContext.h>
 
 namespace oddf::simulator::common::backend::instructions {
 
 template<typename T, typename = void>
-struct Copy;
+class CopyInstruction;
 
 template<typename T>
-struct Copy<T, std::void_t<typename T::ValueType>> : public SimulatorInstructionBase {
+class CopyInstruction<T, std::void_t<typename T::ValueType>> : public SimulatorInstruction {
 
 private:
 
-	T const *m_pSource;
-	T m_output;
+	T const *m_source;
+	T m_result;
 
-	static size_t InstructionFunction(Copy &instruction)
+	static void InstructionFunction(CopyInstruction *instruction)
 	{
-		instruction.m_output.m_value = instruction.m_pSource->m_value;
-		return sizeof(instruction);
+		instruction->m_result.m_value = instruction->m_source->m_value;
 	}
 
 public:
 
-	Copy(ISimulatorCodeGenerationContext &context, T const &source) :
-		SimulatorInstructionBase(&InstructionFunction),
-		m_pSource(&source),
-		m_output()
+	static void Emit(ISimulatorCodeGenerationContext &context, SimulatorBlockOutput const &output, T const &source)
 	{
-		context.RegisterOutput(0, m_output);
-	}
+		context.StartInstruction<CopyInstruction>(InstructionFunction);
+		auto *instruction = context.CommitInstruction<CopyInstruction>();
+
+		instruction->m_source = &source;
+		context.BindOutput(output.GetIndex(), instruction->m_result);
+	};
 };
 
 template<typename T>
-struct Copy<T, std::void_t<typename T::ElementType>> : public SimulatorInstructionBase {
+class CopyInstruction<T, std::void_t<typename T::ElementType>> : public SimulatorInstruction {
 
 private:
 
 	size_t m_byteCount;
-	T const *m_pSource;
-	T m_output[1];
+	T const *m_source;
+	T m_result[1];
 
-	static size_t InstructionFunction(Copy &instruction)
+	static void InstructionFunction(CopyInstruction *instruction)
 	{
-		memcpy(static_cast<void *>(&instruction.m_output[0]), instruction.m_pSource, instruction.m_byteCount);
-		return sizeof(instruction) - sizeof(T) + instruction.m_byteCount;
+		memcpy(&instruction->m_result[0].m_content, instruction->m_source, instruction->m_byteCount);
 	}
 
 public:
 
-	static auto GetVariadicMember()
+	static void Emit(ISimulatorCodeGenerationContext &context, SimulatorBlockOutput const &output, T const &source)
 	{
-		return &Copy::m_output;
-	}
+		auto elementCount = T::RequiredElementCount(output.GetType());
 
-	Copy(ISimulatorCodeGenerationContext &context, T const &source, size_t elementCount) :
-		SimulatorInstructionBase(&InstructionFunction),
-		m_byteCount(elementCount * sizeof(T)),
-		m_pSource(&source),
-		m_output()
-	{
-		context.RegisterOutput(0, m_output, elementCount);
-	}
+		context.StartInstructionVariadic<CopyInstruction>(
+			InstructionFunction,
+			&CopyInstruction::m_result,
+			elementCount);
+
+		auto *instruction = context.CommitInstruction<CopyInstruction>();
+
+		instruction->m_byteCount = sizeof(types::FixedPointElement) * elementCount;
+		instruction->m_source = &source;
+		context.BindOutput(output.GetIndex(), instruction->m_result);
+	};
 };
 
 } // namespace oddf::simulator::common::backend::instructions

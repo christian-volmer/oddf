@@ -83,8 +83,7 @@ void Signal::GenerateCode(ISimulatorCodeGenerationContext &context)
 			auto &signalAccessObject = context.ConstructGlobalObject<SignalAccessObject<types::Boolean>>("mysignal",
 				context.GetCurrentComponent(), type);
 
-			context.EmitInstruction<instructions::Copy<types::Boolean>>(signalAccessObject.GetSource());
-
+			instructions::CopyInstruction<types::Boolean>::Emit(context, outputs[0], signalAccessObject.GetSource());
 			break;
 		}
 
@@ -93,12 +92,7 @@ void Signal::GenerateCode(ISimulatorCodeGenerationContext &context)
 			auto &signalAccessObject = context.ConstructGlobalObject<SignalAccessObject<types::FixedPointElement>>("mysignal",
 				context.GetCurrentComponent(), type);
 
-			size_t elementCount = types::FixedPointElement::RequiredElementCount(type);
-
-			context.EmitInstructionVariadic<instructions::Copy<types::FixedPointElement>>(
-				instructions::Copy<types::FixedPointElement>::GetVariadicMember(), elementCount,
-				signalAccessObject.GetSource(), elementCount);
-
+			instructions::CopyInstruction<types::FixedPointElement>::Emit(context, outputs[0], signalAccessObject.GetSource());
 			break;
 		}
 

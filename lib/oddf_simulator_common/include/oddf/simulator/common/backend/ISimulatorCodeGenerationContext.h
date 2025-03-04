@@ -26,11 +26,10 @@
 
 #pragma once
 
-#include "SimulatorInstructionBase.h"
+#include "ISimulatorComponentContext.h"
+#include "SimulatorInstruction.h"
 
 #include "Types.h"
-
-#include "ISimulatorComponentContext.h"
 
 #include <type_traits>
 #include <cstdint>
@@ -41,40 +40,70 @@ class ISimulatorCodeGenerationContext : public virtual ISimulatorComponentContex
 
 protected:
 
-	virtual void *InternalEmitInstruction(size_t size, size_t alignment) = 0;
+	virtual void InternalStartInstruction(size_t size, size_t alignment, SimulatorInstructionFunction<> *instructionFunction) = 0;
+	virtual size_t InternalAddRecord(size_t size, size_t alignment) = 0;
+	virtual void *InternalCommitInstruction() = 0;
+	virtual void *InternalGetRecord(size_t offset) = 0;
 
 public:
 
 	virtual ~ISimulatorCodeGenerationContext() = default;
 
-	template<typename classT, typename... argTs>
-	void EmitInstruction(argTs &&...args)
+	template<typename instructionT>
+	void StartInstruction(SimulatorInstructionFunction<instructionT> *instructionFunction)
 	{
-		auto *instruction = InternalEmitInstruction(sizeof(classT), alignof(classT));
-		new (instruction) classT(*this, std::forward<argTs>(args)...);
+		static_assert(std::is_base_of_v<SimulatorInstruction, instructionT>);
+		InternalStartInstruction(
+			sizeof(instructionT),
+			alignof(instructionT),
+			reinterpret_cast<SimulatorInstructionFunction<> *>(instructionFunction));
 	}
 
-	template<typename classT, typename memberT, typename... argTs>
-	void EmitInstructionVariadic(memberT (classT::*variaticMember)[1], size_t count, argTs &&...args)
+	template<typename instructionT, typename memberT>
+	void StartInstructionVariadic(SimulatorInstructionFunction<instructionT> *instructionFunction,
+		memberT (instructionT::*variaticMember)[1], size_t count)
 	{
-		alignas(classT) char tempStorage[sizeof(classT)];
-		size_t offset = reinterpret_cast<char const *>(&(reinterpret_cast<classT const *>(&tempStorage)->*variaticMember)) - tempStorage;
+		static_assert(std::is_base_of_v<SimulatorInstruction, instructionT>);
 
-		// TODO: hier sollten wir checken, dass der variadic member auch der letzte member ist...
+		alignas(instructionT) char tempStorage[sizeof(instructionT)];
+		size_t offset = reinterpret_cast<char const *>(&(reinterpret_cast<instructionT const *>(&tempStorage)->*variaticMember)) - tempStorage;
+
+		// TODO: check, if possible, that the variadic member really is the last member.
 
 		size_t size = offset + count * sizeof(memberT);
 
-		// Round up to the next multiple of alignof(classT)
-		size = ((size + alignof(classT) - 1) / alignof(classT)) * alignof(classT);
+		// Round up to the next multiple of alignof(instructionT)
+		size = ((size + alignof(instructionT) - 1) / alignof(instructionT)) * alignof(instructionT);
 
-		auto *instruction = InternalEmitInstruction(size, alignof(classT));
-		new (instruction) classT(*this, std::forward<argTs>(args)...);
+		InternalStartInstruction(
+			size,
+			alignof(instructionT),
+			reinterpret_cast<SimulatorInstructionFunction<> *>(instructionFunction));
 	}
 
-	virtual void RegisterInput(size_t index, types::Boolean const *&inputPointerReference) = 0;
+	template<typename recordT>
+	size_t AddRecord()
+	{
+		return InternalAddRecord(sizeof(recordT), alignof(recordT));
+	}
 
-	virtual void RegisterOutput(size_t index, types::Boolean &outputReference) = 0;
-	virtual void RegisterOutput(size_t index, types::FixedPointElement *outputReference, size_t elementCount) = 0;
+	template<typename instructionT>
+	instructionT *CommitInstruction()
+	{
+		return reinterpret_cast<instructionT *>(InternalCommitInstruction());
+	}
+
+	template<typename recordT>
+	recordT *GetRecord(size_t offset)
+	{
+		return reinterpret_cast<recordT *>(InternalGetRecord(offset));
+	}
+
+	virtual void BindInputReference(size_t index, types::Boolean const *&inputPointerReference) = 0;
+	virtual void BindInputReference(size_t index, types::FixedPointElement const *&inputPointerReference) = 0;
+
+	virtual void BindOutput(size_t index, types::Boolean &outputReference) = 0;
+	virtual void BindOutput(size_t index, types::FixedPointElement *outputReference) = 0;
 };
 
 } // namespace oddf::simulator::common::backend

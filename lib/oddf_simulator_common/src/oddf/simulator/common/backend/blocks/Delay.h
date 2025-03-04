@@ -110,20 +110,12 @@ public:
 	{
 		auto &delayObject = context.GetOrConstructComponentObject<DelayObject>(context.GetCurrentComponent());
 
-		if constexpr (types::IsValueType<T>) {
-
+		if constexpr (types::IsValueType<T>)
 			m_pState = delayObject.AddState<T>();
-			context.EmitInstruction<instructions::Copy<T>>(m_pState->ReferenceToCurrent());
-		}
-		else {
+		else
+			m_pState = delayObject.AddState<T>(T::RequiredElementCount(m_type));
 
-			size_t elementCount = T::RequiredElementCount(m_type);
-			m_pState = delayObject.AddState<T>(elementCount);
-
-			context.EmitInstructionVariadic<instructions::Copy<T>>(
-				instructions::Copy<T>::GetVariadicMember(), elementCount,
-				m_pState->ReferenceToCurrent(), elementCount);
-		}
+		instructions::CopyInstruction<T>::Emit(context, GetOutputsList()[0], m_pState->ReferenceToCurrent());
 	}
 
 	virtual void Finalise(ISimulatorFinalisationContext &) override

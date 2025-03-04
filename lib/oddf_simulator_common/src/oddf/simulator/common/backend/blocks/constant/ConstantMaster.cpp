@@ -25,8 +25,6 @@
 */
 
 #include "../Constant.h"
-#include "I_Const_Bool.h"
-#include "I_Const_FixedPoint.h"
 
 #include <oddf/Exception.h>
 #include <oddf/design/blocks/backend/IConstantBlock.h>
@@ -62,32 +60,83 @@ void ConstantMaster::Elaborate(ISimulatorElaborationContext &)
 		throw Exception(ExceptionCode::Unsupported);
 }
 
-void ConstantMaster::GenerateCode(ISimulatorCodeGenerationContext &context)
-{
-	auto &constantBlock = GetDesignBlockReference()->GetInterface<design::blocks::backend::IConstantBlock>();
+template<typename T, typename = void>
+class ConstantInstruction;
 
-	auto outputType = GetOutputsList()[0].GetType();
-	switch (outputType.GetTypeId()) {
+template<typename T>
+class ConstantInstruction<T, std::void_t<typename T::ValueType>> : public SimulatorInstruction {
+
+private:
+
+	T m_output;
+
+	static void InstructionFunction(ConstantInstruction *)
+	{
+	}
+
+public:
+
+	static void Emit(ISimulatorCodeGenerationContext &context, SimulatorBlockOutput const &output, design::blocks::backend::IConstantBlock const &constantBlock)
+	{
+		context.StartInstruction(InstructionFunction);
+		auto *instruction = context.CommitInstruction<ConstantInstruction>();
+
+		context.BindOutput(output.GetIndex(), instruction->m_output);
+		constantBlock.Read(&instruction->m_output, sizeof(T));
+	};
+};
+
+template<typename T>
+class ConstantInstruction<T, std::void_t<typename T::ElementType>> : public SimulatorInstruction {
+
+private:
+
+	T m_output[1];
+
+	static void InstructionFunction(ConstantInstruction *)
+	{
+	}
+
+public:
+
+	static void Emit(ISimulatorCodeGenerationContext &context, SimulatorBlockOutput const &output, design::blocks::backend::IConstantBlock const &constantBlock)
+	{
+		auto elementCount = T::RequiredElementCount(output.GetType());
+
+		context.StartInstructionVariadic(InstructionFunction, &ConstantInstruction::m_output, elementCount);
+		auto *instruction = context.CommitInstruction<ConstantInstruction>();
+
+		context.BindOutput(output.GetIndex(), instruction->m_output);
+		constantBlock.Read(instruction->m_output, sizeof(T) * elementCount);
+	};
+};
+
+void EmitConstantInstruction(ISimulatorCodeGenerationContext &context, SimulatorBlockOutput const &output, design::blocks::backend::IConstantBlock const &constantBlock)
+{
+	switch (output.GetType().GetTypeId()) {
 
 		case design::NodeType::BOOLEAN: {
 
-			context.EmitInstruction<I_Const_Bool>(constantBlock);
+			ConstantInstruction<types::Boolean>::Emit(context, output, constantBlock);
 			break;
 		}
 
 		case design::NodeType::FIXED_POINT: {
 
-			size_t elementCount = types::FixedPointElement::RequiredElementCount(outputType);
-
-			context.EmitInstructionVariadic<I_Const_FixedPoint>(
-				I_Const_FixedPoint::GetVariadicMember(), elementCount,
-				constantBlock, elementCount);
+			ConstantInstruction<types::FixedPointElement>::Emit(context, output, constantBlock);
 			break;
 		}
 
 		default:
 			throw Exception(ExceptionCode::NotImplemented);
 	}
+}
+
+void ConstantMaster::GenerateCode(ISimulatorCodeGenerationContext &context)
+{
+	auto &constantBlock = GetDesignBlockReference()->GetInterface<design::blocks::backend::IConstantBlock>();
+
+	EmitConstantInstruction(context, GetOutputsList()[0], constantBlock);
 }
 
 } // namespace oddf::simulator::common::backend::blocks

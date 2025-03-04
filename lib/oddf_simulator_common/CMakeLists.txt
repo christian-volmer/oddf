@@ -3,6 +3,7 @@ add_library(oddf_simulator_common
 	"src/oddf/simulator/common/backend/blocks/constant/ConstantMaster.cpp"
 	"src/oddf/simulator/common/backend/blocks/delay/DelayEndpoint.cpp"
 	"src/oddf/simulator/common/backend/blocks/delay/DelayMaster.cpp"
+	"src/oddf/simulator/common/backend/blocks/minus/Minus.cpp"
 	"src/oddf/simulator/common/backend/blocks/not/NotMaster.cpp"
 	"src/oddf/simulator/common/backend/blocks/Probe/Probe.cpp"
 	"src/oddf/simulator/common/backend/blocks/Signal/Signal.cpp"

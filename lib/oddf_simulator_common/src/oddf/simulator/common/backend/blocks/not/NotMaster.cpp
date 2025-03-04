@@ -25,7 +25,6 @@
 */
 
 #include "../Not.h"
-#include "I_Not_Bool.h"
 
 #include <oddf/Exception.h>
 
@@ -60,9 +59,35 @@ void NotMaster::Elaborate(ISimulatorElaborationContext &)
 		throw Exception(ExceptionCode::Unsupported);
 }
 
+// CLEANUP: where do we put instructions?
+
+class NotInstruction : public SimulatorInstruction {
+
+private:
+
+	types::Boolean const *m_operand;
+	types::Boolean m_result;
+
+	static void InstructionFunction(NotInstruction *instruction)
+	{
+		instruction->m_result.m_value = (~(instruction->m_operand->m_value)) & 1;
+	}
+
+public:
+
+	static void Emit(ISimulatorCodeGenerationContext &context, SimulatorBlockOutput const &output, SimulatorBlockInput const &input)
+	{
+		context.StartInstruction(InstructionFunction);
+		auto *instruction = context.CommitInstruction<NotInstruction>();
+
+		context.BindInputReference(input.GetIndex(), instruction->m_operand);
+		context.BindOutput(output.GetIndex(), instruction->m_result);
+	}
+};
+
 void NotMaster::GenerateCode(ISimulatorCodeGenerationContext &context)
 {
-	context.EmitInstruction<I_Not_Bool>();
+	NotInstruction::Emit(context, GetOutputsList()[0], GetInputsList()[0]);
 }
 
 } // namespace oddf::simulator::common::backend::blocks

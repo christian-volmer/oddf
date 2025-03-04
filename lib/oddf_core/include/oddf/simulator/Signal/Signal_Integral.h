@@ -61,6 +61,11 @@ public:
 
 	void SetValue(integralT const value)
 	{
+		/*
+		    TODO catch overflow based on the actual type of the underlying node
+		    Do it here? Do it inside SignalAccessObject? Do it inside CopySignedInteger/CopyUnsignedInteger?
+		*/
+
 		m_signalAccess.Write(&value, sizeof(value));
 	}
 };

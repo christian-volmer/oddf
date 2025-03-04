@@ -30,6 +30,7 @@
 
 #include "../blocks/Constant.h"
 #include "../blocks/Delay.h"
+#include "../blocks/Minus.h"
 #include "../blocks/Not.h"
 #include "../blocks/Probe.h"
 #include "../blocks/Signal.h"
@@ -43,6 +44,7 @@ void SimulatorCore::RegisterDefaultBlockFactories()
 
 	RegisterSimulatorBlockFactory(DesignBlockClass("constant"), MakeSimulatorBlockFactory<blocks::ConstantMaster>());
 	RegisterSimulatorBlockFactory(DesignBlockClass("delay"), MakeSimulatorBlockFactory<blocks::DelayMaster>());
+	RegisterSimulatorBlockFactory(DesignBlockClass("negate"), MakeSimulatorBlockFactory<blocks::Minus>());
 	RegisterSimulatorBlockFactory(DesignBlockClass("not"), MakeSimulatorBlockFactory<blocks::NotMaster>());
 	RegisterSimulatorBlockFactory(DesignBlockClass("probe"), MakeSimulatorBlockFactory<blocks::Probe>());
 	RegisterSimulatorBlockFactory(DesignBlockClass("signal"), MakeSimulatorBlockFactory<blocks::Signal>());

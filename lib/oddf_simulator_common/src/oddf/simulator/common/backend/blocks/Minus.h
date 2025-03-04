@@ -20,43 +20,31 @@
 
 /*
 
-    <no description>
+    Simulator support for the 'negate' design block.
 
 */
 
 #pragma once
 
-#include <oddf/simulator/common/backend/Types.h>
-#include <oddf/design/blocks/backend/IConstantBlock.h>
+#include <oddf/simulator/common/backend/SimulatorBlockBase.h>
 
 namespace oddf::simulator::common::backend::blocks {
 
-struct I_Const_FixedPoint : public SimulatorInstructionBase {
+//
+// NotMaster
+//
 
-private:
-
-	types::FixedPointElement m_output[1];
-
-	static size_t InstructionFunction(I_Const_FixedPoint &instruction)
-	{
-		return sizeof(instruction);
-	}
+class Minus : public SimulatorBlockBase {
 
 public:
 
-	static auto GetVariadicMember()
-	{	
-		return &I_Const_FixedPoint::m_output;
-	}
+	Minus(design::blocks::backend::IDesignBlock const &designBlock);
 
-	I_Const_FixedPoint(ISimulatorCodeGenerationContext &context, design::blocks::backend::IConstantBlock const &constantBlock, size_t elementCount) :
-		SimulatorInstructionBase(&InstructionFunction),
-		m_output()
-	{
-		constantBlock.Read(&m_output, sizeof(m_output) * elementCount);
+	virtual std::string GetDesignPathHint() const override;
 
-		context.RegisterOutput(0, m_output, elementCount);
-	}
+	virtual void Elaborate(ISimulatorElaborationContext &context) override;
+
+	virtual void GenerateCode(ISimulatorCodeGenerationContext &context) override;
 };
 
 } // namespace oddf::simulator::common::backend::blocks

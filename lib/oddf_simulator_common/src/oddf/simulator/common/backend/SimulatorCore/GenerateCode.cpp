@@ -40,65 +40,96 @@ void SimulatorCore::GenerateCode()
 
 	private:
 
-		// No-Operation (NOP) instruction used to fulfil alignment requirements.
-		struct I_NoOperation : public SimulatorInstructionBase {
-
-		private:
-
-			static size_t InstructionFunction(I_NoOperation &instruction)
-			{
-				return sizeof(instruction);
-			}
-
-		public:
-
-			I_NoOperation(ISimulatorCodeGenerationContext &) :
-				SimulatorInstructionBase(&InstructionFunction) { }
-		};
-
-	private:
-
 		// Reference to the component managed by this instance.
 		SimulatorComponent &m_component;
 
 		std::vector<char> &m_code;
 
 		SimulatorBlockBase *m_currentBlock;
-		void *m_currentInstruction;
-		size_t m_currentInstructionSize;
+		SimulatorInstruction *m_previousInstruction;
+		SimulatorInstruction *m_currentInstruction;
+		bool m_currentInstructionCommitted;
 
 		CodeGenerationContext(CodeGenerationContext const &) = delete;
 		void operator=(CodeGenerationContext const &) = delete;
 
-		virtual void *InternalEmitInstruction(size_t size, size_t alignment) override
+		void ResizeCode(size_t newSize)
 		{
-			if (m_currentInstruction)
-				throw Exception(ExceptionCode::IllegalMethodCall, "EmitInstruction() was already called on this block. Cannot call it a second time.");
+			if (newSize < m_code.size())
+				throw Exception(ExceptionCode::InvalidArgument, "Parameter 'newSize' must be greater than or equal to the current size.");
 
-			// Insert no-operation instructions to fulfil requested alignment
-			auto misalignment = m_code.size() % alignment;
-			while (misalignment) {
+			if (m_currentInstructionCommitted)
+				throw Exception(ExceptionCode::IllegalMethodCall, "Cannot do changes to code size after the current instruction has been committed.");
 
-				EmitInstruction<I_NoOperation>();
-				misalignment = m_code.size() % alignment;
+			if (newSize > m_code.size()) {
+
+				auto *oldCodePointer = m_code.data();
+				m_code.resize(newSize);
+
+				if (m_previousInstruction)
+					m_previousInstruction += m_code.data() - oldCodePointer;
+
+				if (m_currentInstruction)
+					m_currentInstruction += m_code.data() - oldCodePointer;
+			}
+		}
+
+		virtual void InternalStartInstruction(size_t size, size_t alignment, SimulatorInstructionFunction<> *instructionFunction) override
+		{
+			if (m_currentInstruction) {
+
+				if (!m_currentInstructionCommitted)
+					throw Exception(ExceptionCode::IllegalMethodCall, "Must first commit the current instruction before starting a new one.");
+
+				m_previousInstruction = m_currentInstruction;
+				m_currentInstruction = nullptr;
+				m_currentInstructionCommitted = false;
 			}
 
-			m_code.insert(m_code.end(), size, 0);
+			auto misalignment = m_code.size() % alignment;
+			if (misalignment)
+				ResizeCode(m_code.size() + alignment - misalignment);
 
-			m_currentInstruction = m_code.data() + (m_code.size() - size);
-			m_currentInstructionSize = size;
+			if (m_previousInstruction)
+				m_previousInstruction->m_size = m_code.data() + m_code.size() - reinterpret_cast<char *>(m_previousInstruction);
 
+			ResizeCode(m_code.size() + size);
+
+			m_currentInstruction = reinterpret_cast<SimulatorInstruction *>(m_code.data() + m_code.size() - size);
+			m_currentInstruction->m_size = 0;
+			m_currentInstruction->m_function = instructionFunction;
+		}
+
+		virtual size_t InternalAddRecord(size_t /* size */, size_t /* alignment */) override
+		{
+			throw Exception(ExceptionCode::NotImplemented);
+		}
+
+		virtual void *InternalCommitInstruction() override
+		{
+			if (!m_currentInstruction)
+				throw Exception(ExceptionCode::IllegalMethodCall, "There is no instruction to commit.");
+
+			if (m_currentInstructionCommitted)
+				throw Exception(ExceptionCode::IllegalMethodCall, "The current instruction has already been committed.");
+
+			m_currentInstructionCommitted = true;
 			return m_currentInstruction;
 		}
 
+		virtual void *InternalGetRecord(size_t /* offset*/) override
+		{
+			throw Exception(ExceptionCode::NotImplemented);
+		}
+
 		//
-		// Input registration
+		// Input binding
 		//
 
 		void InternalRegisterInput(size_t index, void const **inputPointerPointer, design::NodeType::TypeId expectedTypeId)
 		{
-			if (!m_currentInstruction)
-				throw Exception(ExceptionCode::IllegalMethodCall, "EmitInstruction() must be called before calling this function.");
+			if (!m_currentInstruction || !m_currentInstructionCommitted)
+				throw Exception(ExceptionCode::IllegalMethodCall, "Cannot not call this function unless the current instruction has been committed.");
 
 			auto &inputs = m_currentBlock->m_internals->m_inputs;
 
@@ -113,27 +144,29 @@ void SimulatorCore::GenerateCode()
 			if (input.GetType().GetTypeId() != expectedTypeId)
 				throw Exception(ExceptionCode::InvalidArgument, "Type of the argument must match the type of the simulator block input.");
 
-			ptrdiff_t offset = (char const *)inputPointerPointer - (char const *)m_currentInstruction;
-
-			if (offset < (ptrdiff_t)sizeof(SimulatorInstructionBase) || offset + (ptrdiff_t)sizeof(void *) > (ptrdiff_t)m_currentInstructionSize)
-				throw Exception(ExceptionCode::InvalidArgument, "Argument 'inputPointerPointer' is not within the memory bounds of the current instruction.");
+			// TODO: confirm that `inputPointerPointer` is within the bounds of the current instruction.
 
 			input.m_inputPointerReference = reinterpret_cast<char const *>(inputPointerPointer) - m_code.data();
 		}
 
-		virtual void RegisterInput(size_t index, types::Boolean const *&inputPointerReference) override
+		virtual void BindInputReference(size_t index, types::Boolean const *&inputPointerReference) override
 		{
 			InternalRegisterInput(index, reinterpret_cast<void const **>(&inputPointerReference), design::NodeType::BOOLEAN);
 		}
 
+		virtual void BindInputReference(size_t index, types::FixedPointElement const *&inputPointerReference) override
+		{
+			InternalRegisterInput(index, reinterpret_cast<void const **>(&inputPointerReference), design::NodeType::FIXED_POINT);
+		}
+
 		//
-		// Output registration
+		// Output binding
 		//
 
-		void InternalRegisterOutput(size_t index, void *storagePointer, size_t storageSize, design::NodeType::TypeId expectedTypeId)
+		void InternalRegisterOutput(size_t index, void *storagePointer, design::NodeType::TypeId expectedTypeId)
 		{
-			if (!m_currentInstruction)
-				throw Exception(ExceptionCode::IllegalMethodCall, "EmitInstruction() must be called before calling this function.");
+			if (!m_currentInstruction || !m_currentInstructionCommitted)
+				throw Exception(ExceptionCode::IllegalMethodCall, "Cannot not call this function unless the current instruction has been committed.");
 
 			auto &outputs = m_currentBlock->m_internals->m_outputs;
 
@@ -148,25 +181,19 @@ void SimulatorCore::GenerateCode()
 			if (output.GetType().GetTypeId() != expectedTypeId)
 				throw Exception(ExceptionCode::InvalidArgument, "Type of the argument must match the type of the simulator block output.");
 
-			if (types::GetStoredByteSize(output.GetType()) != storageSize)
-				throw Exception(ExceptionCode::InvalidArgument, "Parameter 'storageSize' does not match the type of the simulator block output.");
-
-			ptrdiff_t offset = (char const *)storagePointer - (char const *)m_currentInstruction;
-
-			if (offset < (ptrdiff_t)sizeof(SimulatorInstructionBase) || offset + (ptrdiff_t)storageSize > (ptrdiff_t)m_currentInstructionSize)
-				throw Exception(ExceptionCode::InvalidArgument, "Arguments 'storagePointer' and 'storageSize' are not within the memory bounds of the current instruction.");
+			// TODO: confirm that `storagePointer` is within the bounds of the current instruction.
 
 			output.m_storageReference = reinterpret_cast<char const *>(storagePointer) - m_code.data();
 		}
 
-		virtual void RegisterOutput(size_t index, types::Boolean &outputReference) override
+		virtual void BindOutput(size_t index, types::Boolean &outputReference) override
 		{
-			InternalRegisterOutput(index, &outputReference, sizeof(types::Boolean), design::NodeType::BOOLEAN);
+			InternalRegisterOutput(index, &outputReference, design::NodeType::BOOLEAN);
 		}
 
-		virtual void RegisterOutput(size_t index, types::FixedPointElement *outputReference, size_t elementCount) override
+		virtual void BindOutput(size_t index, types::FixedPointElement *outputReference) override
 		{
-			InternalRegisterOutput(index, outputReference, sizeof(types::FixedPointElement) * elementCount, design::NodeType::FIXED_POINT);
+			InternalRegisterOutput(index, outputReference, design::NodeType::FIXED_POINT);
 		}
 
 		void TranslateOutputReferences()
@@ -220,8 +247,9 @@ void SimulatorCore::GenerateCode()
 			m_component(component),
 			m_code(component.m_code),
 			m_currentBlock(nullptr),
+			m_previousInstruction(nullptr),
 			m_currentInstruction(nullptr),
-			m_currentInstructionSize()
+			m_currentInstructionCommitted(false)
 		{
 		}
 
@@ -231,18 +259,24 @@ void SimulatorCore::GenerateCode()
 
 				assert(block);
 				m_currentBlock = block;
+
+				m_previousInstruction = m_currentInstruction;
 				m_currentInstruction = nullptr;
-				m_currentInstructionSize = 0;
+				m_currentInstructionCommitted = false;
 
 				m_currentBlock->GenerateCode(*this);
 
-				if (m_currentInstruction) {
+				if (m_currentInstruction && !m_currentInstructionCommitted)
+					throw Exception(ExceptionCode::Unexpected, "Must call CommitInstruction() after call to StartInstruction().");
 
-					for (auto const &input : m_currentBlock->m_internals->m_inputs)
-						if (!input.m_inputPointerReference)
-							throw Exception(ExceptionCode::Unexpected, "Block failed to register at least one of its inputs.");
-				}
+				/*
+				    for (auto const &input : m_currentBlock->m_internals->m_inputs)
+				        if (!input.m_inputPointerReference)
+				            throw Exception(ExceptionCode::Unexpected, "Block failed to register at least one of its inputs.");
+				*/
 
+				// If a block has outputs it must somehow generate code and provide an address to the value
+				// of that output, because other inputs will refer to that address.
 				for (auto const &output : m_currentBlock->m_internals->m_outputs)
 					if (!output.m_storageReference)
 						throw Exception(ExceptionCode::Unexpected, "Block failed to register at least one of its outputs.");
@@ -252,6 +286,18 @@ void SimulatorCore::GenerateCode()
 
 			TranslateOutputReferences();
 			TranslateInputReferences();
+
+			auto *currentInstruction = reinterpret_cast<SimulatorInstruction *>(m_code.data());
+
+			while (currentInstruction) {
+
+				if (currentInstruction->m_size)
+					currentInstruction->m_next = reinterpret_cast<SimulatorInstruction *>(reinterpret_cast<char *>(currentInstruction) + currentInstruction->m_size);
+				else
+					currentInstruction->m_next = nullptr;
+
+				currentInstruction = currentInstruction->m_next;
+			}
 		}
 	};
 

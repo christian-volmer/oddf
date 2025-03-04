@@ -28,6 +28,8 @@
 #include "SimulatorCore.h"
 #include "SimulatorBlockInternals.h"
 
+#include <oddf/simulator/common/backend/SimulatorInstruction.h>
+
 #include <oddf/Exception.h>
 #include <oddf/simulator/common/backend/IClockable.h>
 
@@ -142,13 +144,12 @@ bool SimulatorComponent::IsEmpty() const
 
 void SimulatorComponent::Execute()
 {
-	char *position = m_code.data();
-	char *end = m_code.data() + m_code.size();
+	auto *pCurrentInstruction = reinterpret_cast<SimulatorInstruction *>(m_code.data());
 
-	while (position < end) {
+	while (pCurrentInstruction) {
 
-		auto instruction = reinterpret_cast<SimulatorInstructionBase *>(position);
-		position += instruction->Execute();
+		pCurrentInstruction->Execute();
+		pCurrentInstruction = pCurrentInstruction->m_next;
 	}
 }
 

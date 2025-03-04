@@ -36,14 +36,13 @@ struct FixedPointElement {
 
 	using ElementType = std::uint8_t;
 
-private:
+	static constexpr ElementType SignedExtension = ElementType(-1);
+	static constexpr ElementType SignedMinimumNegativeElement = SignedExtension - SignedExtension / 2;
 
 	ElementType m_content;
 
-public:
-
 	FixedPointElement() :
-		m_content() {};
+		m_content() { };
 
 	FixedPointElement(FixedPointElement const &) = delete;
 	void operator=(FixedPointElement const &) = delete;

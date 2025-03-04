@@ -26,33 +26,34 @@
 
 #pragma once
 
-#include <type_traits>
-
 namespace oddf::simulator::common::backend {
 
-struct SimulatorInstructionBase;
+struct SimulatorInstruction;
 
-using SimulatorInstructionFunction = size_t(SimulatorInstructionBase &);
+template<typename instructionT = SimulatorInstruction>
+using SimulatorInstructionFunction = void(instructionT *);
 
-struct SimulatorInstructionBase {
+struct SimulatorInstruction {
 
-private:
+	SimulatorInstructionFunction<SimulatorInstruction> *m_function;
 
-	SimulatorInstructionFunction *m_instructionFunction;
+	union {
 
-protected:
+		size_t m_size;
+		SimulatorInstruction *m_next;
+	};
 
-	template<typename instructionT, std::enable_if_t<std::is_convertible_v<instructionT *, SimulatorInstructionBase *>> * = nullptr>
-	SimulatorInstructionBase(size_t (*instructionFunction)(instructionT &)) :
-		m_instructionFunction(reinterpret_cast<SimulatorInstructionFunction *>(reinterpret_cast<void *>(instructionFunction)))
+	SimulatorInstruction() :
+		m_function(), m_size()
 	{
 	}
 
-public:
+	SimulatorInstruction(SimulatorInstruction const &) = delete;
+	void operator=(SimulatorInstruction const &) = delete;
 
-	size_t Execute()
+	void Execute()
 	{
-		return m_instructionFunction(*this);
+		m_function(this);
 	}
 };
 
