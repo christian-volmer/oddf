@@ -29,8 +29,8 @@
 #include <oddf/simulator/backend/ISignalAccess.h>
 
 #include <oddf/simulator/common/backend/ISimulatorComponent.h>
-
 #include <oddf/simulator/common/backend/Types.h>
+#include <oddf/simulator/common/backend/types/CheckFixedPointRepresentation.h>
 
 #include <oddf/utility/GetInterfaceHelper.h>
 #include <oddf/utility/CopyBoolean.h>
@@ -119,6 +119,9 @@ inline void SignalAccessObject<types::FixedPointElement>::Write(void const *buff
 		utility::CopySignedInteger(m_value.get(), types::GetStoredByteSize(m_nodeType), buffer, count);
 	else
 		utility::CopyUnsignedInteger(m_value.get(), types::GetStoredByteSize(m_nodeType), buffer, count);
+
+	if (!types::CheckFixedPointRepresentation(m_value.get(), m_nodeType))
+		throw Exception(ExceptionCode::Overflow);
 
 	m_component.InvalidateState();
 }

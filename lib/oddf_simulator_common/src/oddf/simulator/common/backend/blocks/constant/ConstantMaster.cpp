@@ -26,8 +26,13 @@
 
 #include "../Constant.h"
 
-#include <oddf/Exception.h>
 #include <oddf/design/blocks/backend/IConstantBlock.h>
+
+#include <oddf/simulator/common/backend/types/CheckFixedPointRepresentation.h>
+
+#include <oddf/Exception.h>
+
+#include <cassert>
 
 namespace oddf::simulator::common::backend::blocks {
 
@@ -101,13 +106,16 @@ public:
 
 	static void Emit(ISimulatorCodeGenerationContext &context, SimulatorBlockOutput const &output, design::blocks::backend::IConstantBlock const &constantBlock)
 	{
-		auto elementCount = T::RequiredElementCount(output.GetType());
+		auto nodeType = output.GetType();
+		auto elementCount = T::RequiredElementCount(nodeType);
 
 		context.StartInstructionVariadic(InstructionFunction, &ConstantInstruction::m_output, elementCount);
 		auto *instruction = context.CommitInstruction<ConstantInstruction>();
 
 		context.BindOutput(output.GetIndex(), instruction->m_output);
 		constantBlock.Read(instruction->m_output, sizeof(T) * elementCount);
+
+		assert(types::CheckFixedPointRepresentation(instruction->m_output, nodeType));
 	};
 };
 

@@ -36,7 +36,7 @@ size_t FixedPointElement::RequiredElementCount(design::NodeType const &nodeType)
 		throw Exception(ExceptionCode::InvalidArgument);
 
 	auto wordWidth = nodeType.GetWordWidth();
-	return (wordWidth + (8 * sizeof(ElementType)) - 1) / (8 * sizeof(ElementType));
+	return (wordWidth + ElementBitWidth - 1) / ElementBitWidth;
 }
 
 } // namespace oddf::simulator::common::backend::types

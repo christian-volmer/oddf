@@ -18,6 +18,7 @@ add_library(oddf_simulator_common
 	"src/oddf/simulator/common/backend/SimulatorCore/RegisterSimulatorBlockFactory.cpp"
 	"src/oddf/simulator/common/backend/SimulatorCore/Run.cpp"
 	"src/oddf/simulator/common/backend/SimulatorCore/TranslateDesign.cpp"
+	"src/oddf/simulator/common/backend/types/CheckFixedPointRepresentation.cpp"
 	"src/oddf/simulator/common/backend/types/FixedPointElement.cpp"
 	"src/oddf/simulator/common/backend/types/GetRequiredByteSize.cpp"
 	"src/oddf/simulator/common/backend/types/GetStoredByteSize.cpp"

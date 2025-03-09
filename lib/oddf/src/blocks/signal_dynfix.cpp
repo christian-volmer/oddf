@@ -75,6 +75,7 @@ namespace blocks {
 
 node<dynfix> Signal(oddf::design::NodeType const &nodeType)
 {
+	assert(nodeType.GetTypeId() == oddf::design::NodeType::FIXED_POINT);
 	auto &block = Design::GetCurrent().NewBlock<backend::blocks::signal_block_dynfix>(nodeType);
 	return block.get_node();
 }
