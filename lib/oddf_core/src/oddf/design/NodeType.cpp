@@ -102,8 +102,10 @@ std::string NodeType::ToString() const
 
 		case FIXED_POINT: {
 
-			std::string s = m_param1 < 0 ? "sfix<" : "ufix<";
-			s += std::to_string(m_param1);
+			std::string s = m_param1 < 0
+				? "sfix<" + std::to_string(-m_param1)
+				: "ufix<" + std::to_string(m_param1);
+
 			if (m_param2 != 0)
 				s += ", " + std::to_string(m_param2);
 			return s + ">";
