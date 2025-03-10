@@ -46,7 +46,7 @@ int main()
 	dfx::Design design;
 
 	// b::Probe(b::Delay(-b::Signal(oddf::design::NodeType::FixedPoint(true, 8, 0))));
-	b::Probe(-b::Signal(oddf::design::NodeType::FixedPoint(true, 4, 0)));
+	b::Probe(-b::Delay(b::Signal(oddf::design::NodeType::FixedPoint(true, 4, 0))));
 
 	/*	b::Probe(-b::Constant<dynfix>(100));
 	    b::Signal(oddf::design::NodeType::FixedPoint(true, 8, 0));*/
@@ -72,7 +72,7 @@ int main()
 	simulator.Run(1);
 
 	std::cout << "myprobe = " << myProbe.GetValue() << "\n";
-	std::cout << "signal = 10\n";
+	std::cout << "signal = -8\n";
 	mySignal.SetValue(-8);
 	std::cout << "myprobe = " << myProbe.GetValue() << "\n";
 

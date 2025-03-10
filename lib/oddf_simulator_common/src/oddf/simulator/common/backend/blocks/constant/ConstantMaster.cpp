@@ -115,7 +115,8 @@ public:
 		context.BindOutput(output.GetIndex(), instruction->m_output);
 		constantBlock.Read(instruction->m_output, sizeof(T) * elementCount);
 
-		assert(types::CheckFixedPointRepresentation(instruction->m_output, nodeType));
+		if (!types::CheckFixedPointRepresentation(instruction->m_output, nodeType))
+			throw Exception(ExceptionCode::Unexpected);
 	};
 };
 

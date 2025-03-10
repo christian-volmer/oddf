@@ -29,10 +29,12 @@
 #include <oddf/simulator/common/backend/Types.h>
 #include <oddf/simulator/common/backend/IClockable.h>
 #include <oddf/simulator/common/backend/ISimulatorComponent.h>
+#include <oddf/simulator/common/backend/types/CheckFixedPointRepresentation.h>
 #include <oddf/utility/GetInterfaceHelper.h>
 #include <oddf/Clsid.h>
 
 #include <list>
+#include <cassert>
 
 namespace oddf {
 
@@ -68,7 +70,7 @@ private:
 
 public:
 
-	DelayState() :
+	DelayState(design::NodeType const &) :
 		m_pSource(), m_current() { }
 
 	DelayState(DelayState const &) = delete;
@@ -94,18 +96,42 @@ private:
 	T const *m_pSource;
 	std::unique_ptr<T[]> m_current;
 
+#ifndef NDEBUG
+
+	design::NodeType m_nodeType;
+
+	void InternalCheck() const
+	{
+		if constexpr (std::is_same_v<T, types::FixedPointElement>)
+			assert(types::CheckFixedPointRepresentation(m_pSource, m_nodeType));
+	}
+
+#else
+
+	void InternalCheck() const
+	{
+	}
+
+#endif
+
 	virtual void Clock() override
 	{
+		InternalCheck();
 		memcpy(static_cast<void *>(&m_current[0]), m_pSource, m_byteCount);
 	}
 
 public:
 
-	DelayState(size_t elementCount) :
-		m_byteCount(elementCount * sizeof(T)),
+	DelayState(design::NodeType const &nodeType) :
+		m_byteCount(T::RequiredElementCount(nodeType) * sizeof(T)),
 		m_pSource(),
-		m_current(new T[elementCount] {})
+		m_current(new T[T::RequiredElementCount(nodeType)] {})
+#ifndef NDEBUG
+		,
+		m_nodeType(nodeType)
+#endif
 	{
+		(void)nodeType;
 	}
 
 	DelayState(DelayState const &) = delete;
@@ -139,22 +165,9 @@ public:
 	}
 
 	template<typename T>
-	DelayState<T> *AddState()
+	DelayState<T> *AddState(design::NodeType const &nodeType)
 	{
-		static_assert(types::IsValueType<T>);
-
-		auto state = std::make_unique<DelayState<T>>();
-		auto *ptr = state.get();
-		m_states.emplace_back(std::move(state));
-		return ptr;
-	}
-
-	template<typename T>
-	DelayState<T> *AddState(size_t elementCount)
-	{
-		static_assert(!types::IsValueType<T>);
-
-		auto state = std::make_unique<DelayState<T>>(elementCount);
+		auto state = std::make_unique<DelayState<T>>(nodeType);
 		auto *ptr = state.get();
 		m_states.emplace_back(std::move(state));
 		return ptr;

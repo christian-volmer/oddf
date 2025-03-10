@@ -110,10 +110,7 @@ public:
 	{
 		auto &delayObject = context.GetOrConstructComponentObject<DelayObject>(context.GetCurrentComponent());
 
-		if constexpr (types::IsValueType<T>)
-			m_pState = delayObject.AddState<T>();
-		else
-			m_pState = delayObject.AddState<T>(T::RequiredElementCount(m_type));
+		m_pState = delayObject.AddState<T>(m_type);
 
 		instructions::CopyInstruction<T>::Emit(context, GetOutputsList()[0], m_pState->ReferenceToCurrent());
 	}
