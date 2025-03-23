@@ -27,7 +27,7 @@
 #include <oddf/simulator/common/backend/types/GetStoredByteSize.h>
 
 #include <oddf/simulator/common/backend/types/Boolean.h>
-#include <oddf/simulator/common/backend/types/FixedPointElement.h>
+#include <oddf/simulator/common/backend/types/FixedPoint.h>
 
 namespace oddf::simulator::common::backend::types {
 
@@ -39,7 +39,7 @@ size_t GetStoredByteSize(design::NodeType const &nodeType)
 			return sizeof(types::Boolean);
 
 		case design::NodeType::FIXED_POINT:
-			return sizeof(types::FixedPointElement) * types::FixedPointElement::RequiredElementCount(nodeType);
+			return sizeof(types::FixedPoint::ElementType) * types::FixedPoint::RequiredElementCount(nodeType);
 
 		case design::NodeType::INTEGER:
 		case design::NodeType::BIT_VECTOR:

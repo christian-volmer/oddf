@@ -85,11 +85,10 @@ void Probe::Finalise(ISimulatorFinalisationContext &context)
 
 		case design::NodeType::FIXED_POINT: {
 
-			context.ConstructGlobalObject<ProbeAccessObject<types::FixedPointElement>>(
+			context.ConstructGlobalObject<ProbeAccessObject<types::FixedPoint>>(
 				"myprobe",
 				context.GetCurrentComponent(),
-				input.GetDriver(),
-				types::FixedPointElement::RequiredElementCount(input.GetType()));
+				input.GetDriver());
 			break;
 		}
 

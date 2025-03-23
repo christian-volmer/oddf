@@ -74,7 +74,7 @@ void SimulatorCore::GenerateCode()
 			}
 		}
 
-		virtual void InternalStartInstruction(size_t size, size_t alignment, SimulatorInstructionFunction<> *instructionFunction) override
+		virtual void *InternalStartInstruction(size_t size, size_t alignment, SimulatorInstructionFunction<> *instructionFunction) override
 		{
 			if (m_currentInstruction) {
 
@@ -98,6 +98,8 @@ void SimulatorCore::GenerateCode()
 			m_currentInstruction = reinterpret_cast<SimulatorInstruction *>(m_code.data() + m_code.size() - size);
 			m_currentInstruction->m_size = 0;
 			m_currentInstruction->m_function = instructionFunction;
+
+			return m_currentInstruction;
 		}
 
 		virtual size_t InternalAddRecord(size_t /* size */, size_t /* alignment */) override
@@ -154,7 +156,7 @@ void SimulatorCore::GenerateCode()
 			InternalRegisterInput(index, reinterpret_cast<void const **>(&inputPointerReference), design::NodeType::BOOLEAN);
 		}
 
-		virtual void BindInputReference(size_t index, types::FixedPointElement const *&inputPointerReference) override
+		virtual void BindInputReference(size_t index, types::FixedPoint const *&inputPointerReference) override
 		{
 			InternalRegisterInput(index, reinterpret_cast<void const **>(&inputPointerReference), design::NodeType::FIXED_POINT);
 		}
@@ -163,7 +165,7 @@ void SimulatorCore::GenerateCode()
 		// Output binding
 		//
 
-		void InternalRegisterOutput(size_t index, void *storagePointer, design::NodeType::TypeId expectedTypeId)
+		SimulatorBlockOutput const &InternalRegisterOutput(size_t index, void *storagePointer, design::NodeType::TypeId expectedTypeId)
 		{
 			if (!m_currentInstruction || !m_currentInstructionCommitted)
 				throw Exception(ExceptionCode::IllegalMethodCall, "Cannot not call this function unless the current instruction has been committed.");
@@ -184,6 +186,8 @@ void SimulatorCore::GenerateCode()
 			// TODO: confirm that `storagePointer` is within the bounds of the current instruction.
 
 			output.m_storageReference = reinterpret_cast<char const *>(storagePointer) - m_code.data();
+
+			return output;
 		}
 
 		virtual void BindOutput(size_t index, types::Boolean &outputReference) override
@@ -191,9 +195,12 @@ void SimulatorCore::GenerateCode()
 			InternalRegisterOutput(index, &outputReference, design::NodeType::BOOLEAN);
 		}
 
-		virtual void BindOutput(size_t index, types::FixedPointElement *outputReference) override
+		virtual void BindOutput(size_t index, types::FixedPoint &outputReference) override
 		{
-			InternalRegisterOutput(index, outputReference, design::NodeType::FIXED_POINT);
+			auto &output = InternalRegisterOutput(index, &outputReference, design::NodeType::FIXED_POINT);
+
+			if (types::FixedPoint::RequiredElementCount(output.GetType()) != outputReference.m_length)
+				throw Exception(ExceptionCode::InvalidArgument, "The length (number of elements) of the given 'outputReference' does not match the type of the output.");
 		}
 
 		void TranslateOutputReferences()

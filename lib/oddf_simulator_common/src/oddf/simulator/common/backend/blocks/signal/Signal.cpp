@@ -89,10 +89,10 @@ void Signal::GenerateCode(ISimulatorCodeGenerationContext &context)
 
 		case design::NodeType::FIXED_POINT: {
 
-			auto &signalAccessObject = context.ConstructGlobalObject<SignalAccessObject<types::FixedPointElement>>("mysignal",
+			auto &signalAccessObject = context.ConstructGlobalObject<SignalAccessObject<types::FixedPoint>>("mysignal",
 				context.GetCurrentComponent(), type);
 
-			instructions::CopyInstruction<types::FixedPointElement>::Emit(context, outputs[0], signalAccessObject.GetSource());
+			instructions::CopyInstruction<types::FixedPoint>::Emit(context, outputs[0], signalAccessObject.GetSource());
 			break;
 		}
 

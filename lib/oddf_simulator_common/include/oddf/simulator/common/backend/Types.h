@@ -27,7 +27,7 @@
 #pragma once
 
 #include "types/Boolean.h"
-#include "types/FixedPointElement.h"
+#include "types/FixedPoint.h"
 
 #include "types/GetRequiredByteSize.h"
 #include "types/GetStoredByteSize.h"

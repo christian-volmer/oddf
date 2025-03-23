@@ -63,9 +63,8 @@ void Minus::Elaborate(ISimulatorElaborationContext &)
 
 struct MinusInstruction : public SimulatorInstruction {
 
-	size_t m_elementCount;
-	types::FixedPointElement const *m_input;
-	types::FixedPointElement m_output[1];
+	types::FixedPoint const *m_input;
+	types::FixedPoint m_output;
 
 	static void InstructionFunction(MinusInstruction *instruction)
 	{
@@ -77,25 +76,24 @@ private:
 	void Operate()
 	{
 		size_t i = 0;
-		for (i = 0; i < m_elementCount && m_input[i].m_content == 0; ++i)
-			m_output[i].m_content = 0;
+		for (i = 0; i < m_input->m_length && m_input->m_elements[i] == 0; ++i)
+			m_output.m_elements[i] = 0;
 
-		if (i < m_elementCount) {
+		if (i < m_input->m_length) {
 
-			m_output[i].m_content = ~m_input[i].m_content + 1;
+			m_output.m_elements[i] = ~m_input->m_elements[i] + 1;
 			++i;
 
-			for (; i < m_elementCount; ++i)
-				m_output[i].m_content = ~m_input[i].m_content;
+			for (; i < m_input->m_length; ++i)
+				m_output.m_elements[i] = ~m_input->m_elements[i];
 		}
 	}
 };
 
 struct MinusInstructionExpandUnsigned : public SimulatorInstruction {
 
-	size_t m_inputElementCount;
-	types::FixedPointElement const *m_input;
-	types::FixedPointElement m_output[1];
+	types::FixedPoint const *m_input;
+	types::FixedPoint m_output;
 
 	static void InstructionFunction(MinusInstructionExpandUnsigned *instruction)
 	{
@@ -107,29 +105,28 @@ private:
 	void Operate()
 	{
 		size_t i = 0;
-		for (i = 0; i < m_inputElementCount && m_input[i].m_content == 0; ++i)
-			m_output[i].m_content = 0;
+		for (i = 0; i < m_input->m_length && m_input->m_elements[i] == 0; ++i)
+			m_output.m_elements[i] = 0;
 
-		if (i < m_inputElementCount) {
+		if (i < m_input->m_length) {
 
-			m_output[i].m_content = ~m_input[i].m_content + 1;
+			m_output.m_elements[i] = ~m_input->m_elements[i] + 1;
 			++i;
 
-			for (; i < m_inputElementCount; ++i)
-				m_output[i].m_content = ~m_input[i].m_content;
+			for (; i < m_input->m_length; ++i)
+				m_output.m_elements[i] = ~m_input->m_elements[i];
 
-			m_output[i].m_content = types::FixedPointElement::SignedExtension;
+			m_output.m_elements[i] = types::FixedPoint::SignedExtension;
 		}
 		else
-			m_output[i].m_content = 0;
+			m_output.m_elements[i] = 0;
 	}
 };
 
 struct MinusInstructionExpandSigned : public SimulatorInstruction {
 
-	size_t m_inputElementCount;
-	types::FixedPointElement const *m_input;
-	types::FixedPointElement m_output[1];
+	types::FixedPoint const *m_input;
+	types::FixedPoint m_output;
 
 	static void InstructionFunction(MinusInstructionExpandSigned *instruction)
 	{
@@ -141,24 +138,24 @@ private:
 	void Operate()
 	{
 		size_t i = 0;
-		for (i = 0; i < m_inputElementCount && m_input[i].m_content == 0; ++i)
-			m_output[i].m_content = 0;
+		for (i = 0; i < m_input->m_length && m_input->m_elements[i] == 0; ++i)
+			m_output.m_elements[i] = 0;
 
-		if (i < m_inputElementCount) {
+		if (i < m_input->m_length) {
 
-			m_output[i].m_content = ~m_input[i].m_content + 1;
+			m_output.m_elements[i] = ~m_input->m_elements[i] + 1;
 			++i;
 
-			for (; i < m_inputElementCount; ++i)
-				m_output[i].m_content = ~m_input[i].m_content;
+			for (; i < m_input->m_length; ++i)
+				m_output.m_elements[i] = ~m_input->m_elements[i];
 
-			if (m_input[i - 1].m_content >= types::FixedPointElement::SignedMinimumNegativeElement)
-				m_output[i].m_content = 0;
+			if (m_input->m_elements[i - 1] >= types::FixedPoint::SignedMinimumNegativeElement)
+				m_output.m_elements[i] = 0;
 			else
-				m_output[i].m_content = types::FixedPointElement::SignedExtension;
+				m_output.m_elements[i] = types::FixedPoint::SignedExtension;
 		}
 		else
-			m_output[i].m_content = 0;
+			m_output.m_elements[i] = 0;
 	}
 };
 
@@ -166,49 +163,44 @@ void EmitMinusInstruction(ISimulatorCodeGenerationContext &context, SimulatorBlo
 {
 	auto inputType = input.GetType();
 
-	auto inputElementCount = types::FixedPointElement::RequiredElementCount(inputType);
-	auto outputElementCount = types::FixedPointElement::RequiredElementCount(output.GetType());
+	auto inputElementCount = types::FixedPoint::RequiredElementCount(inputType);
+	auto outputElementCount = types::FixedPoint::RequiredElementCount(output.GetType());
 
 	if (outputElementCount == inputElementCount) {
 
-		context.StartInstructionVariadic(
+		context.StartInstructionWithOutput(
 			MinusInstruction::InstructionFunction,
 			&MinusInstruction::m_output,
 			outputElementCount);
 
 		auto *instruction = context.CommitInstruction<MinusInstruction>();
 
-		instruction->m_elementCount = inputElementCount;
-
 		context.BindInputReference(input.GetIndex(), instruction->m_input);
+
 		context.BindOutput(output.GetIndex(), instruction->m_output);
 	}
 	else if (outputElementCount == inputElementCount + 1) {
 
 		if (inputType.IsUnsigned()) {
 
-			context.StartInstructionVariadic(
+			context.StartInstructionWithOutput(
 				MinusInstructionExpandUnsigned::InstructionFunction,
 				&MinusInstructionExpandUnsigned::m_output,
 				outputElementCount);
 
 			auto *instruction = context.CommitInstruction<MinusInstructionExpandUnsigned>();
 
-			instruction->m_inputElementCount = inputElementCount;
-
 			context.BindInputReference(input.GetIndex(), instruction->m_input);
 			context.BindOutput(output.GetIndex(), instruction->m_output);
 		}
 		else {
 
-			context.StartInstructionVariadic(
+			context.StartInstructionWithOutput(
 				MinusInstructionExpandSigned::InstructionFunction,
 				&MinusInstructionExpandSigned::m_output,
 				outputElementCount);
 
 			auto *instruction = context.CommitInstruction<MinusInstructionExpandSigned>();
-
-			instruction->m_inputElementCount = inputElementCount;
 
 			context.BindInputReference(input.GetIndex(), instruction->m_input);
 			context.BindOutput(output.GetIndex(), instruction->m_output);

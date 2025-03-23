@@ -64,30 +64,30 @@ class CopyInstruction<T, std::void_t<typename T::ElementType>> : public Simulato
 
 private:
 
-	size_t m_byteCount;
-	T const *m_source;
-	T m_result[1];
+	typename T::ElementType const *m_source;
+	T m_result;
 
 	static void InstructionFunction(CopyInstruction *instruction)
 	{
-		memcpy(&instruction->m_result[0].m_content, instruction->m_source, instruction->m_byteCount);
+		for (size_t i = 0; i < instruction->m_result.m_length; ++i)
+			instruction->m_result.m_elements[i] = instruction->m_source[i];
 	}
 
 public:
 
-	static void Emit(ISimulatorCodeGenerationContext &context, SimulatorBlockOutput const &output, T const &source)
+	static void Emit(ISimulatorCodeGenerationContext &context, SimulatorBlockOutput const &output, typename T::ElementType const &source)
 	{
 		auto elementCount = T::RequiredElementCount(output.GetType());
 
-		context.StartInstructionVariadic<CopyInstruction>(
+		context.StartInstructionWithOutput<CopyInstruction>(
 			InstructionFunction,
 			&CopyInstruction::m_result,
 			elementCount);
 
 		auto *instruction = context.CommitInstruction<CopyInstruction>();
 
-		instruction->m_byteCount = sizeof(types::FixedPointElement) * elementCount;
 		instruction->m_source = &source;
+		instruction->m_result.m_length = elementCount;
 		context.BindOutput(output.GetIndex(), instruction->m_result);
 	};
 };

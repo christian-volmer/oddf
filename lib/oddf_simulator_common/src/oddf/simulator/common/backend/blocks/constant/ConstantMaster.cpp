@@ -96,7 +96,7 @@ class ConstantInstruction<T, std::void_t<typename T::ElementType>> : public Simu
 
 private:
 
-	T m_output[1];
+	T m_output;
 
 	static void InstructionFunction(ConstantInstruction *)
 	{
@@ -109,11 +109,11 @@ public:
 		auto nodeType = output.GetType();
 		auto elementCount = T::RequiredElementCount(nodeType);
 
-		context.StartInstructionVariadic(InstructionFunction, &ConstantInstruction::m_output, elementCount);
+		context.StartInstructionWithOutput(InstructionFunction, &ConstantInstruction::m_output, elementCount);
 		auto *instruction = context.CommitInstruction<ConstantInstruction>();
 
 		context.BindOutput(output.GetIndex(), instruction->m_output);
-		constantBlock.Read(instruction->m_output, sizeof(T) * elementCount);
+		constantBlock.Read(instruction->m_output.m_elements, sizeof(typename T::ElementType) * elementCount);
 
 		if (!types::CheckFixedPointRepresentation(instruction->m_output, nodeType))
 			throw Exception(ExceptionCode::Unexpected);
@@ -132,7 +132,7 @@ void EmitConstantInstruction(ISimulatorCodeGenerationContext &context, Simulator
 
 		case design::NodeType::FIXED_POINT: {
 
-			ConstantInstruction<types::FixedPointElement>::Emit(context, output, constantBlock);
+			ConstantInstruction<types::FixedPoint>::Emit(context, output, constantBlock);
 			break;
 		}
 

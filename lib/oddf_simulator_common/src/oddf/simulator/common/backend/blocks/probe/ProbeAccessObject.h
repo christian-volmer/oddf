@@ -63,13 +63,6 @@ public:
 	{
 	}
 
-	ProbeAccessObject(ISimulatorComponent &component, SimulatorBlockOutput const &driver, size_t elementCount) :
-		m_component(component),
-		m_nodeType(driver.GetType()),
-		m_probedOutputPointer(driver.GetPointer<simulatorT>(elementCount))
-	{
-	}
-
 	virtual void *GetInterface(Uid const &iid) override
 	{
 		return utility::GetInterfaceHelper<
@@ -102,20 +95,20 @@ inline void ProbeAccessObject<types::Boolean>::Read(void *buffer, size_t count) 
 }
 
 //
-// Implementation for types::FixedPointElement
+// Implementation for types::FixedPoint
 //
 
 template<>
-inline void ProbeAccessObject<types::FixedPointElement>::Read(void *buffer, size_t count) const
+inline void ProbeAccessObject<types::FixedPoint>::Read(void *buffer, size_t count) const
 {
 	m_component.EnsureValidState();
 
-	assert(types::CheckFixedPointRepresentation(m_probedOutputPointer, m_nodeType));
+	assert(types::CheckFixedPointRepresentation(*m_probedOutputPointer, m_nodeType));
 
 	if (m_nodeType.IsSigned())
-		utility::CopySignedInteger(buffer, count, m_probedOutputPointer, types::GetStoredByteSize(m_nodeType));
+		utility::CopySignedInteger(buffer, count, m_probedOutputPointer->m_elements, types::GetStoredByteSize(m_nodeType));
 	else
-		utility::CopyUnsignedInteger(buffer, count, m_probedOutputPointer, types::GetStoredByteSize(m_nodeType));
+		utility::CopyUnsignedInteger(buffer, count, m_probedOutputPointer->m_elements, types::GetStoredByteSize(m_nodeType));
 }
 
 } // namespace oddf::simulator::common::backend::blocks

@@ -98,7 +98,7 @@ void DelayMaster::Elaborate(ISimulatorElaborationContext &context)
 
 		case design::NodeType::FIXED_POINT: {
 
-			startingPoint = &context.AddSimulatorBlock<DelayStartingPoint<types::FixedPointElement>>(
+			startingPoint = &context.AddSimulatorBlock<DelayStartingPoint<types::FixedPoint>>(
 				GetDesignBlockReference(),
 				type,
 				endpoint);

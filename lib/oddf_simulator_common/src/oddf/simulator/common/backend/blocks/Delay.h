@@ -123,8 +123,7 @@ public:
 		}
 		else {
 
-			size_t elementCount = T::RequiredElementCount(m_type);
-			m_pState->SetSource(m_endpoint.GetInputsList()[0].GetDriver().GetPointer<T>(elementCount));
+			m_pState->SetSource(m_endpoint.GetInputsList()[0].GetDriver().GetPointer<T>());
 		}
 	}
 };

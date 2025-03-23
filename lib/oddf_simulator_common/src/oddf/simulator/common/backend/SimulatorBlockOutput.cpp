@@ -67,12 +67,12 @@ types::Boolean const *SimulatorBlockOutput::GetPointer<types::Boolean>() const
 }
 
 template<>
-types::FixedPointElement const *SimulatorBlockOutput::GetPointer<types::FixedPointElement>(size_t elementCount) const
+types::FixedPoint const *SimulatorBlockOutput::GetPointer<types::FixedPoint>() const
 {
-	if (GetType().GetTypeId() == design::NodeType::FIXED_POINT && types::FixedPointElement::RequiredElementCount(GetType()) == elementCount)
-		return reinterpret_cast<types::FixedPointElement const *>(m_storagePointer);
+	if (GetType().GetTypeId() == design::NodeType::FIXED_POINT)
+		return reinterpret_cast<types::FixedPoint const *>(m_storagePointer);
 	else
-		throw Exception(ExceptionCode::InvalidArgument, "Type argument `T` (types::FixedPointElement) and parameter `elementCount` do not match the type of the output.");
+		throw Exception(ExceptionCode::InvalidArgument, "Type argument `T` (types::FixedPoint) does not match the type of the output.");
 }
 
 size_t SimulatorBlockOutput::GetIndex() const noexcept

@@ -40,23 +40,37 @@
 
 namespace oddf::simulator::common::backend::blocks {
 
+// TODO CLEANUP StoredType
+
+template<typename simulatorT>
+struct StoredType_t {
+
+	using type = simulatorT;
+};
+
+template<>
+struct StoredType_t<types::FixedPoint> {
+
+	using type = types::FixedPoint::ElementType;
+};
+
 template<typename simulatorT>
 class SignalAccessObject : public virtual simulator::backend::ISignalAccess {
 
 private:
 
-	using SimulatorType = simulatorT;
+	using StoredType = typename StoredType_t<simulatorT>::type;
 
 	ISimulatorComponent &m_component;
 	design::NodeType m_nodeType;
 
-	std::unique_ptr<SimulatorType[]> m_value;
+	std::unique_ptr<StoredType[]> m_value;
 
 public:
 
 	SignalAccessObject(ISimulatorComponent &component, design::NodeType const &nodeType);
 
-	SimulatorType const &GetSource() const
+	StoredType const &GetSource() const
 	{
 		return m_value[0];
 	}
@@ -89,7 +103,7 @@ template<>
 inline SignalAccessObject<types::Boolean>::SignalAccessObject(ISimulatorComponent &component, design::NodeType const &nodeType) :
 	m_component(component),
 	m_nodeType(nodeType),
-	m_value(new SimulatorType[1] {})
+	m_value(new StoredType[1] {})
 {
 }
 
@@ -101,26 +115,26 @@ inline void SignalAccessObject<types::Boolean>::Write(void const *buffer, size_t
 }
 
 //
-// Implementation for types::FixedPointElement
+// Implementation for types::FixedPoint
 //
 
 template<>
-inline SignalAccessObject<types::FixedPointElement>::SignalAccessObject(ISimulatorComponent &component, design::NodeType const &nodeType) :
+inline SignalAccessObject<types::FixedPoint>::SignalAccessObject(ISimulatorComponent &component, design::NodeType const &nodeType) :
 	m_component(component),
 	m_nodeType(nodeType),
-	m_value(new SimulatorType[SimulatorType::RequiredElementCount(nodeType)] {})
+	m_value(new StoredType[types::FixedPoint::RequiredElementCount(nodeType)] {})
 {
 }
 
 template<>
-inline void SignalAccessObject<types::FixedPointElement>::Write(void const *buffer, size_t count)
+inline void SignalAccessObject<types::FixedPoint>::Write(void const *buffer, size_t count)
 {
 	if (m_nodeType.IsSigned())
 		utility::CopySignedInteger(m_value.get(), types::GetStoredByteSize(m_nodeType), buffer, count);
 	else
 		utility::CopyUnsignedInteger(m_value.get(), types::GetStoredByteSize(m_nodeType), buffer, count);
 
-	if (!types::CheckFixedPointRepresentation(m_value.get(), m_nodeType))
+	if (!types::CheckFixedPointRepresentation(m_value.get(), types::FixedPoint::RequiredElementCount(m_nodeType), m_nodeType))
 		throw Exception(ExceptionCode::Overflow);
 
 	m_component.InvalidateState();

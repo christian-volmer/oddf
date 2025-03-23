@@ -92,9 +92,11 @@ class DelayState<T, std::void_t<typename T::ElementType>> : public DelayStateBas
 
 private:
 
+	using ElementType = typename T::ElementType;
+
 	size_t m_byteCount;
 	T const *m_pSource;
-	std::unique_ptr<T[]> m_current;
+	std::unique_ptr<ElementType[]> m_current;
 
 #ifndef NDEBUG
 
@@ -102,8 +104,8 @@ private:
 
 	void InternalCheck() const
 	{
-		if constexpr (std::is_same_v<T, types::FixedPointElement>)
-			assert(types::CheckFixedPointRepresentation(m_pSource, m_nodeType));
+		if constexpr (std::is_same_v<T, types::FixedPoint>)
+			assert(types::CheckFixedPointRepresentation(*m_pSource, m_nodeType));
 	}
 
 #else
@@ -117,15 +119,15 @@ private:
 	virtual void Clock() override
 	{
 		InternalCheck();
-		memcpy(static_cast<void *>(&m_current[0]), m_pSource, m_byteCount);
+		memcpy(static_cast<void *>(&m_current[0]), m_pSource->m_elements, m_byteCount);
 	}
 
 public:
 
 	DelayState(design::NodeType const &nodeType) :
-		m_byteCount(T::RequiredElementCount(nodeType) * sizeof(T)),
+		m_byteCount(T::RequiredElementCount(nodeType) * sizeof(ElementType)),
 		m_pSource(),
-		m_current(new T[T::RequiredElementCount(nodeType)] {})
+		m_current(new ElementType[T::RequiredElementCount(nodeType)] {})
 #ifndef NDEBUG
 		,
 		m_nodeType(nodeType)
@@ -137,7 +139,7 @@ public:
 	DelayState(DelayState const &) = delete;
 	void operator=(DelayState const &) = delete;
 
-	T const &ReferenceToCurrent()
+	ElementType const &ReferenceToCurrent()
 	{
 		return m_current[0];
 	}

@@ -28,19 +28,27 @@
 
 namespace oddf::simulator::common::backend::types {
 
-bool CheckFixedPointRepresentation(FixedPointElement const *elements, design::NodeType const &nodeType)
+bool CheckFixedPointRepresentation(FixedPoint const &fixedPoint, design::NodeType const &nodeType)
 {
+	return CheckFixedPointRepresentation(fixedPoint.m_elements, fixedPoint.m_length, nodeType);
+}
+
+bool CheckFixedPointRepresentation(FixedPoint::ElementType const *elements, size_t elementCount, design::NodeType const &nodeType)
+{
+	if (elementCount != FixedPoint::RequiredElementCount(nodeType))
+		return false;
+
 	size_t wordWidth = nodeType.GetWordWidth();
 
-	size_t partialWidth = wordWidth % FixedPointElement::ElementBitWidth;
+	size_t partialWidth = wordWidth % FixedPoint::ElementBitWidth;
 
 	if (partialWidth) {
 
 		// Content of the most significant element
-		FixedPointElement::ElementType partialContent = elements[wordWidth / FixedPointElement::ElementBitWidth].m_content;
+		FixedPoint::ElementType partialContent = elements[wordWidth / FixedPoint::ElementBitWidth];
 
 		// Bitmask for unused bits
-		FixedPointElement::ElementType mask = FixedPointElement::SignedExtension << partialWidth;
+		FixedPoint::ElementType mask = FixedPoint::SignedExtension << partialWidth;
 
 		if (nodeType.IsSigned()) {
 

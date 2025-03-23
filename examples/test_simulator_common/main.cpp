@@ -43,10 +43,21 @@ int main()
 	// Design
 	//
 
+	/*
+
+	Notizen Floorcast
+
+	Wenn newElementCount > oldElementCount
+		
+
+
+	*/
+
 	dfx::Design design;
 
 	// b::Probe(b::Delay(-b::Signal(oddf::design::NodeType::FixedPoint(true, 8, 0))));
-	b::Probe(-b::Delay(b::Signal(oddf::design::NodeType::FixedPoint(true, 4, 0))));
+	b::Signal(oddf::design::NodeType::FixedPoint(true, 39, 0));
+	b::Probe(- - - - - - - - - - - - -b::Constant<dynfix>(-123));
 
 	/*	b::Probe(-b::Constant<dynfix>(100));
 	    b::Signal(oddf::design::NodeType::FixedPoint(true, 8, 0));*/
@@ -72,8 +83,8 @@ int main()
 	simulator.Run(1);
 
 	std::cout << "myprobe = " << myProbe.GetValue() << "\n";
-	std::cout << "signal = -8\n";
-	mySignal.SetValue(-8);
+	std::cout << "signal = -11\n";
+	mySignal.SetValue(-11);
 	std::cout << "myprobe = " << myProbe.GetValue() << "\n";
 
 	std::cout << "run\n";

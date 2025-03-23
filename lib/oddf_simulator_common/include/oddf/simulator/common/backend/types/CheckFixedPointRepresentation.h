@@ -26,7 +26,7 @@
 
 #pragma once
 
-#include "FixedPointElement.h"
+#include "FixedPoint.h"
 #include <oddf/design/NodeType.h>
 
 namespace oddf::simulator::common::backend::types {
@@ -34,6 +34,12 @@ namespace oddf::simulator::common::backend::types {
 // Returns `true` if the internal representation of the fixed-
 // point number pointed to by `elements` is consistent. This
 // concerns the consistency of potentially unused bits in the most significant element.
-bool CheckFixedPointRepresentation(FixedPointElement const *elements, design::NodeType const &nodeType);
+bool CheckFixedPointRepresentation(FixedPoint::ElementType const *elements, size_t elementCount, design::NodeType const &nodeType);
+
+// Returns `true` if the internal representation of the fixed-
+// point number `fixedPoint` is consistent with the given `nodeType`.
+// The check concerns the number of elements and the consistency of
+// potentially unused bits in the most significant element.
+bool CheckFixedPointRepresentation(FixedPoint const &fixedPoint, design::NodeType const &nodeType);
 
 } // namespace oddf::simulator::common::backend::types

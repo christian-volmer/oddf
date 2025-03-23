@@ -24,19 +24,33 @@
 
 */
 
-#include <oddf/simulator/common/backend/types/FixedPointElement.h>
+#pragma once
 
-#include <oddf/Exception.h>
+#include <oddf/design/NodeType.h>
+
+#include <cstdint>
 
 namespace oddf::simulator::common::backend::types {
 
-size_t FixedPointElement::RequiredElementCount(design::NodeType const &nodeType)
-{
-	if (nodeType.GetTypeId() != design::NodeType::FIXED_POINT)
-		throw Exception(ExceptionCode::InvalidArgument);
+struct FixedPoint {
 
-	auto wordWidth = nodeType.GetWordWidth();
-	return (wordWidth + ElementBitWidth - 1) / ElementBitWidth;
-}
+	using ElementType = std::uint8_t;
+
+	static constexpr size_t ElementBitWidth = sizeof(ElementType) * 8;
+	static constexpr ElementType SignedExtension = ElementType(-1);
+	static constexpr ElementType SignedMinimumNegativeElement = SignedExtension - SignedExtension / 2;
+
+	size_t m_length;
+	ElementType m_elements[1];
+
+	FixedPoint() :
+		m_length(size_t(-1)), m_elements() { };
+
+	FixedPoint(FixedPoint const &) = delete;
+	void operator=(FixedPoint const &) = delete;
+
+	// Returns the number of elements required to store values of the given node type.
+	static size_t RequiredElementCount(design::NodeType const &nodeType);
+};
 
 } // namespace oddf::simulator::common::backend::types
