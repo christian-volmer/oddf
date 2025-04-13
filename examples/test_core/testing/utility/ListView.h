@@ -120,7 +120,14 @@ inline void TestListViewForStdContainer()
 	Expect(listViewToReference.GetSize() == 5);
 
 	size_t i = 0;
+
+	/*
+
+	TODO: should not be required anymore
+
 	enumerator.Reset();
+
+	*/
 
 	while (enumerator.MoveNext()) {
 

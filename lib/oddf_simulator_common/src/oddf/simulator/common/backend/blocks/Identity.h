@@ -20,9 +20,7 @@
 
 /*
 
-    Simulator support for the 'temp' design block. As its name implies, this is
-    a temporary block that does not take part in the simulation and that must
-    not be connected to any other blocks in the design.
+    Simulator support for the 'identity' design block.
 
 */
 
@@ -33,19 +31,18 @@
 namespace oddf::simulator::common::backend::blocks {
 
 //
-// TempMaster
+// Identity
 //
 
-class TempMaster : public SimulatorBlockBase {
+class Identity : public SimulatorBlockBase {
 
 public:
 
-	TempMaster(design::blocks::backend::IDesignBlock const &designBlock);
+	Identity(design::blocks::backend::IDesignBlock const &designBlock);
 
 	virtual std::string GetDesignPathHint() const override;
 
 	virtual void Elaborate(ISimulatorElaborationContext &context) override;
-	virtual void GenerateCode(ISimulatorCodeGenerationContext &context) override;
 };
 
 } // namespace oddf::simulator::common::backend::blocks

@@ -20,32 +20,43 @@
 
 /*
 
-    Simulator support for the 'temp' design block. As its name implies, this is
-    a temporary block that does not take part in the simulation and that must
-    not be connected to any other blocks in the design.
+    Simulator support for the 'identity' design block.
 
 */
 
-#pragma once
+#include "Identity.h"
 
-#include <oddf/simulator/common/backend/SimulatorBlockBase.h>
+#include <oddf/Exception.h>
 
 namespace oddf::simulator::common::backend::blocks {
 
-//
-// TempMaster
-//
+Identity::Identity(design::blocks::backend::IDesignBlock const &designBlock) :
+	SimulatorBlockBase(designBlock)
+{
+}
 
-class TempMaster : public SimulatorBlockBase {
+std::string Identity::GetDesignPathHint() const
+{
+	return GetDesignBlockReference()->GetPath();
+}
 
-public:
+void Identity::Elaborate(ISimulatorElaborationContext &context)
+{
+	auto outputs = GetOutputsList();
 
-	TempMaster(design::blocks::backend::IDesignBlock const &designBlock);
+	if (outputs.GetSize() != 1)
+		throw Exception(ExceptionCode::Unsupported);
 
-	virtual std::string GetDesignPathHint() const override;
+	auto inputs = GetInputsList();
 
-	virtual void Elaborate(ISimulatorElaborationContext &context) override;
-	virtual void GenerateCode(ISimulatorCodeGenerationContext &context) override;
-};
+	if (inputs.GetSize() != 1)
+		throw Exception(ExceptionCode::Unsupported);
+
+	if (inputs[0].GetType() != outputs[0].GetType())
+		throw Exception(ExceptionCode::Unsupported);
+
+	context.TransferConnectivity(outputs[0], inputs[0].GetDriver());
+	inputs[0] context.RemoveThisBlock();
+}
 
 } // namespace oddf::simulator::common::backend::blocks

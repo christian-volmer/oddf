@@ -176,7 +176,6 @@ void EmitMinusInstruction(ISimulatorCodeGenerationContext &context, SimulatorBlo
 		auto *instruction = context.CommitInstruction<MinusInstruction>();
 
 		context.BindInputReference(input.GetIndex(), instruction->m_input);
-
 		context.BindOutput(output.GetIndex(), instruction->m_output);
 	}
 	else if (outputElementCount == inputElementCount + 1) {

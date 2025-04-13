@@ -59,31 +59,27 @@ public:
 			reinterpret_cast<SimulatorInstructionFunction<> *>(instructionFunction));
 	}
 
-	/*
-
 	template<typename instructionT, typename memberT>
 	void StartInstructionVariadic(SimulatorInstructionFunction<instructionT> *instructionFunction,
-	    memberT (instructionT::*variaticMember)[1], size_t count)
+		memberT (instructionT::*variaticMember)[1], size_t count)
 	{
-	    static_assert(std::is_base_of_v<SimulatorInstruction, instructionT>);
+		static_assert(std::is_base_of_v<SimulatorInstruction, instructionT>);
 
-	    alignas(instructionT) char tempStorage[sizeof(instructionT)];
-	    size_t offset = reinterpret_cast<char const *>(&(reinterpret_cast<instructionT const *>(&tempStorage)->*variaticMember)) - tempStorage;
+		alignas(instructionT) char tempStorage[sizeof(instructionT)];
+		size_t offset = reinterpret_cast<char const *>(&(reinterpret_cast<instructionT const *>(&tempStorage)->*variaticMember)) - tempStorage;
 
-	    // TODO: check, if possible, that the variadic member really is the last member.
+		// TODO: check, if possible, that the variadic member really is the last member.
 
-	    size_t size = offset + count * sizeof(memberT);
+		size_t size = offset + count * sizeof(memberT);
 
-	    // Round up to the next multiple of alignof(instructionT)
-	    size = ((size + alignof(instructionT) - 1) / alignof(instructionT)) * alignof(instructionT);
+		// Round up to the next multiple of alignof(instructionT)
+		size = ((size + alignof(instructionT) - 1) / alignof(instructionT)) * alignof(instructionT);
 
-	    InternalStartInstruction(
-	        size,
-	        alignof(instructionT),
-	        reinterpret_cast<SimulatorInstructionFunction<> *>(instructionFunction));
+		InternalStartInstruction(
+			size,
+			alignof(instructionT),
+			reinterpret_cast<SimulatorInstructionFunction<> *>(instructionFunction));
 	}
-
-	*/
 
 	template<typename instructionT>
 	void StartInstructionWithOutput(SimulatorInstructionFunction<instructionT> *instructionFunction,
@@ -95,7 +91,7 @@ public:
 		size_t offset = reinterpret_cast<char const *>(&((reinterpret_cast<instructionT const *>(&tempStorage)->*outputMember).m_elements))
 			- tempStorage;
 
-		// TODO: check, if possible, that the variadic member really is the last member.
+		// TODO: check, if possible, that the output member really is the last member.
 
 		size_t size = offset + elementCount * sizeof(types::FixedPoint::ElementType);
 
@@ -116,6 +112,12 @@ public:
 		return InternalAddRecord(sizeof(recordT), alignof(recordT));
 	}
 
+	template<typename recordT>
+	size_t AddOutputRecord(design::NodeType const &nodeType)
+	{
+		throw Exception(ExceptionCode::NotImplemented);
+	}
+
 	template<typename instructionT>
 	instructionT *CommitInstruction()
 	{
@@ -134,5 +136,28 @@ public:
 	virtual void BindOutput(size_t index, types::Boolean &outputReference) = 0;
 	virtual void BindOutput(size_t index, types::FixedPoint &outputReference) = 0;
 };
+
+template<>
+inline size_t ISimulatorCodeGenerationContext::AddOutputRecord<types::FixedPoint>(design::NodeType const &nodeType)
+{
+	using T = types::FixedPoint;
+
+	size_t elementCount = T::RequiredElementCount(nodeType);
+
+	alignas(T) char tempStorage[sizeof(T)];
+	size_t offset = reinterpret_cast<char const *>(&(reinterpret_cast<T const *>(&tempStorage)->m_elements)) - tempStorage;
+
+	size_t size = offset + elementCount * sizeof(types::FixedPoint::m_elements[0]);
+
+	// Round up to the next multiple of alignof(types::FixedPoint)
+	size = ((size + alignof(T) - 1) / alignof(T)) * alignof(T);
+
+	size_t recordOffset = InternalAddRecord(size, alignof(T));
+
+	// Write the element count
+	GetRecord<T>(recordOffset)->m_length = elementCount;
+
+	return recordOffset;
+}
 
 } // namespace oddf::simulator::common::backend

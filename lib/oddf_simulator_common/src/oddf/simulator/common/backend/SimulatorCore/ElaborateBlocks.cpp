@@ -90,10 +90,10 @@ void SimulatorCore::ElaborateBlocks()
 			if (&fromInput == &toInput)
 				return;
 
-			auto &fromMutable = fromInput.m_owningBlock.m_internals->m_inputs[fromInput.GetIndex()];
-			auto &toMutable = toInput.m_owningBlock.m_internals->m_inputs[toInput.GetIndex()];
-
 			if (fromInput.IsConnected()) {
+
+				auto &fromMutable = fromInput.m_owningBlock.m_internals->m_inputs[fromInput.GetIndex()];
+				auto &toMutable = toInput.m_owningBlock.m_internals->m_inputs[toInput.GetIndex()];
 
 				auto &inputDriver = *fromMutable.m_driver;
 				fromMutable.Disconnect();

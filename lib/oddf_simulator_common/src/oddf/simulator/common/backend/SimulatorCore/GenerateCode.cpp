@@ -66,11 +66,19 @@ void SimulatorCore::GenerateCode()
 				auto *oldCodePointer = m_code.data();
 				m_code.resize(newSize);
 
-				if (m_previousInstruction)
-					m_previousInstruction += m_code.data() - oldCodePointer;
+				ptrdiff_t offset = m_code.data() - oldCodePointer;
 
-				if (m_currentInstruction)
-					m_currentInstruction += m_code.data() - oldCodePointer;
+				if (m_previousInstruction) {
+
+					m_previousInstruction = reinterpret_cast<SimulatorInstruction *>(
+						reinterpret_cast<char *>(m_previousInstruction) + offset);
+				}
+
+				if (m_currentInstruction) {
+
+					m_currentInstruction = reinterpret_cast<SimulatorInstruction *>(
+						reinterpret_cast<char *>(m_currentInstruction) + offset);
+				}
 			}
 		}
 
@@ -102,9 +110,18 @@ void SimulatorCore::GenerateCode()
 			return m_currentInstruction;
 		}
 
-		virtual size_t InternalAddRecord(size_t /* size */, size_t /* alignment */) override
+		virtual size_t InternalAddRecord(size_t size, size_t alignment) override
 		{
-			throw Exception(ExceptionCode::NotImplemented);
+			if (!m_currentInstruction || m_currentInstructionCommitted)
+				throw Exception(ExceptionCode::IllegalMethodCall, "Must first start an instruction before calling this method.");
+
+			auto misalignment = m_code.size() % alignment;
+			if (misalignment)
+				ResizeCode(m_code.size() + alignment - misalignment);
+
+			ResizeCode(m_code.size() + size);
+
+			return m_code.data() + m_code.size() - reinterpret_cast<char *>(m_currentInstruction) - size;
 		}
 
 		virtual void *InternalCommitInstruction() override
@@ -119,9 +136,14 @@ void SimulatorCore::GenerateCode()
 			return m_currentInstruction;
 		}
 
-		virtual void *InternalGetRecord(size_t /* offset*/) override
+		virtual void *InternalGetRecord(size_t offset) override
 		{
-			throw Exception(ExceptionCode::NotImplemented);
+			if (!m_currentInstruction)
+				throw Exception(ExceptionCode::IllegalMethodCall, "Cannot not call this function unless the current instruction has been committed.");
+
+			// TODO check if `offset` is within the current instruction
+
+			return reinterpret_cast<void *>(reinterpret_cast<char *>(m_currentInstruction) + offset);
 		}
 
 		//

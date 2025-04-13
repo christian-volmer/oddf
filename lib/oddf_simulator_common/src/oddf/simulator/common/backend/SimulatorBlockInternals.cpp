@@ -63,7 +63,7 @@ SimulatorBlockBase::Internals::Internals(SimulatorBlockBase &owningBlock, design
 	designBlockOutputNodeTypes.reserve(designBlockOutputsList.GetSize());
 
 	auto outputsEnum = designBlockOutputsList.GetEnumerator();
-	for (outputsEnum.Reset(); outputsEnum.MoveNext();)
+	while (outputsEnum.MoveNext())
 		designBlockOutputNodeTypes.push_back(outputsEnum.GetCurrent().GetNodeType());
 
 	InitialiseInputsAndOutputs(
@@ -93,7 +93,6 @@ void SimulatorBlockBase::Internals::InitialiseInputsAndOutputs(SimulatorBlockBas
 	m_outputs.reserve(numberOfOutputs);
 
 	auto outputNodeTypesEnum = outputNodeTypes.GetEnumerator();
-	outputNodeTypesEnum.Reset();
 
 	for (size_t i = 0; i < numberOfOutputs; ++i) {
 
@@ -108,10 +107,10 @@ void SimulatorBlockBase::Internals::MapConnections(ISimulatorBlockMapping const 
 		throw oddf::Exception(oddf::ExceptionCode::IllegalMethodCall);
 
 	auto designInputEnumerator = m_designBlockReference->GetInputsList().GetEnumerator();
-	designInputEnumerator.Reset();
 
 	for (auto &simInput : m_inputs) {
 
+		designInputEnumerator.MoveNext();
 		auto &designInput = designInputEnumerator.GetCurrent();
 
 		if (designInput.IsConnected()) {
@@ -131,9 +130,9 @@ void SimulatorBlockBase::Internals::MapConnections(ISimulatorBlockMapping const 
 				throw Exception(ExceptionCode::Fail, "Block '" + m_designBlockReference->GetPath().ToString() + "': driving block '" + designDrivingBlock.GetPath().ToString() + "' not found.");
 			}
 		}
-
-		designInputEnumerator.MoveNext();
 	}
+
+	assert(!designInputEnumerator.MoveNext());
 }
 
 } // namespace oddf::simulator::common::backend

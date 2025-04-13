@@ -29,6 +29,8 @@
 #include "AbstractEnumeratorImplementation.h"
 #include "StdContainerElementTypeCast.h"
 
+#include <cassert>
+
 namespace oddf {
 namespace utility {
 namespace backend {
@@ -44,7 +46,7 @@ private:
 public:
 
 	StdEnumeratorImplementation(iteratorT begin, iteratorT end) :
-		m_begin(begin), m_end(end), m_current(end), m_beforeBegin(false)
+		m_begin(begin), m_end(end), m_current(begin), m_beforeBegin(true)
 	{
 	}
 
@@ -68,6 +70,7 @@ public:
 
 	virtual referenceT GetCurrent() const override
 	{
+		assert(!m_beforeBegin);
 		return StdContainerElementTypeCast<referenceT>(*m_current);
 	}
 

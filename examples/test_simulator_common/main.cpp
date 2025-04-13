@@ -48,7 +48,7 @@ int main()
 	Notizen Floorcast
 
 	Wenn newElementCount > oldElementCount
-		
+
 
 
 	*/
@@ -56,8 +56,15 @@ int main()
 	dfx::Design design;
 
 	// b::Probe(b::Delay(-b::Signal(oddf::design::NodeType::FixedPoint(true, 8, 0))));
-	b::Signal(oddf::design::NodeType::FixedPoint(true, 39, 0));
-	b::Probe(- - - - - - - - - - - - -b::Constant<dynfix>(-123));
+
+	dfx::bus<dynfix> x(4);
+
+	x[0] = b::Constant<dynfix>(123);
+	x[1] = b::Constant<dynfix>(-200);
+	x[2] = b::Constant<dynfix>(+1024);
+	x[3] = b::Signal(oddf::design::NodeType::FixedPoint(true, 7, 0));
+
+	b::Probe(b::Sum(x));
 
 	/*	b::Probe(-b::Constant<dynfix>(100));
 	    b::Signal(oddf::design::NodeType::FixedPoint(true, 8, 0));*/

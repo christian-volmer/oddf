@@ -127,11 +127,7 @@ void SimulatorCore::BuildComponents()
 
 					    Confirm these cases are really visited and that they work
 					    properly by activating block shuffling below.
-
-					    Is the size of m_currentComponent always non-zero?
 					*/
-
-					assert(m_currentComponent->GetSize() == 0); // Is GetSize ever different from 0?
 
 					if (m_currentComponent->GetSize() < otherComponent->GetSize()) {
 

@@ -115,9 +115,15 @@ inline void TestCollectionViewForStdContainer()
 	Expect(collectionViewToConstBasePointer.GetSize() == 5);
 	Expect(collectionViewToReference.GetSize() == 5);
 
+	/*
+
+	TODO: should not be required anymore.
+
 	enumerator.Reset();
 	enumeratorToConstBasePointer.Reset();
 	enumeratorToReference.Reset();
+
+	*/
 
 	size_t i = 0;
 

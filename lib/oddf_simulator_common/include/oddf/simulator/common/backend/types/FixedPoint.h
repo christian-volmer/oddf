@@ -29,12 +29,14 @@
 #include <oddf/design/NodeType.h>
 
 #include <cstdint>
+#include <type_traits>
 
 namespace oddf::simulator::common::backend::types {
 
 struct FixedPoint {
 
 	using ElementType = std::uint8_t;
+	using IntermediateType = std::uint16_t;
 
 	static constexpr size_t ElementBitWidth = sizeof(ElementType) * 8;
 	static constexpr ElementType SignedExtension = ElementType(-1);
@@ -52,5 +54,9 @@ struct FixedPoint {
 	// Returns the number of elements required to store values of the given node type.
 	static size_t RequiredElementCount(design::NodeType const &nodeType);
 };
+
+static_assert(std::is_unsigned_v<FixedPoint::ElementType>);
+static_assert(std::is_unsigned_v<FixedPoint::IntermediateType>);
+static_assert(sizeof(FixedPoint::IntermediateType) == 2 * sizeof(FixedPoint::ElementType));
 
 } // namespace oddf::simulator::common::backend::types

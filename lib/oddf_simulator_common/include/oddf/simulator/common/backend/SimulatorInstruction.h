@@ -55,6 +55,18 @@ struct SimulatorInstruction {
 	{
 		m_function(this);
 	}
+
+	template<typename T>
+	T &GetRecord(size_t offset)
+	{
+		return *reinterpret_cast<T *>(reinterpret_cast<char *>(this) + offset);
+	}
+
+	template<typename T>
+	T const &GetRecord(size_t offset) const
+	{
+		return *reinterpret_cast<T const *>(reinterpret_cast<char const *>(this) + offset);
+	}
 };
 
 } // namespace oddf::simulator::common::backend
