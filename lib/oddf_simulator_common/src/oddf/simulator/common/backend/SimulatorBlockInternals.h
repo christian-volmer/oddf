@@ -40,8 +40,14 @@ class SimulatorBlockBase::Internals {
 
 public:
 
+	// The `SimulatorComponent` that this block belongs to.
 	SimulatorComponent *m_component;
+
+	// Used during component creating by `SimulatorCore::BuildComponents()`.
 	bool m_visiting;
+
+	// Used by function `RemoveThisBlock()` during elaboration.
+	bool m_removed;
 
 	// Pointer to the original design block, if the constructor accepting a design block reference was used. `nullptr` otherwise.
 	design::blocks::backend::IDesignBlock const *const m_designBlockReference;

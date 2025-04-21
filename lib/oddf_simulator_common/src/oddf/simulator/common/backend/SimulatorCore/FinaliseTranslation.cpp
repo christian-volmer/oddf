@@ -40,8 +40,6 @@ void SimulatorCore::FinaliseTranslation()
 		// Reference to the component managed by this instance.
 		SimulatorComponent &m_component;
 
-		SimulatorBlockBase *m_currentBlock;
-
 		//
 		// ISimulatorComponentContext
 		//
@@ -69,8 +67,7 @@ void SimulatorCore::FinaliseTranslation()
 	public:
 
 		FinalisationContext(SimulatorComponent &component) :
-			m_component(component),
-			m_currentBlock()
+			m_component(component)
 		{
 		}
 
@@ -82,7 +79,6 @@ void SimulatorCore::FinaliseTranslation()
 			for (auto *block : m_component.m_blocks) {
 
 				assert(block);
-				m_currentBlock = block;
 				block->Finalise(*this);
 			}
 

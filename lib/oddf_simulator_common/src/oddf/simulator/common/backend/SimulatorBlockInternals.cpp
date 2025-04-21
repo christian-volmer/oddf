@@ -36,6 +36,7 @@ namespace oddf::simulator::common::backend {
 SimulatorBlockBase::Internals::Internals(SimulatorBlockBase &owningBlock, design::blocks::backend::IDesignBlock const &designBlock) :
 	m_component(nullptr),
 	m_visiting(false),
+	m_removed(false),
 	m_designBlockReference(&designBlock),
 	m_inputs(),
 	m_outputs()
@@ -75,6 +76,7 @@ SimulatorBlockBase::Internals::Internals(SimulatorBlockBase &owningBlock, design
 SimulatorBlockBase::Internals::Internals(SimulatorBlockBase &owningBlock, size_t numberOfInputs, std::initializer_list<design::NodeType> outputNodeTypes) :
 	m_component(nullptr),
 	m_visiting(false),
+	m_removed(false),
 	m_designBlockReference(nullptr),
 	m_inputs(),
 	m_outputs()

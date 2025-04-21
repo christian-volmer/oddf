@@ -62,7 +62,7 @@ int main()
 	x[0] = b::Constant<dynfix>(123);
 	x[1] = b::Constant<dynfix>(-200);
 	x[2] = b::Constant<dynfix>(+1024);
-	x[3] = b::Signal(oddf::design::NodeType::FixedPoint(true, 7, 0));
+	x[3] = -b::Signal(oddf::design::NodeType::FixedPoint(true, 7, 0));
 
 	b::Probe(b::Sum(x));
 

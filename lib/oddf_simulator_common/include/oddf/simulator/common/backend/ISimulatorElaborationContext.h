@@ -50,6 +50,10 @@ public:
 	// unless the two outputs have identical types.
 	virtual void TransferConnectivity(SimulatorBlockOutput const &fromOutput, SimulatorBlockOutput const &toOutput) = 0;
 
+	// Disconnects the specified input. The input must belong to the block that
+	// is currently under elaboration.
+	virtual void DisconnectInput(SimulatorBlockInput const &input) = 0;
+
 	template<typename T, typename... argsTs>
 	T &AddSimulatorBlock(argsTs &&...args)
 	{

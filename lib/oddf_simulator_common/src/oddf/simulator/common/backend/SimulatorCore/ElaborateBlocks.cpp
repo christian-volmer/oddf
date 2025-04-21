@@ -36,6 +36,7 @@
 
 #include <vector>
 #include <memory>
+#include <set>
 #include <cassert>
 
 namespace oddf::simulator::common::backend {
@@ -52,14 +53,18 @@ void SimulatorCore::ElaborateBlocks()
 	public:
 
 		// Pointer to the `unique_ptr` to the simulator block under elaboration. Used by member function `RemoveThisBlock()`.
-		std::unique_ptr<SimulatorBlockBase> *m_currentBlockUniquePtr;
+		SimulatorBlockBase *m_currentBlock;
 
-		// Vector of blocks created during elaboration. Becomes copied to the simulator block list.
+		// Vector of blocks created during elaboration. Becomes moved to the simulator block list.
 		std::vector<std::unique_ptr<SimulatorBlockBase>> m_newBlocks;
 
+		// Set of blocks that need to be elaborated again, because their connectivity has changed.
+		std::set<SimulatorBlockBase *> m_blocksForReelaboration;
+
 		ElaborationContext() :
-			m_currentBlockUniquePtr(nullptr),
-			m_newBlocks()
+			m_currentBlock(nullptr),
+			m_newBlocks(),
+			m_blocksForReelaboration()
 		{
 		}
 
@@ -76,17 +81,23 @@ void SimulatorCore::ElaborateBlocks()
 		// Removes the block that is currently under elaboration.
 		void RemoveThisBlock() override
 		{
-			if (!*m_currentBlockUniquePtr)
+			assert(m_currentBlock);
+
+			if (m_currentBlock->m_internals->m_removed)
 				throw oddf::Exception(oddf::ExceptionCode::IllegalMethodCall, "ISimulatorElaborationContext::RemoveThisBlock(): the block has already been removed. Was this function accidently called twice?");
 
-			if ((*m_currentBlockUniquePtr)->HasConnections())
+			if (m_currentBlock->HasConnections())
 				throw oddf::Exception(oddf::ExceptionCode::IllegalMethodCall, "ISimulatorElaborationContext::RemoveThisBlock(): block cannot be removed if it has connections to other blocks.");
 
-			m_currentBlockUniquePtr->reset();
+			m_blocksForReelaboration.erase(m_currentBlock);
+			m_currentBlock->m_internals->m_removed = true;
 		}
 
 		virtual void TransferConnectivity(SimulatorBlockInput const &fromInput, SimulatorBlockInput const &toInput) override
 		{
+			if (&fromInput.GetOwningBlock() != m_currentBlock)
+				throw Exception(ExceptionCode::InvalidArgument, "TransferConnectivity(): The input given by parameter 'fromInput' must belong to the block currently under elaboration.");
+
 			if (&fromInput == &toInput)
 				return;
 
@@ -98,46 +109,101 @@ void SimulatorCore::ElaborateBlocks()
 				auto &inputDriver = *fromMutable.m_driver;
 				fromMutable.Disconnect();
 				toMutable.ConnectTo(inputDriver);
+
+				m_blocksForReelaboration.insert(&inputDriver.m_owningBlock);
+				m_blocksForReelaboration.insert(&fromInput.m_owningBlock);
+				m_blocksForReelaboration.insert(&toInput.m_owningBlock);
+			}
+		}
+
+		virtual void DisconnectInput(SimulatorBlockInput const &input) override
+		{
+			if (&input.GetOwningBlock() != m_currentBlock)
+				throw Exception(ExceptionCode::InvalidArgument, "DisconnectInput(): The specified input must belong to the block currently under elaboration.");
+
+			if (input.IsConnected()) {
+
+				auto &mutableInput = input.m_owningBlock.m_internals->m_inputs[input.GetIndex()];
+
+				auto &inputDriver = *mutableInput.m_driver;
+				mutableInput.Disconnect();
+
+				m_blocksForReelaboration.insert(&inputDriver.m_owningBlock);
+				m_blocksForReelaboration.insert(&input.m_owningBlock);
 			}
 		}
 
 		virtual void TransferConnectivity(SimulatorBlockOutput const &fromOutput, SimulatorBlockOutput const &toOutput) override
 		{
+			if (&fromOutput.GetOwningBlock() != m_currentBlock)
+				throw Exception(ExceptionCode::InvalidArgument, "TransferConnectivity(): The output given by parameter 'fromOuput' must belong to the block currently under elaboration.");
+
 			if (&fromOutput == &toOutput)
 				return;
 
 			if (fromOutput.GetType() != toOutput.GetType())
 				throw Exception(ExceptionCode::InvalidArgument, "TransferConnectivity(): outputs must have identical types.");
 
-			auto &toMutable = toOutput.m_owningBlock.m_internals->m_outputs[toOutput.GetIndex()];
+			// Mutable version of `toOutput`
+			auto &toOutput_m = toOutput.m_owningBlock.m_internals->m_outputs[toOutput.GetIndex()];
+
+			// The following loop disconnects all inputs (`target`)
+			// from `fromOutput` them to `toOutput`
 
 			auto &targets = fromOutput.m_targets;
-
 			while (!targets.empty()) {
 
 				auto *target = targets.front();
+
+				assert(target);
+
 				target->Disconnect();
-				target->ConnectTo(toMutable);
+				target->ConnectTo(toOutput_m);
+
+				m_blocksForReelaboration.insert(&target->m_owningBlock);
 			}
+
+			m_blocksForReelaboration.insert(&fromOutput.m_owningBlock);
+			m_blocksForReelaboration.insert(&toOutput.m_owningBlock);
 		}
 	};
 
-	size_t current = 0;
+	/*
 
-	do {
+	The following calls method `Elaborate()` of all simulator blocks.
+	The method will also be called on new blocks that become created
+	during elaboration. Blocks that become affected by changes in
+	connectivity will be elaborated again.
+
+	*/
+
+	size_t current = 0;
+	std::set<SimulatorBlockBase *> blocksForReelaboration;
+
+	while (current < m_blocks.size() || !blocksForReelaboration.empty()) {
 
 		auto context = ElaborationContext();
+
+		for (auto *blockForElaboration : blocksForReelaboration) {
+
+			assert(!blockForElaboration->m_internals->m_removed);
+			context.m_currentBlock = blockForElaboration;
+			blockForElaboration->Elaborate(context);
+		}
+
+		blocksForReelaboration.clear();
 
 		while (current < m_blocks.size()) {
 
 			assert(m_blocks[current]);
 
-			context.m_currentBlockUniquePtr = &m_blocks[current];
-			m_blocks[current]->Elaborate(context);
+			if (!m_blocks[current]->m_internals->m_removed) {
 
-			if (m_blocks[current])
-				++current;
-			else {
+				context.m_currentBlock = m_blocks[current].get();
+				m_blocks[current]->Elaborate(context);
+			}
+
+			if (m_blocks[current]->m_internals->m_removed) {
 
 				/*
 				    The block has been removed by a call to `RemoveThisBlock()`.
@@ -149,15 +215,45 @@ void SimulatorCore::ElaborateBlocks()
 				std::swap(m_blocks[current], m_blocks.back());
 				m_blocks.pop_back();
 			}
+			else
+				++current;
 		}
 
 		// Append the newly created blocks at the end of the main list...
-		m_blocks.reserve(m_blocks.size() + context.m_newBlocks.size());
-		std::move(std::begin(context.m_newBlocks), std::end(context.m_newBlocks), std::back_inserter(m_blocks));
+		// m_blocks.reserve(m_blocks.size() + context.m_newBlocks.size());
+		for (auto &newBlock : context.m_newBlocks) {
 
-		// ... and continue elaboration with the newly appended blocks.
+			// The block will be elaborated anyway in the next elaboration round.
 
-	} while (current < m_blocks.size());
+			context.m_blocksForReelaboration.erase(newBlock.get());
+			m_blocks.push_back(std::move(newBlock));
+		}
+
+		assert(blocksForReelaboration.empty());
+		std::swap(blocksForReelaboration, context.m_blocksForReelaboration);
+	}
+
+	// Go through all blocks once again and actually remove blocks that
+	// have been marked for removal
+
+	current = 0;
+	while (current < m_blocks.size()) {
+
+		if (m_blocks[current]->m_internals->m_removed) {
+
+			/*
+			    The block has been removed by a call to `RemoveThisBlock()`.
+			    Swap places with the last block of the list, pop the now
+			    empty last block from the list, and continue elaboration
+			    without incrementing `current`.
+			*/
+
+			std::swap(m_blocks[current], m_blocks.back());
+			m_blocks.pop_back();
+		}
+		else
+			++current;
+	}
 
 	/*
 

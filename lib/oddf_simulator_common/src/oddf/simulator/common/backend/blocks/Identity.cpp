@@ -56,7 +56,8 @@ void Identity::Elaborate(ISimulatorElaborationContext &context)
 		throw Exception(ExceptionCode::Unsupported);
 
 	context.TransferConnectivity(outputs[0], inputs[0].GetDriver());
-	inputs[0] context.RemoveThisBlock();
+	context.DisconnectInput(inputs[0]);
+	context.RemoveThisBlock();
 }
 
 } // namespace oddf::simulator::common::backend::blocks
