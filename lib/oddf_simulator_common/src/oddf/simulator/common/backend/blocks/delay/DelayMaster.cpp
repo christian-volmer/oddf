@@ -37,7 +37,7 @@ DelayMaster::DelayMaster(design::blocks::backend::IDesignBlock const &designBloc
 
 std::string DelayMaster::GetDesignPathHint() const
 {
-	return GetDesignBlockReference()->GetPath();
+	return GetDesignBlockReference()->GetPath().ToString();
 }
 
 void DelayMaster::Elaborate(ISimulatorElaborationContext &context)

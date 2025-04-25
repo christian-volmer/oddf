@@ -20,37 +20,27 @@
 
 /*
 
-    <no description>
+    Simulator support for the 'floor_cast' design block.
 
 */
 
 #pragma once
 
-#include "../backend/ISignalAccess.h"
+#include <oddf/simulator/common/backend/SimulatorBlockBase.h>
 
-namespace oddf::simulator {
+namespace oddf::simulator::common::backend::blocks {
 
-template<>
-class Signal<bool> {
-
-private:
-
-	backend::ISignalAccess &m_signalAccess;
+class FloorCast : public SimulatorBlockBase {
 
 public:
 
-	Signal(oddf::simulator::ISimulator &simulator, std::string const &name) :
-		m_signalAccess(simulator.GetSimulatorAccess().GetNamedObjectInterface<backend::ISignalAccess>(":signals" + name))
-	{
-		if (m_signalAccess.GetType().GetTypeId() != design::NodeType::BOOLEAN)
-			throw Exception(ExceptionCode::Unsupported);
-	}
+	FloorCast(design::blocks::backend::IDesignBlock const &designBlock);
 
-	void SetValue(bool value)
-	{
-		std::uint8_t value_uint8 = value ? 1 : 0;
-		m_signalAccess.Write(&value_uint8, sizeof(value_uint8));
-	}
+	virtual std::string GetDesignPathHint() const override;
+
+	virtual void Elaborate(ISimulatorElaborationContext &context) override;
+
+	virtual void GenerateCode(ISimulatorCodeGenerationContext &context) override;
 };
 
-} // namespace oddf::simulator
+} // namespace oddf::simulator::common::backend::blocks

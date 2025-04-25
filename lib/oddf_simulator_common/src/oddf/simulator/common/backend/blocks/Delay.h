@@ -101,7 +101,7 @@ public:
 
 	virtual std::string GetDesignPathHint() const override
 	{
-		return m_originalDesignBlock->GetPath() + ":StartingPoint";
+		return m_originalDesignBlock->GetPath().ToString() + ":StartingPoint";
 	}
 
 	virtual void Elaborate(ISimulatorElaborationContext &) override { }

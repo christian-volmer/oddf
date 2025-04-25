@@ -207,7 +207,14 @@ void *BlockBase::GetInterface(oddf::Uid const &iid)
 
 oddf::ResourcePath BlockBase::GetPath() const
 {
-	return oddf::ResourcePath(GetFullName());
+	std::string fullName = GetFullName();
+
+	// Names should all begin with "Root/" ...
+	if (fullName.substr(0, 5) != "Root/")
+		throw oddf::Exception(oddf::ExceptionCode::Unexpected);
+
+	// ... which we remove.
+	return oddf::ResourcePath(fullName.substr(4));
 }
 
 oddf::design::blocks::backend::DesignBlockClass BlockBase::GetClass() const

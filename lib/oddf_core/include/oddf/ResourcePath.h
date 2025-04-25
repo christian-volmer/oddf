@@ -28,34 +28,53 @@
 #pragma once
 
 #include <string>
-#include <utility>
+#include <vector>
 
 namespace oddf {
 
 /*
     Specifies hierarchical paths to resources within the ODDF system.
 */
-class ResourcePath : public std::string {
+class ResourcePath {
 
-	/*
-	    TODO: this is a stub implementation. To be replaced by something more
-	    elaborate.
-	*/
+private:
+
+	// An absolute resource path starts with a /, a relative one does not.
+	bool m_isAbsolute;
+	std::vector<std::string> m_elements;
 
 public:
 
-	using std::string::string;
+	ResourcePath(std::string str);
+	ResourcePath(ResourcePath const &) = default;
 
-	ResourcePath(std::string const &str) :
-		std::string(str) { }
-
-	ResourcePath(std::string &&str) :
-		std::string(std::move(str)) { }
+	ResourcePath &operator=(std::string str);
+	ResourcePath &operator=(ResourcePath const &) = default;
 
 	// Returns the resource path as a string.
-	std::string ToString() const
+	std::string ToString() const;
+
+	// Returns a resource path containing all elements but the last one.
+	ResourcePath Parent() const;
+
+	// If `other` is an absolute resource path it will replace the current one. If it
+	// is relative it will append its elements to the current one. The function returns
+	// a reference to the current, modified resource path.
+	ResourcePath &Append(ResourcePath const &other);
+
+	bool IsAbsolute() const noexcept
 	{
-		return *this;
+		return m_isAbsolute;
+	}
+
+	bool IsRelative() const noexcept
+	{
+		return !m_isAbsolute;
+	}
+
+	static constexpr bool IsValidPathCharacter(char c)
+	{
+		return (c == '$') || (c == '_') || (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 	}
 };
 

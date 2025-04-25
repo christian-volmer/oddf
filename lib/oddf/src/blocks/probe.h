@@ -31,7 +31,7 @@ namespace dfx {
 namespace blocks {
 
 #define DECLARE_PROBE_FUNCTION(_type_) \
-	_type_ const *Probe(node<_type_> const &theNode);
+	_type_ const *Probe(node<_type_> const &theNode, std::string const &tag = {});
 
 DECLARE_PROBE_FUNCTION(bool)
 DECLARE_PROBE_FUNCTION(double)
@@ -40,7 +40,7 @@ DECLARE_PROBE_FUNCTION(std::int64_t)
 
 #undef DECLARE_PROBE_FUNCTION
 
-void Probe(node<dynfix> const &theNode);
+void Probe(node<dynfix> const &theNode, std::string const &tag);
 
 } // namespace blocks
 } // namespace dfx

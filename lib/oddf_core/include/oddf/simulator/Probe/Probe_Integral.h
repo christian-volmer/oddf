@@ -43,7 +43,7 @@ private:
 public:
 
 	Probe(oddf::simulator::ISimulator &simulator, std::string const &name) :
-		m_probeAccess(simulator.GetSimulatorAccess().GetNamedObjectInterface<backend::IProbeAccess>(name)),
+		m_probeAccess(simulator.GetSimulatorAccess().GetNamedObjectInterface<backend::IProbeAccess>(":probes" + name)),
 		m_type(m_probeAccess.GetType())
 	{
 		switch (m_type.GetTypeId()) {

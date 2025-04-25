@@ -30,10 +30,6 @@
 
 namespace oddf::simulator::common::backend::blocks {
 
-//
-// NotMaster
-//
-
 class Plus : public SimulatorBlockBase {
 
 public:

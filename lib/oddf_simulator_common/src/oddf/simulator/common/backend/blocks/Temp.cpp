@@ -37,7 +37,7 @@ TempMaster::TempMaster(design::blocks::backend::IDesignBlock const &designBlock)
 
 std::string TempMaster::GetDesignPathHint() const
 {
-	return GetDesignBlockReference()->GetPath();
+	return GetDesignBlockReference()->GetPath().ToString();
 }
 
 void TempMaster::Elaborate(ISimulatorElaborationContext &context)

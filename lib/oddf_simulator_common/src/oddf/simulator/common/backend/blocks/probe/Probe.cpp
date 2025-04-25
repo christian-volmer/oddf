@@ -28,6 +28,7 @@
 
 #include "ProbeAccessObject.h"
 
+#include <oddf/design/blocks/backend/ITaggedBlock.h>
 #include <oddf/Exception.h>
 
 namespace oddf::simulator::common::backend::blocks {
@@ -39,7 +40,7 @@ Probe::Probe(design::blocks::backend::IDesignBlock const &designBlock) :
 
 std::string Probe::GetDesignPathHint() const
 {
-	return GetDesignBlockReference()->GetPath();
+	return GetDesignBlockReference()->GetPath().ToString();
 }
 
 void Probe::Elaborate(ISimulatorElaborationContext &)
@@ -69,15 +70,26 @@ void Probe::Elaborate(ISimulatorElaborationContext &)
 
 void Probe::Finalise(ISimulatorFinalisationContext &context)
 {
-	auto inputs = GetInputsList();
-	auto const &input = inputs[0];
+	/*
+
+	We create a global ProbeAccessObject in the simulator with
+	object name ':probes/<parent path of probe block>/<probe tag>'
+
+	*/
+
+	auto &probeBlock = GetDesignBlockReference()->GetInterface<design::blocks::backend::ITaggedBlock>();
+
+	auto blockPath = this->GetDesignBlockReference()->GetPath().Parent();
+	auto objectName = ":probes" + blockPath.Append(probeBlock.GetTag()).ToString();
+
+	auto const &input = GetInputsList()[0];
 
 	switch (input.GetType().GetTypeId()) {
 
 		case design::NodeType::BOOLEAN: {
 
 			context.ConstructGlobalObject<ProbeAccessObject<types::Boolean>>(
-				"myprobe",
+				objectName,
 				context.GetCurrentComponent(),
 				input.GetDriver());
 			break;
@@ -86,7 +98,7 @@ void Probe::Finalise(ISimulatorFinalisationContext &context)
 		case design::NodeType::FIXED_POINT: {
 
 			context.ConstructGlobalObject<ProbeAccessObject<types::FixedPoint>>(
-				"myprobe",
+				objectName,
 				context.GetCurrentComponent(),
 				input.GetDriver());
 			break;

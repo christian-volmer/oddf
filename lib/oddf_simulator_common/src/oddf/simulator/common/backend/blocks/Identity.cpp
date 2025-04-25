@@ -37,23 +37,22 @@ Identity::Identity(design::blocks::backend::IDesignBlock const &designBlock) :
 
 std::string Identity::GetDesignPathHint() const
 {
-	return GetDesignBlockReference()->GetPath();
+	return GetDesignBlockReference()->GetPath().ToString();
 }
 
 void Identity::Elaborate(ISimulatorElaborationContext &context)
 {
-	auto outputs = GetOutputsList();
-
-	if (outputs.GetSize() != 1)
-		throw Exception(ExceptionCode::Unsupported);
-
 	auto inputs = GetInputsList();
+	auto outputs = GetOutputsList();
 
 	if (inputs.GetSize() != 1)
 		throw Exception(ExceptionCode::Unsupported);
 
-	if (inputs[0].GetType() != outputs[0].GetType())
+	if (outputs.GetSize() != 1)
 		throw Exception(ExceptionCode::Unsupported);
+
+	if (inputs[0].GetType() != outputs[0].GetType())
+		throw Exception(ExceptionCode::Unexpected);
 
 	context.TransferConnectivity(outputs[0], inputs[0].GetDriver());
 	context.DisconnectInput(inputs[0]);

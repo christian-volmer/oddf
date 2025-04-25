@@ -43,28 +43,24 @@ int main()
 	// Design
 	//
 
-	/*
-
-	Notizen Floorcast
-
-	Wenn newElementCount > oldElementCount
-
-
-
-	*/
-
 	dfx::Design design;
 
 	// b::Probe(b::Delay(-b::Signal(oddf::design::NodeType::FixedPoint(true, 8, 0))));
 
-	dfx::bus<dynfix> x(4);
+	dfx::forward_node<ufix<16>> x;
 
-	x[0] = b::Constant<dynfix>(123);
-	x[1] = b::Constant<dynfix>(-200);
-	x[2] = b::Constant<dynfix>(+1024);
-	x[3] = -b::Signal(oddf::design::NodeType::FixedPoint(true, 7, 0));
+	b::Probe(x, "super_probe");
 
-	b::Probe(b::Sum(x));
+	auto incr = b::Signal(oddf::design::NodeType::FixedPoint(true, 8, 0), "duper_signal");
+
+	x <<= b::Delay(b::FloorCast<ufix<16>>(x + incr));
+
+	/*	x[0] = b::Constant<dynfix>(123);
+	    x[1] = b::Constant<dynfix>(-200);
+	    x[2] = b::Constant<dynfix>(+1024);
+	    x[3] = -b::Signal(oddf::design::NodeType::FixedPoint(true, 7, 0));
+
+	    b::Probe(b::Sum(x));*/
 
 	/*	b::Probe(-b::Constant<dynfix>(100));
 	    b::Signal(oddf::design::NodeType::FixedPoint(true, 8, 0));*/
@@ -82,25 +78,30 @@ int main()
 
 	simulator.TranslateDesign(design);
 
-	auto myProbe = sim::Probe<int>(simulator, "myprobe");
-	auto mySignal = sim::Signal<int>(simulator, "mysignal");
+	/*
+
+	Die Benahmsung sollten wir �berpr�fen, ggf. statt std::string einen ResourcePath verwenden.
+	// -SimulatorObject mit Pfad "/xxx/yyy/probes:UserId".
+
+	*/
+
+	auto myProbe = sim::Probe<int>(simulator, "/super_probe");
+	auto mySignal = sim::Signal<int>(simulator, "/duper_signal");
 
 	std::cout << "myprobe = " << myProbe.GetValue() << "\n";
 	std::cout << "run\n";
 	simulator.Run(1);
 
 	std::cout << "myprobe = " << myProbe.GetValue() << "\n";
-	std::cout << "signal = -11\n";
-	mySignal.SetValue(-11);
+	std::cout << "signal = -1\n";
+	mySignal.SetValue(11);
 	std::cout << "myprobe = " << myProbe.GetValue() << "\n";
 
-	std::cout << "run\n";
-	simulator.Run(1);
-	std::cout << "myprobe = " << myProbe.GetValue() << "\n";
+	for (int i = 0; i < 20; ++i) {
 
-	std::cout << "run\n";
-	simulator.Run(1);
-	std::cout << "myprobe = " << myProbe.GetValue() << "\n";
+		simulator.Run(1);
+		std::cout << "myprobe = " << myProbe.GetValue() << "\n";
+	}
 
 	return 0;
 }

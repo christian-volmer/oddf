@@ -26,31 +26,29 @@
 
 #pragma once
 
-#include "../backend/ISignalAccess.h"
+#include <oddf/Uid.h>
+#include <oddf/IObject.h>
 
-namespace oddf::simulator {
+#include <string>
 
-template<>
-class Signal<bool> {
+namespace oddf {
 
-private:
+namespace design::blocks::backend {
 
-	backend::ISignalAccess &m_signalAccess;
+class ITaggedBlock : public virtual IObject {
 
 public:
 
-	Signal(oddf::simulator::ISimulator &simulator, std::string const &name) :
-		m_signalAccess(simulator.GetSimulatorAccess().GetNamedObjectInterface<backend::ISignalAccess>(":signals" + name))
-	{
-		if (m_signalAccess.GetType().GetTypeId() != design::NodeType::BOOLEAN)
-			throw Exception(ExceptionCode::Unsupported);
-	}
-
-	void SetValue(bool value)
-	{
-		std::uint8_t value_uint8 = value ? 1 : 0;
-		m_signalAccess.Write(&value_uint8, sizeof(value_uint8));
-	}
+	// Returns the tag given to the block.
+	virtual std::string GetTag() const = 0;
 };
 
-} // namespace oddf::simulator
+} // namespace design::blocks::backend
+
+template<>
+struct Iid<design::blocks::backend::ITaggedBlock> {
+
+	static constexpr Uid value = { 0x6245db36, 0x98ff, 0x403a, 0xb1, 0x3, 0x4b, 0x9d, 0xeb, 0xe8, 0x6, 0xf7 };
+};
+
+} // namespace oddf

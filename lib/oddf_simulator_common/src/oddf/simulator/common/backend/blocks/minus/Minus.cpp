@@ -37,7 +37,7 @@ Minus::Minus(design::blocks::backend::IDesignBlock const &designBlock) :
 
 std::string Minus::GetDesignPathHint() const
 {
-	return GetDesignBlockReference()->GetPath();
+	return GetDesignBlockReference()->GetPath().ToString();
 }
 
 void Minus::Elaborate(ISimulatorElaborationContext &)

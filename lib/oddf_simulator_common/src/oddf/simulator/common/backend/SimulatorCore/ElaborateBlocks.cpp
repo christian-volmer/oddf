@@ -254,17 +254,6 @@ void SimulatorCore::ElaborateBlocks()
 		else
 			++current;
 	}
-
-	/*
-
-	TODO
-
-	How do we deal with connectivity changes, e.g, blocks with dangling inputs/outputs.
-	    - If we disconnect the remaining connections this will cause dangling connections with other blocks...
-	    - Maybe connection changes using one of the members of `SimulatorBlockInput` and `SimulatorBlockOutput` should be reported
-	      to the simulator core automatically so that affected blocks can be elaborated again?
-
-	*/
 }
 
 } // namespace oddf::simulator::common::backend

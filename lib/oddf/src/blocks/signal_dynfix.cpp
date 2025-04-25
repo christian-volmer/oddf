@@ -27,14 +27,17 @@
 
 #include "../global.h"
 
+#include <oddf/design/blocks/backend/ITaggedBlock.h>
+
 namespace dfx {
 namespace backend {
 namespace blocks {
 
-class signal_block_dynfix : public BlockBase {
+class signal_block_dynfix : public BlockBase, virtual oddf::design::blocks::backend::ITaggedBlock {
 
 private:
 
+	std::string m_tag;
 	OutputPin<dynfix> output;
 
 	source_blocks_t GetSourceBlocks() const override
@@ -51,10 +54,28 @@ private:
 	{
 	}
 
+	//
+	// ITaggedBlock implementation
+	//
+
+	virtual std::string GetTag() const override
+	{
+		return m_tag;
+	}
+
+	virtual void *GetInterface(oddf::Uid const &iid) override
+	{
+		if (iid == oddf::Iid<oddf::design::blocks::backend::ITaggedBlock>::value)
+			return dynamic_cast<oddf::design::blocks::backend::ITaggedBlock *>(this);
+		else
+			return backend::BlockBase::GetInterface(iid);
+	}
+
 public:
 
-	signal_block_dynfix(oddf::design::NodeType const &nodeType) :
+	signal_block_dynfix(oddf::design::NodeType const &nodeType, std::string const &tag) :
 		BlockBase("signal"),
+		m_tag(tag),
 		output(this, dynfix(nodeType.IsSigned(), nodeType.GetWordWidth(), nodeType.GetFraction()))
 	{
 	}
@@ -73,10 +94,10 @@ public:
 
 namespace blocks {
 
-node<dynfix> Signal(oddf::design::NodeType const &nodeType)
+node<dynfix> Signal(oddf::design::NodeType const &nodeType, std::string const &tag)
 {
 	assert(nodeType.GetTypeId() == oddf::design::NodeType::FIXED_POINT);
-	auto &block = Design::GetCurrent().NewBlock<backend::blocks::signal_block_dynfix>(nodeType);
+	auto &block = Design::GetCurrent().NewBlock<backend::blocks::signal_block_dynfix>(nodeType, tag);
 	return block.get_node();
 }
 

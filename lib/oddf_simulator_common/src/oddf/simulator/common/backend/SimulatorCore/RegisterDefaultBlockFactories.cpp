@@ -30,6 +30,7 @@
 
 #include "../blocks/Constant.h"
 #include "../blocks/Delay.h"
+#include "../blocks/FloorCast.h"
 #include "../blocks/Identity.h"
 #include "../blocks/Minus.h"
 #include "../blocks/Not.h"
@@ -46,6 +47,7 @@ void SimulatorCore::RegisterDefaultBlockFactories()
 
 	RegisterSimulatorBlockFactory(DesignBlockClass("constant"), MakeSimulatorBlockFactory<blocks::ConstantMaster>());
 	RegisterSimulatorBlockFactory(DesignBlockClass("delay"), MakeSimulatorBlockFactory<blocks::DelayMaster>());
+	RegisterSimulatorBlockFactory(DesignBlockClass("floor_cast"), MakeSimulatorBlockFactory<blocks::FloorCast>());
 	RegisterSimulatorBlockFactory(DesignBlockClass("identity"), MakeSimulatorBlockFactory<blocks::Identity>());
 	RegisterSimulatorBlockFactory(DesignBlockClass("negate"), MakeSimulatorBlockFactory<blocks::Minus>());
 	RegisterSimulatorBlockFactory(DesignBlockClass("not"), MakeSimulatorBlockFactory<blocks::NotMaster>());

@@ -37,7 +37,7 @@ NotMaster::NotMaster(design::blocks::backend::IDesignBlock const &designBlock) :
 
 std::string NotMaster::GetDesignPathHint() const
 {
-	return GetDesignBlockReference()->GetPath();
+	return GetDesignBlockReference()->GetPath().ToString();
 }
 
 void NotMaster::Elaborate(ISimulatorElaborationContext &)

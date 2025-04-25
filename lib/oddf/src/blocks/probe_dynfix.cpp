@@ -27,14 +27,17 @@
 
 #include "../global.h"
 
+#include <oddf/design/blocks/backend/ITaggedBlock.h>
+
 namespace dfx {
 namespace backend {
 namespace blocks {
 
-class probe_block_dynfix : public BlockBase {
+class probe_block_dynfix : public BlockBase, virtual oddf::design::blocks::backend::ITaggedBlock {
 
 private:
 
+	std::string m_tag;
 	InputPin<dynfix> input;
 
 	source_blocks_t GetSourceBlocks() const override
@@ -51,10 +54,28 @@ private:
 	{
 	}
 
+	//
+	// ITaggedBlock implementation
+	//
+
+	virtual std::string GetTag() const override
+	{
+		return m_tag;
+	}
+
+	virtual void *GetInterface(oddf::Uid const &iid) override
+	{
+		if (iid == oddf::Iid<oddf::design::blocks::backend::ITaggedBlock>::value)
+			return dynamic_cast<oddf::design::blocks::backend::ITaggedBlock *>(this);
+		else
+			return backend::BlockBase::GetInterface(iid);
+	}
+
 public:
 
-	probe_block_dynfix(node<dynfix> const &theNode) :
+	probe_block_dynfix(node<dynfix> const &theNode, std::string const &tag) :
 		BlockBase("probe"),
+		m_tag(tag),
 		input(this, theNode)
 	{
 	}
@@ -68,9 +89,9 @@ public:
 
 namespace blocks {
 
-void Probe(node<dynfix> const &theNode)
+void Probe(node<dynfix> const &theNode, std::string const &tag)
 {
-	Design::GetCurrent().NewBlock<backend::blocks::probe_block_dynfix>(theNode);
+	Design::GetCurrent().NewBlock<backend::blocks::probe_block_dynfix>(theNode, tag);
 }
 
 } // namespace blocks

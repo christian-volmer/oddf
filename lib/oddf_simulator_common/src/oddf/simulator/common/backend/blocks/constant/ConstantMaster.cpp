@@ -43,7 +43,7 @@ ConstantMaster::ConstantMaster(design::blocks::backend::IDesignBlock const &desi
 
 std::string ConstantMaster::GetDesignPathHint() const
 {
-	return GetDesignBlockReference()->GetPath();
+	return GetDesignBlockReference()->GetPath().ToString();
 }
 
 void ConstantMaster::Elaborate(ISimulatorElaborationContext &)

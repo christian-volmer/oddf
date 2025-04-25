@@ -37,7 +37,7 @@ DelayEndpoint::DelayEndpoint(design::blocks::backend::IDesignBlock const *origin
 
 std::string DelayEndpoint::GetDesignPathHint() const
 {
-	return m_originalDesignBlock->GetPath() + ":Endpoint";
+	return m_originalDesignBlock->GetPath().ToString() + ":Endpoint";
 }
 
 } // namespace oddf::simulator::common::backend::blocks

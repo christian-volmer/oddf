@@ -27,15 +27,18 @@
 
 #include "../global.h"
 
+#include <oddf/design/blocks/backend/ITaggedBlock.h>
+
 namespace dfx {
 namespace backend {
 namespace blocks {
 
 template<typename T>
-class signal_block : public BlockBase {
+class signal_block : public BlockBase, virtual oddf::design::blocks::backend::ITaggedBlock {
 
 private:
 
+	std::string m_tag;
 	OutputPin<T> output;
 	T const *variable;
 
@@ -55,10 +58,28 @@ private:
 		SetDirty();
 	}
 
+	//
+	// ITaggedBlock implementation
+	//
+
+	virtual std::string GetTag() const override
+	{
+		return m_tag;
+	}
+
+	virtual void *GetInterface(oddf::Uid const &iid) override
+	{
+		if (iid == oddf::Iid<oddf::design::blocks::backend::ITaggedBlock>::value)
+			return dynamic_cast<oddf::design::blocks::backend::ITaggedBlock *>(this);
+		else
+			return backend::BlockBase::GetInterface(iid);
+	}
+
 public:
 
-	signal_block(T const *theVariable) :
+	signal_block(T const *theVariable, std::string const &tag) :
 		BlockBase("signal"),
+		m_tag(tag),
 		output(this, *theVariable),
 		variable(theVariable)
 	{
@@ -79,9 +100,9 @@ public:
 namespace blocks {
 
 #define IMPLEMENT_SIGNAL_FUNCTION(_type_) \
-	node<_type_> Signal(_type_ const *variable) \
+	node<_type_> Signal(_type_ const *variable, std::string const &tag) \
 	{ \
-		auto &block = Design::GetCurrent().NewBlock<backend::blocks::signal_block<_type_>>(variable); \
+		auto &block = Design::GetCurrent().NewBlock<backend::blocks::signal_block<_type_>>(variable, tag); \
 		return block.get_node(); \
 	}
 

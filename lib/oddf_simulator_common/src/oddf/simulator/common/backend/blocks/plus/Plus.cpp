@@ -37,7 +37,7 @@ Plus::Plus(design::blocks::backend::IDesignBlock const &designBlock) :
 
 std::string Plus::GetDesignPathHint() const
 {
-	return GetDesignBlockReference()->GetPath();
+	return GetDesignBlockReference()->GetPath().ToString();
 }
 
 void Plus::Elaborate(ISimulatorElaborationContext &)
@@ -126,6 +126,13 @@ private:
 
 				temp >>= types::FixedPoint::ElementBitWidth;
 			}
+
+			/*
+
+			The output type should be wide enough so that overflows cannot occur.
+			We should therefore not have to fix the bits above the most significant bit.
+
+			*/
 		}
 	}
 

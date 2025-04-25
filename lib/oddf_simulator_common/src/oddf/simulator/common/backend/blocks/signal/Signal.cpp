@@ -30,6 +30,7 @@
 
 #include "../../instructions/Copy.h"
 
+#include <oddf/design/blocks/backend/ITaggedBlock.h>
 #include <oddf/Exception.h>
 
 namespace oddf::simulator::common::backend::blocks {
@@ -41,7 +42,7 @@ Signal::Signal(design::blocks::backend::IDesignBlock const &designBlock) :
 
 std::string Signal::GetDesignPathHint() const
 {
-	return GetDesignBlockReference()->GetPath();
+	return GetDesignBlockReference()->GetPath().ToString();
 }
 
 void Signal::Elaborate(ISimulatorElaborationContext &)
@@ -71,8 +72,19 @@ void Signal::Elaborate(ISimulatorElaborationContext &)
 
 void Signal::GenerateCode(ISimulatorCodeGenerationContext &context)
 {
-	auto outputs = GetOutputsList();
-	auto const &output = outputs[0];
+	/*
+
+	We create a global ProbeAccessObject in the simulator with
+	object name ':probes/<parent path of probe block>/<probe tag>'
+
+	*/
+
+	auto &signalBlock = GetDesignBlockReference()->GetInterface<design::blocks::backend::ITaggedBlock>();
+
+	auto blockPath = this->GetDesignBlockReference()->GetPath().Parent();
+	auto objectName = ":signals" + blockPath.Append(signalBlock.GetTag()).ToString();
+
+	auto const &output = GetOutputsList()[0];
 
 	auto type = output.GetType();
 
@@ -80,19 +92,19 @@ void Signal::GenerateCode(ISimulatorCodeGenerationContext &context)
 
 		case design::NodeType::BOOLEAN: {
 
-			auto &signalAccessObject = context.ConstructGlobalObject<SignalAccessObject<types::Boolean>>("mysignal",
+			auto &signalAccessObject = context.ConstructGlobalObject<SignalAccessObject<types::Boolean>>(objectName,
 				context.GetCurrentComponent(), type);
 
-			instructions::CopyInstruction<types::Boolean>::Emit(context, outputs[0], signalAccessObject.GetSource());
+			instructions::CopyInstruction<types::Boolean>::Emit(context, output, signalAccessObject.GetSource());
 			break;
 		}
 
 		case design::NodeType::FIXED_POINT: {
 
-			auto &signalAccessObject = context.ConstructGlobalObject<SignalAccessObject<types::FixedPoint>>("mysignal",
+			auto &signalAccessObject = context.ConstructGlobalObject<SignalAccessObject<types::FixedPoint>>(objectName,
 				context.GetCurrentComponent(), type);
 
-			instructions::CopyInstruction<types::FixedPoint>::Emit(context, outputs[0], signalAccessObject.GetSource());
+			instructions::CopyInstruction<types::FixedPoint>::Emit(context, output, signalAccessObject.GetSource());
 			break;
 		}
 

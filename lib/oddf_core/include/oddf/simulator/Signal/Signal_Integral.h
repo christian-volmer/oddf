@@ -43,7 +43,7 @@ private:
 public:
 
 	Signal(oddf::simulator::ISimulator &simulator, std::string const &name) :
-		m_signalAccess(simulator.GetSimulatorAccess().GetNamedObjectInterface<backend::ISignalAccess>(name)),
+		m_signalAccess(simulator.GetSimulatorAccess().GetNamedObjectInterface<backend::ISignalAccess>(":signals" + name)),
 		m_type(m_signalAccess.GetType())
 	{
 		switch (m_type.GetTypeId()) {
@@ -61,10 +61,9 @@ public:
 
 	void SetValue(integralT const value)
 	{
-		/*
-		    TODO catch overflow based on the actual type of the underlying node
-		    Do it here? Do it inside SignalAccessObject? Do it inside CopySignedInteger/CopyUnsignedInteger?
-		*/
+		// TODO: most types of overflow will be caught inside
+		// the Write() function below. But I think not all.
+		// Needs to be double-checked.
 
 		m_signalAccess.Write(&value, sizeof(value));
 	}

@@ -1,4 +1,5 @@
 add_library(oddf_core
+	src/oddf/ResourcePath.cpp
 	src/oddf/Uid.cpp
 	src/oddf/design/NodeType.cpp
 	src/oddf/utility/CopyBoolean.cpp

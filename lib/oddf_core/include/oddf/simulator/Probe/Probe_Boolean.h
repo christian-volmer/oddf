@@ -40,7 +40,7 @@ private:
 public:
 
 	Probe(oddf::simulator::ISimulator &simulator, std::string const &name) :
-		m_probeAccess(simulator.GetSimulatorAccess().GetNamedObjectInterface<backend::IProbeAccess>(name))
+		m_probeAccess(simulator.GetSimulatorAccess().GetNamedObjectInterface<backend::IProbeAccess>(":probes" + name))
 	{
 		if (m_probeAccess.GetType().GetTypeId() != design::NodeType::BOOLEAN)
 			throw Exception(ExceptionCode::Unsupported);
