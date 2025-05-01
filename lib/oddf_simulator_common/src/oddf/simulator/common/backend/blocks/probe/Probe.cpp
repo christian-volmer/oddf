@@ -43,7 +43,7 @@ std::string Probe::GetDesignPathHint() const
 	return GetDesignBlockReference()->GetPath().ToString();
 }
 
-void Probe::Elaborate(ISimulatorElaborationContext &)
+void Probe::Elaborate(ISimulatorElaborationContext &context)
 {
 	auto outputs = GetOutputsList();
 
@@ -66,6 +66,20 @@ void Probe::Elaborate(ISimulatorElaborationContext &)
 		default:
 			throw Exception(ExceptionCode::Unsupported);
 	}
+
+	auto &probeBlock = GetDesignBlockReference()->GetInterface<design::blocks::backend::ITaggedBlock>();
+	m_probeTag = probeBlock.GetTag();
+
+	if (m_probeTag.empty()) {
+
+		// Only probes with a tag are accessible by the user.
+		// If the tag is empty, we just remove the probe.
+
+		// TODO: emit warning
+
+		context.DisconnectInput(inputs[0]);
+		context.RemoveThisBlock();
+	}
 }
 
 void Probe::Finalise(ISimulatorFinalisationContext &context)
@@ -77,12 +91,13 @@ void Probe::Finalise(ISimulatorFinalisationContext &context)
 
 	*/
 
-	auto &probeBlock = GetDesignBlockReference()->GetInterface<design::blocks::backend::ITaggedBlock>();
+	assert(!m_probeTag.empty());
 
 	auto blockPath = this->GetDesignBlockReference()->GetPath().Parent();
-	auto objectName = ":probes" + blockPath.Append(probeBlock.GetTag()).ToString();
+	auto objectName = ":probes" + blockPath.Append(ResourcePath::Parse(m_probeTag)).ToString();
 
-	auto const &input = GetInputsList()[0];
+	auto inputs = GetInputsList();
+	auto const &input = inputs[0];
 
 	switch (input.GetType().GetTypeId()) {
 

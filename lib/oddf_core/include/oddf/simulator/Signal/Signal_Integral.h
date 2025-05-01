@@ -37,15 +37,14 @@ class Signal<integralT, std::enable_if_t<std::is_integral_v<integralT> && !std::
 
 private:
 
-	backend::ISignalAccess &m_signalAccess;
-	design::NodeType const m_type;
+	backend::ISignalAccess *m_signalAccess;
+	design::NodeType m_type;
 
-public:
-
-	Signal(oddf::simulator::ISimulator &simulator, std::string const &name) :
-		m_signalAccess(simulator.GetSimulatorAccess().GetNamedObjectInterface<backend::ISignalAccess>(":signals" + name)),
-		m_type(m_signalAccess.GetType())
+	void Initialise(oddf::simulator::ISimulator &simulator, ResourcePath const &resourcePath)
 	{
+		m_signalAccess = &simulator.GetSimulatorAccess().GetNamedObjectInterface<backend::ISignalAccess>(":signals" + ResourcePath::Parse("/").Append(resourcePath).ToString());
+		m_type = m_signalAccess->GetType();
+
 		switch (m_type.GetTypeId()) {
 
 			case design::NodeType::FIXED_POINT:
@@ -59,13 +58,32 @@ public:
 		}
 	}
 
+public:
+
+	Signal(oddf::simulator::ISimulator &simulator, ResourcePath const &resourcePath) :
+		m_signalAccess(),
+		m_type()
+	{
+		Initialise(simulator, resourcePath);
+	}
+
+	Signal(oddf::simulator::ISimulator &simulator, std::string const &resourcePath) :
+		m_signalAccess(),
+		m_type()
+	{
+		Initialise(simulator, ResourcePath::Parse(resourcePath));
+	}
+
+	Signal(Signal const &) = default;
+	Signal &operator=(Signal const &) = default;
+
 	void SetValue(integralT const value)
 	{
 		// TODO: most types of overflow will be caught inside
 		// the Write() function below. But I think not all.
 		// Needs to be double-checked.
 
-		m_signalAccess.Write(&value, sizeof(value));
+		m_signalAccess->Write(&value, sizeof(value));
 	}
 };
 

@@ -25,8 +25,6 @@
 
 */
 
-#pragma once
-
 #include <oddf/ResourcePath.h>
 #include <oddf/Exception.h>
 
@@ -35,27 +33,27 @@
 
 namespace oddf {
 
-ResourcePath::ResourcePath(std::string str) :
-	m_isAbsolute(false),
-	m_elements()
+ResourcePath ResourcePath::Parse(std::string str)
 {
-	this->operator=(str);
+	ResourcePath result;
+	result.AssignFromString(str);
+	return result;
 }
 
-ResourcePath &ResourcePath::operator=(std::string str)
+void ResourcePath::AssignFromString(std::string str)
 {
+	m_elements.clear();
+
 	if (str == ".") {
 
 		m_isAbsolute = false;
-		m_elements.clear();
-		return *this;
+		return;
 	}
 
 	if (str == "/") {
 
 		m_isAbsolute = true;
-		m_elements.clear();
-		return *this;
+		return;
 	}
 
 	if (str.empty())
@@ -74,7 +72,7 @@ ResourcePath &ResourcePath::operator=(std::string str)
 		if (element.empty())
 			throw Exception(ExceptionCode::InvalidArgument, "Parameter `str` must not contain double slashes.");
 
-		if (std::find_if(element.cbegin(), element.cend(), [](auto c) { return !IsValidPathCharacter(c); }) != element.cend())
+		if (!IsValidElement(element))
 			throw Exception(ExceptionCode::InvalidArgument, "Parameter `str` contains characters that are not allowed as part of a resource path.");
 
 		m_elements.push_back(element);
@@ -86,12 +84,10 @@ ResourcePath &ResourcePath::operator=(std::string str)
 	if (element.empty())
 		throw Exception(ExceptionCode::InvalidArgument, "Parameter `str` must not end in a slash.");
 
-	if (std::find_if(element.cbegin(), element.cend(), [](auto c) { return !IsValidPathCharacter(c); }) != element.cend())
+	if (!IsValidElement(element))
 		throw Exception(ExceptionCode::InvalidArgument, "Parameter `str` contains characters that are not allowed as part of a resource path.");
 
 	m_elements.push_back(element);
-
-	return *this;
 }
 
 std::string ResourcePath::ToString() const
@@ -125,14 +121,25 @@ ResourcePath ResourcePath::Parent() const
 	return parent;
 }
 
-ResourcePath &ResourcePath::Append(ResourcePath const &other)
+ResourcePath ResourcePath::Append(ResourcePath const &other) const
 {
 	if (other.m_isAbsolute)
-		*this = other;
-	else
-		m_elements.insert(m_elements.end(), other.m_elements.begin(), other.m_elements.end());
+		return other;
+	else {
 
-	return *this;
+		ResourcePath result = *this;
+
+		result.m_elements.insert(result.m_elements.end(), other.m_elements.begin(), other.m_elements.end());
+		return result;
+	}
+}
+
+bool ResourcePath::IsValidElement(std::string const &str)
+{
+	if (str.empty())
+		return false;
+
+	return std::all_of(str.begin(), str.end(), ResourcePath::IsValidCharacter);
 }
 
 } // namespace oddf

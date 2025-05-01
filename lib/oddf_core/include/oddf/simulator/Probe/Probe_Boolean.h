@@ -35,21 +35,37 @@ class Probe<bool> {
 
 private:
 
-	backend::IProbeAccess &m_probeAccess;
+	backend::IProbeAccess *m_probeAccess;
+
+	void Initialise(oddf::simulator::ISimulator &simulator, ResourcePath const &resourcePath)
+	{
+		m_probeAccess = &simulator.GetSimulatorAccess().GetNamedObjectInterface<backend::IProbeAccess>(":probes" + ResourcePath::Parse("/").Append(resourcePath).ToString());
+
+		if (m_probeAccess->GetType().GetTypeId() != design::NodeType::BOOLEAN)
+			throw Exception(ExceptionCode::Unsupported);
+	}
 
 public:
 
-	Probe(oddf::simulator::ISimulator &simulator, std::string const &name) :
-		m_probeAccess(simulator.GetSimulatorAccess().GetNamedObjectInterface<backend::IProbeAccess>(":probes" + name))
+	Probe(oddf::simulator::ISimulator &simulator, ResourcePath const &resourcePath) :
+		m_probeAccess()
 	{
-		if (m_probeAccess.GetType().GetTypeId() != design::NodeType::BOOLEAN)
-			throw Exception(ExceptionCode::Unsupported);
+		Initialise(simulator, resourcePath);
 	}
+
+	Probe(oddf::simulator::ISimulator &simulator, std::string const &resourcePath) :
+		m_probeAccess()
+	{
+		Initialise(simulator, ResourcePath::Parse(resourcePath));
+	}
+
+	Probe(Probe const &) = default;
+	Probe &operator=(Probe const &) = default;
 
 	bool GetValue()
 	{
 		std::uint8_t value;
-		m_probeAccess.Read(&value, sizeof(value));
+		m_probeAccess->Read(&value, sizeof(value));
 		return value != 0;
 	}
 };

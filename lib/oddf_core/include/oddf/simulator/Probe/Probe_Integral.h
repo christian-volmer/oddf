@@ -28,6 +28,8 @@
 
 #include "../backend/IProbeAccess.h"
 
+#include <oddf/ResourcePath.h>
+
 #include <type_traits>
 
 namespace oddf::simulator {
@@ -37,15 +39,14 @@ class Probe<integralT, std::enable_if_t<std::is_integral_v<integralT> && !std::i
 
 private:
 
-	backend::IProbeAccess &m_probeAccess;
-	design::NodeType const m_type;
+	backend::IProbeAccess *m_probeAccess;
+	design::NodeType m_type;
 
-public:
-
-	Probe(oddf::simulator::ISimulator &simulator, std::string const &name) :
-		m_probeAccess(simulator.GetSimulatorAccess().GetNamedObjectInterface<backend::IProbeAccess>(":probes" + name)),
-		m_type(m_probeAccess.GetType())
+	void Initialise(oddf::simulator::ISimulator &simulator, ResourcePath const &resourcePath)
 	{
+		m_probeAccess = &simulator.GetSimulatorAccess().GetNamedObjectInterface<backend::IProbeAccess>(":probes" + ResourcePath::Parse("/").Append(resourcePath).ToString());
+		m_type = m_probeAccess->GetType();
+
 		switch (m_type.GetTypeId()) {
 
 			case design::NodeType::FIXED_POINT:
@@ -63,6 +64,25 @@ public:
 		}
 	}
 
+public:
+
+	Probe(oddf::simulator::ISimulator &simulator, ResourcePath const &resourcePath) :
+		m_probeAccess(),
+		m_type()
+	{
+		Initialise(simulator, resourcePath);
+	}
+
+	Probe(oddf::simulator::ISimulator &simulator, std::string const &resourcePath) :
+		m_probeAccess(),
+		m_type()
+	{
+		Initialise(simulator, ResourcePath::Parse(resourcePath));
+	}
+
+	Probe(Probe const &) = default;
+	Probe &operator=(Probe const &) = default;
+
 	integralT GetValue()
 	{
 		size_t const bitShift = size_t(-m_type.GetFraction());
@@ -74,7 +94,7 @@ public:
 			unsignedT unsignedValue { 0 };
 
 			// Read will throw if the value is outside the range of `unsignedT`.
-			m_probeAccess.Read(&unsignedValue, sizeof(unsignedValue));
+			m_probeAccess->Read(&unsignedValue, sizeof(unsignedValue));
 
 			if (unsignedValue && bitShift) {
 
@@ -121,7 +141,7 @@ public:
 				signedT signedValue { 0 };
 
 				// Read will throw if the value is outside the range of `signedT`.
-				m_probeAccess.Read(&signedValue, sizeof(signedValue));
+				m_probeAccess->Read(&signedValue, sizeof(signedValue));
 
 				if (signedValue && bitShift) {
 

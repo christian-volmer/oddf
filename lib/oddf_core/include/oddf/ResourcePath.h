@@ -43,13 +43,17 @@ private:
 	bool m_isAbsolute;
 	std::vector<std::string> m_elements;
 
+	void AssignFromString(std::string str);
+
 public:
 
-	ResourcePath(std::string str);
-	ResourcePath(ResourcePath const &) = default;
+	ResourcePath() :
+		m_isAbsolute(), m_elements() { }
 
-	ResourcePath &operator=(std::string str);
+	ResourcePath(ResourcePath const &) = default;
 	ResourcePath &operator=(ResourcePath const &) = default;
+
+	static ResourcePath Parse(std::string str);
 
 	// Returns the resource path as a string.
 	std::string ToString() const;
@@ -57,10 +61,9 @@ public:
 	// Returns a resource path containing all elements but the last one.
 	ResourcePath Parent() const;
 
-	// If `other` is an absolute resource path it will replace the current one. If it
-	// is relative it will append its elements to the current one. The function returns
-	// a reference to the current, modified resource path.
-	ResourcePath &Append(ResourcePath const &other);
+	// Appends `other` to the current resource path and returns the result.
+	// If `other` is absolute, the function just returns other.
+	ResourcePath Append(ResourcePath const &other) const;
 
 	bool IsAbsolute() const noexcept
 	{
@@ -72,10 +75,12 @@ public:
 		return !m_isAbsolute;
 	}
 
-	static constexpr bool IsValidPathCharacter(char c)
+	static constexpr bool IsValidCharacter(char c)
 	{
 		return (c == '$') || (c == '_') || (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 	}
+
+	static bool IsValidElement(std::string const &str);
 };
 
 } // namespace oddf

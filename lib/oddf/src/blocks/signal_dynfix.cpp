@@ -78,6 +78,8 @@ public:
 		m_tag(tag),
 		output(this, dynfix(nodeType.IsSigned(), nodeType.GetWordWidth(), nodeType.GetFraction()))
 	{
+		if (!(tag.empty() || oddf::ResourcePath::IsValidElement(tag)))
+			throw oddf::Exception(oddf::ExceptionCode::InvalidArgument, "The tag contains characters that are not allowed as part of a resource path element.");
 	}
 
 	signal_block_dynfix(signal_block_dynfix const &) = delete;

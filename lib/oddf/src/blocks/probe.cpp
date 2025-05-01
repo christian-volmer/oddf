@@ -82,6 +82,8 @@ public:
 		input(this, theNode),
 		variable()
 	{
+		if (!(tag.empty() || oddf::ResourcePath::IsValidElement(tag)))
+			throw oddf::Exception(oddf::ExceptionCode::InvalidArgument, "The tag contains characters that are not allowed as part of a resource path element.");
 	}
 
 	probe_block(probe_block<T> const &) = delete;

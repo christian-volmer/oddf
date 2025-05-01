@@ -40,7 +40,7 @@ DECLARE_PROBE_FUNCTION(std::int64_t)
 
 #undef DECLARE_PROBE_FUNCTION
 
-void Probe(node<dynfix> const &theNode, std::string const &tag);
+void Probe(node<dynfix> const &theNode, std::string const &tag = {});
 
 } // namespace blocks
 } // namespace dfx

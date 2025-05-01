@@ -78,13 +78,6 @@ int main()
 
 	simulator.TranslateDesign(design);
 
-	/*
-
-	Die Benahmsung sollten wir �berpr�fen, ggf. statt std::string einen ResourcePath verwenden.
-	// -SimulatorObject mit Pfad "/xxx/yyy/probes:UserId".
-
-	*/
-
 	auto myProbe = sim::Probe<int>(simulator, "/super_probe");
 	auto mySignal = sim::Signal<int>(simulator, "/duper_signal");
 

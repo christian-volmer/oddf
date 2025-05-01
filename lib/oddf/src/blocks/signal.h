@@ -33,7 +33,7 @@ namespace dfx {
 namespace blocks {
 
 // Fixed-point Signal for the new simulator backend
-node<dynfix> Signal(oddf::design::NodeType const &nodeType, std::string const &tag);
+node<dynfix> Signal(oddf::design::NodeType const &nodeType, std::string const &tag = {});
 
 #define DECLARE_SIGNAL_FUNCTION(_type_) \
 	node<_type_> Signal(_type_ const *variable, std::string const &tag = {});

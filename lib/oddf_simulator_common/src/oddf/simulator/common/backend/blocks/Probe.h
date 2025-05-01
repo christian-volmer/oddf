@@ -36,6 +36,10 @@ namespace oddf::simulator::common::backend::blocks {
 
 class Probe : public SimulatorBlockBase {
 
+private:
+
+	std::string m_probeTag;
+
 public:
 
 	Probe(design::blocks::backend::IDesignBlock const &designBlock);

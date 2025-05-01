@@ -35,21 +35,37 @@ class Signal<bool> {
 
 private:
 
-	backend::ISignalAccess &m_signalAccess;
+	backend::ISignalAccess *m_signalAccess;
+
+	void Initialise(oddf::simulator::ISimulator &simulator, ResourcePath const &resourcePath)
+	{
+		m_signalAccess = &simulator.GetSimulatorAccess().GetNamedObjectInterface<backend::ISignalAccess>(":signals" + ResourcePath::Parse("/").Append(resourcePath).ToString());
+
+		if (m_signalAccess->GetType().GetTypeId() != design::NodeType::BOOLEAN)
+			throw Exception(ExceptionCode::Unsupported);
+	}
 
 public:
 
-	Signal(oddf::simulator::ISimulator &simulator, std::string const &name) :
-		m_signalAccess(simulator.GetSimulatorAccess().GetNamedObjectInterface<backend::ISignalAccess>(":signals" + name))
+	Signal(oddf::simulator::ISimulator &simulator, ResourcePath const &resourcePath) :
+		m_signalAccess()
 	{
-		if (m_signalAccess.GetType().GetTypeId() != design::NodeType::BOOLEAN)
-			throw Exception(ExceptionCode::Unsupported);
+		Initialise(simulator, resourcePath);
 	}
+
+	Signal(oddf::simulator::ISimulator &simulator, std::string const &resourcePath) :
+		m_signalAccess()
+	{
+		Initialise(simulator, ResourcePath::Parse(resourcePath));
+	}
+
+	Signal(Signal const &) = default;
+	Signal &operator=(Signal const &) = default;
 
 	void SetValue(bool value)
 	{
 		std::uint8_t value_uint8 = value ? 1 : 0;
-		m_signalAccess.Write(&value_uint8, sizeof(value_uint8));
+		m_signalAccess->Write(&value_uint8, sizeof(value_uint8));
 	}
 };
 

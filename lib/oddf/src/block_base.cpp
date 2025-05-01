@@ -214,7 +214,7 @@ oddf::ResourcePath BlockBase::GetPath() const
 		throw oddf::Exception(oddf::ExceptionCode::Unexpected);
 
 	// ... which we remove.
-	return oddf::ResourcePath(fullName.substr(4));
+	return oddf::ResourcePath::Parse(fullName.substr(4));
 }
 
 oddf::design::blocks::backend::DesignBlockClass BlockBase::GetClass() const

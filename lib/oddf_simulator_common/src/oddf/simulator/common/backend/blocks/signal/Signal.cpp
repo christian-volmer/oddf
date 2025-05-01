@@ -74,17 +74,18 @@ void Signal::GenerateCode(ISimulatorCodeGenerationContext &context)
 {
 	/*
 
-	We create a global ProbeAccessObject in the simulator with
-	object name ':probes/<parent path of probe block>/<probe tag>'
+	We create a global SignalAccessObject in the simulator with
+	object name ':signals/<parent path of probe block>/<probe tag>'
 
 	*/
 
 	auto &signalBlock = GetDesignBlockReference()->GetInterface<design::blocks::backend::ITaggedBlock>();
 
 	auto blockPath = this->GetDesignBlockReference()->GetPath().Parent();
-	auto objectName = ":signals" + blockPath.Append(signalBlock.GetTag()).ToString();
+	auto objectName = ":signals" + blockPath.Append(ResourcePath::Parse(signalBlock.GetTag())).ToString();
 
-	auto const &output = GetOutputsList()[0];
+	auto outputs = GetOutputsList();
+	auto const &output = outputs[0];
 
 	auto type = output.GetType();
 
