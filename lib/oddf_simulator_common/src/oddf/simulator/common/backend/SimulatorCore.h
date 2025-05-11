@@ -30,11 +30,14 @@
 #include "SimulatorComponent.h"
 
 #include <oddf/simulator/common/backend/ISimulatorBlockFactory.h>
-#include <oddf/simulator/common/backend/IClockable.h>
+
 #include <oddf/simulator/backend/ISimulatorAccess.h>
 
 #include <oddf/design/IDesign.h>
 #include <oddf/design/blocks/backend/DesignBlockClass.h>
+
+#include <oddf/utility/GetInterfaceHelper.h>
+#include <oddf/Exception.h>
 
 #include <map>
 #include <memory>
@@ -61,7 +64,78 @@ private:
 
 	std::map<std::string, std::unique_ptr<IObject>> m_namedSimulatorObjects;
 
-	std::set<IClockable *> m_clockables;
+	std::set<simulator::backend::IClockable *> m_clockables;
+
+	struct NamedNode;
+
+	struct NamedNodeComparer {
+
+		using is_transparent = std::true_type;
+
+		bool operator()(NamedNode const &lhs, std::string const &rhs) const
+		{
+			return lhs.m_name < rhs;
+		}
+		bool operator()(std::string const &lhs, NamedNode const &rhs) const
+		{
+			return lhs < rhs.m_name;
+		}
+		bool operator()(NamedNode const &lhs, NamedNode const &rhs) const
+		{
+			return lhs.m_name < rhs.m_name;
+		}
+	};
+
+	struct NamedNode : public virtual simulator::backend::ISimulatorNodeTreeElement {
+
+		std::string m_name;
+		oddf::design::NodeType m_type;
+		void const *m_pointer;
+		std::set<NamedNode, NamedNodeComparer> m_children;
+
+		NamedNode(std::string const &name) :
+			m_name(name),
+			m_type(),
+			m_pointer(),
+			m_children()
+		{
+		}
+
+		NamedNode(NamedNode const &) = delete;
+		void operator=(NamedNode const &) = delete;
+
+		NamedNode(NamedNode &&) = default;
+		NamedNode &operator=(NamedNode &&) = default;
+
+		virtual bool IsNode() const override
+		{
+			return m_pointer;
+		}
+
+		virtual void Read(void * /*buffer */, size_t /* count */) const override
+		{
+			throw Exception(ExceptionCode::NotImplemented);
+		}
+
+		virtual std::string GetName() const override
+		{
+			return m_name;
+		}
+
+		virtual utility::CollectionView<ISimulatorNodeTreeElement const &> GetChildren() const override
+		{
+			return utility::MakeCollectionView<ISimulatorNodeTreeElement const &>(m_children);
+		}
+
+		void *GetInterface(oddf::Uid const &iid)
+		{
+			return oddf::utility::GetInterfaceHelper<
+				simulator::backend::ISimulatorNodeTreeElement,
+				IObject>::GetInterface(this, iid);
+		}
+	};
+
+	NamedNode m_namedNodesRoot;
 
 	// Registers simulator block factories for all standard ODDF design blocks.
 	void RegisterDefaultBlockFactories();
@@ -95,9 +169,9 @@ public:
 	bool RegisterSimulatorBlockFactory(design::blocks::backend::DesignBlockClass const &designBlockClass,
 		std::unique_ptr<ISimulatorBlockFactory> &&simulatorBlockFactory);
 
-	void RegisterClockable(IClockable &clockable);
-
 	void RegisterGlobalObject(std::string name, std::unique_ptr<IObject> &&object);
+
+	void RegisterNamedNode(ResourcePath const &path, SimulatorBlockOutput const &output);
 
 	// Translates the given design so it can be simulated by this simulator instance.
 	void TranslateDesign(design::IDesign const &design);
@@ -118,6 +192,11 @@ public:
 	//
 
 	virtual void *GetNamedObjectInterface(std::string const &name, Uid const &iid) const override;
+
+	virtual void RegisterClockable(simulator::backend::IClockable &clockable) override;
+	virtual void UnregisterClockable(simulator::backend::IClockable &clockable) override;
+
+	virtual simulator::backend::ISimulatorNodeTreeElement const &GetNamedNodesRoot() const override;
 };
 
 } // namespace oddf::simulator::common::backend

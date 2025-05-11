@@ -26,6 +26,9 @@
 
 #pragma once
 
+#include <oddf/simulator/backend/IClockable.h>
+#include <oddf/simulator/backend/ISimulatorNodeTreeElement.h>
+
 #include <oddf/Uid.h>
 #include <oddf/Iid.h>
 #include <string>
@@ -36,7 +39,7 @@ class ISimulatorAccess {
 
 public:
 
-	virtual ~ISimulatorAccess() { }
+	virtual ~ISimulatorAccess() = default;
 
 	virtual void *GetNamedObjectInterface(std::string const &path, Uid const &iid) const = 0;
 
@@ -45,6 +48,11 @@ public:
 	{
 		return *static_cast<T *>(GetNamedObjectInterface(path, Iid<T>::value));
 	}
+
+	virtual void RegisterClockable(IClockable &clockable) = 0;
+	virtual void UnregisterClockable(IClockable &clockable) = 0;
+
+	virtual ISimulatorNodeTreeElement const &GetNamedNodesRoot() const = 0;
 };
 
 } // namespace oddf::simulator::backend

@@ -27,9 +27,11 @@
 #pragma once
 
 #include <oddf/simulator/common/backend/Types.h>
-#include <oddf/simulator/common/backend/IClockable.h>
 #include <oddf/simulator/common/backend/ISimulatorComponent.h>
 #include <oddf/simulator/common/backend/types/CheckFixedPointRepresentation.h>
+
+#include <oddf/simulator/backend/IClockable.h>
+
 #include <oddf/utility/GetInterfaceHelper.h>
 #include <oddf/Clsid.h>
 
@@ -150,7 +152,7 @@ public:
 	}
 };
 
-class DelayObject : public virtual IClockable {
+class DelayObject : public virtual simulator::backend::IClockable {
 
 private:
 

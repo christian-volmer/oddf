@@ -106,6 +106,21 @@ public:
 	}
 
 	using oddf::simulator::backend::ISimulatorAccess::GetNamedObjectInterface;
+
+	virtual void RegisterClockable(oddf::simulator::backend::IClockable &) override
+	{
+		throw Exception(ExceptionCode::NotImplemented);
+	}
+
+	virtual void UnregisterClockable(oddf::simulator::backend::IClockable &) override
+	{
+		throw Exception(ExceptionCode::NotImplemented);
+	}
+
+	virtual oddf::simulator::backend::ISimulatorNodeTreeElement const &GetNamedNodesRoot() const override
+	{
+		throw Exception(ExceptionCode::NotImplemented);
+	}
 };
 
 void Test_ISimulatorAccess()

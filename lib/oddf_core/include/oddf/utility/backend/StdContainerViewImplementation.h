@@ -27,7 +27,6 @@
 #pragma once
 
 #include "AbstractContainerViewImplementation.h"
-#include "StdContainerIndexable.h"
 #include "StdEnumeratorImplementation.h"
 #include "StdContainerElementTypeCast.h"
 
@@ -74,9 +73,11 @@ public:
 
 	virtual referenceT operator[](size_t index) const override
 	{
-		if constexpr (StdContainerIndexable<containerT>) {
+		using iteratorType = decltype(std::begin(m_container));
 
-			return StdContainerElementTypeCast<referenceT>(m_container[index]);
+		if constexpr (std::is_same_v<std::random_access_iterator_tag, typename std::iterator_traits<iteratorType>::iterator_category>) {
+
+			return StdContainerElementTypeCast<referenceT>(std::begin(m_container)[index]);
 		}
 		else {
 

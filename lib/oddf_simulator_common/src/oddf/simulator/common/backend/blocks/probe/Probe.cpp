@@ -34,7 +34,8 @@
 namespace oddf::simulator::common::backend::blocks {
 
 Probe::Probe(design::blocks::backend::IDesignBlock const &designBlock) :
-	SimulatorBlockBase(designBlock)
+	SimulatorBlockBase(designBlock),
+	m_probeTag()
 {
 }
 
@@ -94,10 +95,15 @@ void Probe::Finalise(ISimulatorFinalisationContext &context)
 	assert(!m_probeTag.empty());
 
 	auto blockPath = this->GetDesignBlockReference()->GetPath().Parent();
-	auto objectName = ":probes" + blockPath.Append(ResourcePath::Parse(m_probeTag)).ToString();
+
+	auto nodePath = blockPath.Append(ResourcePath::Parse(m_probeTag));
+
+	auto objectName = ":probes" + nodePath.ToString();
 
 	auto inputs = GetInputsList();
 	auto const &input = inputs[0];
+
+	context.RegisterNamedNode(nodePath, input.GetDriver());
 
 	switch (input.GetType().GetTypeId()) {
 

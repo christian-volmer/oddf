@@ -38,7 +38,8 @@ SimulatorCore::SimulatorCore() :
 	m_components(),
 	m_invalidComponents(),
 	m_namedSimulatorObjects(),
-	m_clockables()
+	m_clockables(),
+	m_namedNodesRoot("")
 {
 	RegisterDefaultBlockFactories();
 }
@@ -53,10 +54,41 @@ void SimulatorCore::RegisterGlobalObject(std::string name, std::unique_ptr<IObje
 		throw Exception(ExceptionCode::Fail, "RegisterGlobalObject(): an object with that name already exists.");
 }
 
-void SimulatorCore::RegisterClockable(IClockable &clockable)
+void SimulatorCore::RegisterNamedNode(ResourcePath const &path, SimulatorBlockOutput const &output)
+{
+	NamedNode *current = &m_namedNodesRoot;
+
+	for (auto const &elem : path) {
+
+		current = const_cast<NamedNode *>(&*current->m_children.insert(elem).first);
+	}
+
+	if (current->m_pointer)
+		throw Exception(ExceptionCode::InvalidArgument, "RegisterNamedNode(): a node has already been registered under the given path.");
+
+	current->m_pointer = output.GetPointer<void>();
+	current->m_type = output.GetType();
+}
+
+simulator::backend::ISimulatorNodeTreeElement const &SimulatorCore::GetNamedNodesRoot() const
+{
+	return m_namedNodesRoot;
+}
+
+void SimulatorCore::RegisterClockable(simulator::backend::IClockable &clockable)
 {
 	assert(m_clockables.find(&clockable) == m_clockables.end());
 	m_clockables.insert(&clockable);
+}
+
+void SimulatorCore::UnregisterClockable(simulator::backend::IClockable &clockable)
+{
+	auto found = m_clockables.find(&clockable);
+
+	if (*found == &clockable)
+		m_clockables.erase(found);
+	else
+		throw Exception(ExceptionCode::InvalidArgument, "UnregisterClockable(): the given `clockable` has not been registered before.");
 }
 
 void *SimulatorCore::GetNamedObjectInterface(std::string const &name, Uid const &iid) const

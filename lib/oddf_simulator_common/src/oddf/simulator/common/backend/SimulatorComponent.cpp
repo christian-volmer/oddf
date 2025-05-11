@@ -30,8 +30,9 @@
 
 #include <oddf/simulator/common/backend/SimulatorInstruction.h>
 
+#include <oddf/simulator/backend/IClockable.h>
+
 #include <oddf/Exception.h>
-#include <oddf/simulator/common/backend/IClockable.h>
 
 #include <algorithm>
 #include <cassert>
@@ -64,8 +65,8 @@ void SimulatorComponent::RegisterComponentObject(Uid const &clsid, std::unique_p
 		// Try if we can obtain an IClockable
 		try {
 
-			IClockable &pClockable = object->GetInterface<IClockable>();
-			m_simulatorCore.RegisterClockable(pClockable);
+			auto &clockable = object->GetInterface<simulator::backend::IClockable>();
+			m_simulatorCore.RegisterClockable(clockable);
 		}
 		catch (Exception &e) {
 

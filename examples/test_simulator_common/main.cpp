@@ -30,8 +30,78 @@
 #include <oddf/simulator/Signal.h>
 #include <oddf/simulator/Probe.h>
 
+#include <oddf/utility/GetInterfaceHelper.h>
+
+#include <map>
+
 namespace b = dfx::blocks;
 namespace sim = oddf::simulator;
+
+namespace oddf::simulator {
+
+class Logger : public virtual backend::IClockable {
+
+	struct Node {
+
+		bool m_valid;
+		std::map<std::string, Node> m_children;
+
+		Node() :
+			m_valid(false),
+			m_children()
+		{
+		}
+	};
+
+	backend::ISimulatorAccess &m_simulatorAccess;
+	backend::ISimulatorNodeTreeElement const &m_nodesRoot;
+
+public:
+
+	Logger(ISimulator &simulator) :
+		m_simulatorAccess(simulator.GetSimulatorAccess()),
+		m_nodesRoot(m_simulatorAccess.GetNamedNodesRoot())
+	{
+		m_simulatorAccess.RegisterClockable(*this);
+	}
+
+	virtual ~Logger()
+	{
+		m_simulatorAccess.UnregisterClockable(*this);
+	}
+
+	virtual void Clock() override
+	{
+	}
+
+	virtual void *GetInterface(Uid const &iid) override
+	{
+		return utility::GetInterfaceHelper<IObject, IClockable>::GetInterface(this, iid);
+	}
+
+	void Dump(std::string const &path, backend::ISimulatorNodeTreeElement const &node)
+	{
+		std::string subPath = path + node.GetName();
+
+		if (node.IsNode())
+			std::cout << subPath << "\n";
+
+		subPath += "/";
+
+		auto children = node.GetChildren();
+		auto enumerator = children.GetEnumerator();
+
+		while (enumerator.MoveNext())
+			Dump(subPath, enumerator.GetCurrent());
+	}
+
+	void Dump()
+	{
+		Dump("", m_nodesRoot);
+	}
+};
+
+} // namespace oddf::simulator
 
 int main()
 {
@@ -49,9 +119,18 @@ int main()
 
 	dfx::forward_node<ufix<16>> x;
 
-	b::Probe(x, "super_probe");
+	b::Probe(x, "probe");
 
 	auto incr = b::Signal(oddf::design::NodeType::FixedPoint(true, 8, 0), "duper_signal");
+
+	{
+		DFX_INSTANCE("instance1", "my_module");
+
+		b::Probe(x, "probe");
+		b::Probe(x, "probe2");
+	}
+
+	b::Probe(x, "probe2");
 
 	x <<= b::Delay(b::FloorCast<ufix<16>>(x + incr));
 
@@ -78,6 +157,11 @@ int main()
 
 	simulator.TranslateDesign(design);
 
+	sim::Logger logger(simulator);
+	logger.Dump();
+
+	return 0;
+
 	auto myProbe = sim::Probe<int>(simulator, "/super_probe");
 	auto mySignal = sim::Signal<int>(simulator, "/duper_signal");
 
@@ -92,7 +176,7 @@ int main()
 
 	for (int i = 0; i < 20; ++i) {
 
-		simulator.Run(1);
+		simulator.Run(2);
 		std::cout << "myprobe = " << myProbe.GetValue() << "\n";
 	}
 

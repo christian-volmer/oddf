@@ -117,14 +117,7 @@ public:
 
 	virtual void Finalise(ISimulatorFinalisationContext &) override
 	{
-		if constexpr (types::IsValueType<T>) {
-
-			m_pState->SetSource(m_endpoint.GetInputsList()[0].GetDriver().GetPointer<T>());
-		}
-		else {
-
-			m_pState->SetSource(m_endpoint.GetInputsList()[0].GetDriver().GetPointer<T>());
-		}
+		m_pState->SetSource(m_endpoint.GetInputsList()[0].GetDriver().GetPointer<T>());
 	}
 };
 

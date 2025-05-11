@@ -64,6 +64,15 @@ void SimulatorCore::FinaliseTranslation()
 			return m_component.GetComponentObject(clsid, iid);
 		}
 
+		//
+		// ISimulatorFinalisationContext
+		//
+
+		virtual void RegisterNamedNode(ResourcePath const &path, SimulatorBlockOutput const &output) override
+		{
+			m_component.m_simulatorCore.RegisterNamedNode(path, output);
+		}
+
 	public:
 
 		FinalisationContext(SimulatorComponent &component) :

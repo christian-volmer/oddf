@@ -26,19 +26,26 @@
 
 #pragma once
 
-#include <type_traits>
-#include <utility>
+#include <oddf/IObject.h>
 
 namespace oddf {
-namespace utility {
-namespace backend {
 
-template<typename containerT, typename = void>
-constexpr bool StdContainerIndexable = false;
+namespace simulator::backend {
 
-template<typename containerT>
-constexpr bool StdContainerIndexable<containerT, std::void_t<decltype(std::declval<containerT>()[0])>> = true;
+class IClockable : public virtual IObject {
 
-} // namespace backend
-} // namespace utility
+public:
+
+	// Called by the simulator to simulate a clock cycle.
+	virtual void Clock() = 0;
+};
+
+} // namespace simulator::backend
+
+template<>
+struct Iid<simulator::backend::IClockable> {
+
+	static constexpr Uid value = { 0xb10444ec, 0x414e, 0x4417, 0xaa, 0x37, 0x22, 0xca, 0xc, 0x58, 0xf0, 0x27 };
+};
+
 } // namespace oddf

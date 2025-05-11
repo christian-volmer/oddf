@@ -26,26 +26,36 @@
 
 #pragma once
 
+#include <oddf/utility/CollectionView.h>
 #include <oddf/IObject.h>
 
 namespace oddf {
 
-namespace simulator::common::backend {
+namespace simulator::backend {
 
-class IClockable : public virtual IObject {
+class ISimulatorNodeTreeElement : public virtual IObject {
 
 public:
 
-	// Called by the simulator to simulate a clock cycle.
-	virtual void Clock() = 0;
+	// Returns the name of the current tree element.
+	virtual std::string GetName() const = 0;
+
+	// Returns whether the current tree element refers to a simulator node.
+	virtual bool IsNode() const = 0;
+
+	// Reads from the simulator node.
+	virtual void Read(void *buffer, size_t count) const = 0;
+
+	// Returns the collection of child elements. The collection will be empty if there are no children.
+	virtual utility::CollectionView<ISimulatorNodeTreeElement const &> GetChildren() const = 0;
 };
 
-} // namespace simulator::common::backend
+} // namespace simulator::backend
 
 template<>
-struct Iid<simulator::common::backend::IClockable> {
+struct Iid<simulator::backend::ISimulatorNodeTreeElement> {
 
-	static constexpr Uid value = { 0xb10444ec, 0x414e, 0x4417, 0xaa, 0x37, 0x22, 0xca, 0xc, 0x58, 0xf0, 0x27 };
+	static constexpr Uid value = { 0x14e4b2d5, 0x9884, 0x4dd2, 0xaa, 0x36, 0x42, 0x7e, 0x31, 0x37, 0x75, 0xa7 };
 };
 
 } // namespace oddf

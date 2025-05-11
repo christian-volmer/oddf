@@ -28,6 +28,10 @@
 
 #include "ISimulatorComponentContext.h"
 
+#include <oddf/simulator/common/backend/SimulatorBlockOutput.h>
+
+#include <oddf/ResourcePath.h>
+
 namespace oddf::simulator::common::backend {
 
 class ISimulatorFinalisationContext : public virtual ISimulatorComponentContext {
@@ -35,6 +39,8 @@ class ISimulatorFinalisationContext : public virtual ISimulatorComponentContext 
 public:
 
 	virtual ~ISimulatorFinalisationContext() = default;
+
+	virtual void RegisterNamedNode(ResourcePath const &path, SimulatorBlockOutput const &output) = 0;
 };
 
 } // namespace oddf::simulator::common::backend

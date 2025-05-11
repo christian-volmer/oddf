@@ -48,21 +48,17 @@ void SimulatorCore::TranslateDesign(design::IDesign const &design)
 
 	/*
 
-	        Probe
-	            - SimulatorObject mit Pfad "/xxx/yyy/probes:UserId".
-	            - Kennt Adresse
-
-	        Logging
-	        Forcing
-	        Assertions / Evaluations
-	            --> C++ functions that execute on the values of simulation nodes (Leon equalise bug evaluation)
-	            --> Logging could also apply functions to nodes before logging the result
-	            --> Nodes must be named in the design (inputs, outputs, labels)
-	        Memory
-	        Sink
-	        Source
-	        Signal
-	        Random
+	    Logging
+	    Forcing
+	    Assertions / Evaluations
+	        --> C++ functions that execute on the values of simulation nodes (Leon equalise bug evaluation)
+	        --> Logging could also apply functions to nodes before logging the result
+	        --> Nodes must be named in the design (inputs, outputs, labels)
+	    Memory
+	    Sink
+	    Source
+	    Signal
+	    Random
 
 	*/
 }

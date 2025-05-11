@@ -77,10 +77,21 @@ public:
 
 	static constexpr bool IsValidCharacter(char c)
 	{
-		return (c == '$') || (c == '_') || (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+		// All printable characters are allowed except space, delete, and slash.
+		return (c > 32) && (c < 127) && (c != '/');
 	}
 
 	static bool IsValidElement(std::string const &str);
+
+	auto begin() const
+	{
+		return m_elements.cbegin();
+	}
+
+	auto end() const
+	{
+		return m_elements.cend();
+	}
 };
 
 } // namespace oddf

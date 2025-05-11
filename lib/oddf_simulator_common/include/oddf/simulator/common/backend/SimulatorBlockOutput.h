@@ -73,7 +73,7 @@ public:
 	template<typename T>
 	T const *GetPointer() const
 	{
-		static_assert(false, "Type `T` must be a simulator type.");
+		static_assert(false, "Type `T` must be a simulator type or `void`.");
 	}
 
 	// Returns the index of this output within the list of outputs of the owning block.
@@ -88,6 +88,9 @@ public:
 	// Returns whether the output drives any inputs.
 	bool HasConnections() const noexcept;
 };
+
+template<>
+void const *SimulatorBlockOutput::GetPointer<void>() const;
 
 template<>
 types::Boolean const *SimulatorBlockOutput::GetPointer<types::Boolean>() const;

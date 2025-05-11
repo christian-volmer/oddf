@@ -58,6 +58,12 @@ design::NodeType SimulatorBlockOutput::GetType() const noexcept
 }
 
 template<>
+void const *SimulatorBlockOutput::GetPointer<void>() const
+{
+	return reinterpret_cast<void const *>(m_storagePointer);
+}
+
+template<>
 types::Boolean const *SimulatorBlockOutput::GetPointer<types::Boolean>() const
 {
 	if (GetType().GetTypeId() == design::NodeType::BOOLEAN)
