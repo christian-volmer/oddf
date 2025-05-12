@@ -26,6 +26,7 @@
 
 #pragma once
 
+#include <oddf/design/NodeType.h>
 #include <oddf/utility/CollectionView.h>
 #include <oddf/IObject.h>
 
@@ -42,6 +43,8 @@ public:
 
 	// Returns whether the current tree element refers to a simulator node.
 	virtual bool IsNode() const = 0;
+
+	virtual design::NodeType GetType() const = 0;
 
 	// Reads from the simulator node.
 	virtual void Read(void *buffer, size_t count) const = 0;

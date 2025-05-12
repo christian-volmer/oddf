@@ -25,6 +25,7 @@
 */
 
 #include "SimulatorCore.h"
+#include "SimulatorCore/NamedNode.h"
 
 #include <oddf/Exception.h>
 
@@ -39,7 +40,7 @@ SimulatorCore::SimulatorCore() :
 	m_invalidComponents(),
 	m_namedSimulatorObjects(),
 	m_clockables(),
-	m_namedNodesRoot("")
+	m_namedNodesRoot(new NamedNode(""))
 {
 	RegisterDefaultBlockFactories();
 }
@@ -56,7 +57,7 @@ void SimulatorCore::RegisterGlobalObject(std::string name, std::unique_ptr<IObje
 
 void SimulatorCore::RegisterNamedNode(ResourcePath const &path, SimulatorBlockOutput const &output)
 {
-	NamedNode *current = &m_namedNodesRoot;
+	NamedNode *current = m_namedNodesRoot.get();
 
 	for (auto const &elem : path) {
 
@@ -72,7 +73,7 @@ void SimulatorCore::RegisterNamedNode(ResourcePath const &path, SimulatorBlockOu
 
 simulator::backend::ISimulatorNodeTreeElement const &SimulatorCore::GetNamedNodesRoot() const
 {
-	return m_namedNodesRoot;
+	return *m_namedNodesRoot;
 }
 
 void SimulatorCore::RegisterClockable(simulator::backend::IClockable &clockable)

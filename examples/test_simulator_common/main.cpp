@@ -84,7 +84,7 @@ public:
 		std::string subPath = path + node.GetName();
 
 		if (node.IsNode())
-			std::cout << subPath << "\n";
+			std::cout << subPath << " : " << node.GetType().ToString() << "\n";
 
 		subPath += "/";
 
@@ -127,10 +127,10 @@ int main()
 		DFX_INSTANCE("instance1", "my_module");
 
 		b::Probe(x, "probe");
-		b::Probe(x, "probe2");
+		b::Probe(x + 3, "my_probe");
 	}
 
-	b::Probe(x, "probe2");
+	b::Probe(x + 12345678, "probe2");
 
 	x <<= b::Delay(b::FloorCast<ufix<16>>(x + incr));
 
@@ -160,9 +160,7 @@ int main()
 	sim::Logger logger(simulator);
 	logger.Dump();
 
-	return 0;
-
-	auto myProbe = sim::Probe<int>(simulator, "/super_probe");
+	auto myProbe = sim::Probe<int>(simulator, "/instance1/my_probe");
 	auto mySignal = sim::Signal<int>(simulator, "/duper_signal");
 
 	std::cout << "myprobe = " << myProbe.GetValue() << "\n";

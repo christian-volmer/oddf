@@ -17,6 +17,8 @@ add_library(oddf_simulator_common
 	"src/oddf/simulator/common/backend/SimulatorCore/GenerateCode.cpp"
 	"src/oddf/simulator/common/backend/SimulatorCore/MapBlocks.cpp"
 	"src/oddf/simulator/common/backend/SimulatorCore/MapConnections.cpp"
+	"src/oddf/simulator/common/backend/SimulatorCore/NamedNode.cpp"
+	"src/oddf/simulator/common/backend/SimulatorCore/NamedNodeComparer.cpp"
 	"src/oddf/simulator/common/backend/SimulatorCore/RegisterDefaultBlockFactories.cpp"
 	"src/oddf/simulator/common/backend/SimulatorCore/RegisterSimulatorBlockFactory.cpp"
 	"src/oddf/simulator/common/backend/SimulatorCore/Run.cpp"
