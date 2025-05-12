@@ -289,20 +289,19 @@ void SimulatorCore::GenerateCode()
 				assert(block);
 				m_currentBlock = block;
 
-				m_previousInstruction = m_currentInstruction;
-				m_currentInstruction = nullptr;
-				m_currentInstructionCommitted = false;
+				if (m_currentInstruction) {
+
+					assert(m_currentInstructionCommitted);
+
+					m_previousInstruction = m_currentInstruction;
+					m_currentInstruction = nullptr;
+					m_currentInstructionCommitted = false;
+				}
 
 				m_currentBlock->GenerateCode(*this);
 
 				if (m_currentInstruction && !m_currentInstructionCommitted)
 					throw Exception(ExceptionCode::Unexpected, "Must call CommitInstruction() after call to StartInstruction().");
-
-				/*
-				    for (auto const &input : m_currentBlock->m_internals->m_inputs)
-				        if (!input.m_inputPointerReference)
-				            throw Exception(ExceptionCode::Unexpected, "Block failed to register at least one of its inputs.");
-				*/
 
 				// If a block has outputs it must somehow generate code and provide an address to the value
 				// of that output, because other inputs will refer to that address.
