@@ -26,7 +26,8 @@
 
 #pragma once
 
-#include <oddf/utility/ListView.h>
+#include <oddf/utility/MakeContainerView.h>
+#include <oddf/utility/ElementTransformationDereference.h>
 
 #include "../Expect.h"
 
@@ -87,57 +88,49 @@ inline void TestListViewForStdContainer()
 	//
 
 	// Create default ListView
-	auto listView = oddf::utility::MakeListView(container);
+	std::shared_ptr listView = oddf::utility::MakeContainerView(container);
 
 	// ListView should be copyable into CollectionView
-	oddf::utility::CollectionView collectionView = listView;
+	std::shared_ptr<oddf::utility::ICollectionView<elementT &>> collectionView = listView;
 
 	// Get an Enumerator from the copied CollectionView
-	auto enumerator = collectionView.GetEnumerator();
+	auto enumerator = collectionView->GetEnumerator();
 
 	// Confirm the element types returned by the ListView and the Enumerator
-	static_assert(std::is_same_v<decltype(listView[0]), decltype(container[0])>);
-	static_assert(std::is_same_v<decltype(enumerator.GetCurrent()), decltype(*container.begin())>);
+	static_assert(std::is_same_v<decltype(listView->Item(0)), decltype(container[0])>);
+	static_assert(std::is_same_v<decltype(enumerator->GetCurrent()), decltype(*container.begin())>);
 
 	// Create a ListView where the elements of type unique_ptr<Derived> are converted to a plain pointer to const Base.
-	auto listViewToConstBaseReference = oddf::utility::MakeListView<Base const *>(container);
-	auto enumeratorToConstBaseReference = listViewToConstBaseReference.GetEnumerator();
+	auto listViewToConstBaseReference = oddf::utility::MakeContainerView(container, [](auto &e) -> Base const * { return e.get(); });
+	auto enumeratorToConstBaseReference = listViewToConstBaseReference->GetEnumerator();
 
 	// Confirm the element types returned by the ListView and the Enumerator
-	static_assert(std::is_same_v<decltype(listViewToConstBaseReference[0]), Base const *>);
-	static_assert(std::is_same_v<decltype(enumeratorToConstBaseReference.GetCurrent()), Base const *>);
+	static_assert(std::is_same_v<decltype(listViewToConstBaseReference->Item(0)), Base const *>);
+	static_assert(std::is_same_v<decltype(enumeratorToConstBaseReference->GetCurrent()), Base const *>);
 
 	// Create a ListView where the elements of type unique_ptr<Derived> are converted to a reference
-	auto listViewToReference = oddf::utility::MakeListView<Derived &>(container);
-	auto enumeratorToReference = listViewToReference.GetEnumerator();
+	auto listViewToReference = oddf::utility::MakeContainerView(container, oddf::utility::ElementTransformationDereference {});
+	auto enumeratorToReference = listViewToReference->GetEnumerator();
 
 	// Confirm the element types returned by the ListView and the Enumerator
-	static_assert(std::is_same_v<decltype(listViewToReference[0]), Derived &>);
-	static_assert(std::is_same_v<decltype(enumeratorToReference.GetCurrent()), Derived &>);
+	static_assert(std::is_same_v<decltype(listViewToReference->Item(0)), Derived &>);
+	static_assert(std::is_same_v<decltype(enumeratorToReference->GetCurrent()), Derived &>);
 
-	Expect(collectionView.GetSize() == 5);
-	Expect(listViewToConstBaseReference.GetSize() == 5);
-	Expect(listViewToReference.GetSize() == 5);
+	Expect(collectionView->GetSize() == 5);
+	Expect(listViewToConstBaseReference->GetSize() == 5);
+	Expect(listViewToReference->GetSize() == 5);
 
 	size_t i = 0;
 
-	/*
+	while (enumerator->MoveNext()) {
 
-	TODO: should not be required anymore
-
-	enumerator.Reset();
-
-	*/
-
-	while (enumerator.MoveNext()) {
-
-		Expect(enumerator.GetCurrent()->GetValue() == listViewToConstBaseReference[i]->GetValue());
-		Expect(enumerator.GetCurrent()->GetValue() == listViewToReference[i].GetValue());
+		Expect(enumerator->GetCurrent()->GetValue() == listViewToConstBaseReference->Item(i)->GetValue());
+		Expect(enumerator->GetCurrent()->GetValue() == listViewToReference->Item(i).GetValue());
 
 		++i;
 	}
 
-	Expect(i == collectionView.GetSize());
+	Expect(i == collectionView->GetSize());
 }
 
 } // namespace oddf::testing::utility

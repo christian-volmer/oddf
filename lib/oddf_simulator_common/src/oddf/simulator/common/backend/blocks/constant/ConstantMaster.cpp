@@ -50,15 +50,15 @@ void ConstantMaster::Elaborate(ISimulatorElaborationContext &)
 {
 	auto outputs = GetOutputsList();
 
-	if (outputs.GetSize() != 1)
+	if (outputs->GetSize() != 1)
 		throw Exception(ExceptionCode::Unsupported);
 
 	auto inputs = GetInputsList();
 
-	if (inputs.GetSize() != 0)
+	if (inputs->GetSize() != 0)
 		throw Exception(ExceptionCode::Unsupported);
 
-	auto typeId = outputs[0].GetType().GetTypeId();
+	auto typeId = outputs->Item(0).GetType().GetTypeId();
 
 	if (!((typeId == design::NodeType::BOOLEAN)
 			|| (typeId == design::NodeType::FIXED_POINT)))
@@ -145,7 +145,7 @@ void ConstantMaster::GenerateCode(ISimulatorCodeGenerationContext &context)
 {
 	auto &constantBlock = GetDesignBlockReference()->GetInterface<design::blocks::backend::IConstantBlock>();
 
-	EmitConstantInstruction(context, GetOutputsList()[0], constantBlock);
+	EmitConstantInstruction(context, GetOutputsList()->Item(0), constantBlock);
 }
 
 } // namespace oddf::simulator::common::backend::blocks

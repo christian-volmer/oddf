@@ -44,28 +44,28 @@ void DelayMaster::Elaborate(ISimulatorElaborationContext &context)
 {
 	auto outputs = GetOutputsList();
 
-	size_t pathCount = outputs.GetSize();
+	size_t pathCount = outputs->GetSize();
 
 	if (pathCount != 1)
 		throw Exception(ExceptionCode::Unsupported);
 
-	auto type = outputs[0].GetType();
+	auto type = outputs->Item(0).GetType();
 
 	if (!((type.GetTypeId() == design::NodeType::BOOLEAN)
 			|| (type.GetTypeId() == design::NodeType::FIXED_POINT)))
 		throw Exception(ExceptionCode::Unsupported);
 
 	for (size_t i = 1; i < pathCount; ++i)
-		if (outputs[i].GetType() != type)
+		if (outputs->Item(i).GetType() != type)
 			throw Exception(ExceptionCode::Unsupported);
 
 	auto inputs = GetInputsList();
 
-	if (inputs.GetSize() != pathCount)
+	if (inputs->GetSize() != pathCount)
 		throw Exception(ExceptionCode::Unsupported);
 
 	for (size_t i = 0; i < pathCount; ++i)
-		if (inputs[i].GetType() != type)
+		if (inputs->Item(i).GetType() != type)
 			throw Exception(ExceptionCode::Unsupported);
 
 	/*
@@ -109,8 +109,8 @@ void DelayMaster::Elaborate(ISimulatorElaborationContext &context)
 			throw Exception(ExceptionCode::NotImplemented);
 	}
 
-	context.TransferConnectivity(inputs[0], endpoint.GetInputsList()[0]);
-	context.TransferConnectivity(outputs[0], startingPoint->GetOutputsList()[0]);
+	context.TransferConnectivity(inputs->Item(0), endpoint.GetInputsList()->Item(0));
+	context.TransferConnectivity(outputs->Item(0), startingPoint->GetOutputsList()->Item(0));
 
 	context.RemoveThisBlock();
 }

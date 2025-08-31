@@ -45,25 +45,25 @@ void FloorCast::Elaborate(ISimulatorElaborationContext &context)
 	auto inputs = GetInputsList();
 	auto outputs = GetOutputsList();
 
-	if (inputs.GetSize() != 1)
+	if (inputs->GetSize() != 1)
 		throw Exception(ExceptionCode::Unsupported);
 
-	if (outputs.GetSize() != 1)
+	if (outputs->GetSize() != 1)
 		throw Exception(ExceptionCode::Unsupported);
 
-	if (inputs[0].GetType() == outputs[0].GetType()) {
+	if (inputs->Item(0).GetType() == outputs->Item(0).GetType()) {
 
 		// This floor cast is a no-op. Remove it.
 
-		context.TransferConnectivity(outputs[0], inputs[0].GetDriver());
-		context.DisconnectInput(inputs[0]);
+		context.TransferConnectivity(outputs->Item(0), inputs->Item(0).GetDriver());
+		context.DisconnectInput(inputs->Item(0));
 		context.RemoveThisBlock();
 	}
 
-	if (inputs[0].GetType().GetTypeId() != design::NodeType::FIXED_POINT)
+	if (inputs->Item(0).GetType().GetTypeId() != design::NodeType::FIXED_POINT)
 		throw Exception(ExceptionCode::Unsupported);
 
-	if (outputs[0].GetType().GetTypeId() != design::NodeType::FIXED_POINT)
+	if (outputs->Item(0).GetType().GetTypeId() != design::NodeType::FIXED_POINT)
 		throw Exception(ExceptionCode::Unsupported);
 }
 
@@ -223,7 +223,7 @@ void EmitFloorCastInstruction(ISimulatorCodeGenerationContext &context, Simulato
 
 void FloorCast::GenerateCode(ISimulatorCodeGenerationContext &context)
 {
-	EmitFloorCastInstruction(context, GetOutputsList()[0], GetInputsList()[0]);
+	EmitFloorCastInstruction(context, GetOutputsList()->Item(0), GetInputsList()->Item(0));
 }
 
 } // namespace oddf::simulator::common::backend::blocks

@@ -27,7 +27,7 @@
 #pragma once
 
 #include <oddf/design/NodeType.h>
-#include <oddf/utility/CollectionView.h>
+#include <oddf/utility/ICollectionView.h>
 #include <oddf/IObject.h>
 
 namespace oddf {
@@ -50,7 +50,7 @@ public:
 	virtual void Read(void *buffer, size_t count) const = 0;
 
 	// Returns the collection of child elements. The collection will be empty if there are no children.
-	virtual utility::CollectionView<ISimulatorNodeTreeElement const &> GetChildren() const = 0;
+	virtual std::unique_ptr<utility::ICollectionView<ISimulatorNodeTreeElement const &>> GetChildren() const = 0;
 };
 
 } // namespace simulator::backend

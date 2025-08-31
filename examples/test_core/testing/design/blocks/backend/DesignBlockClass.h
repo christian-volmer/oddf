@@ -26,8 +26,6 @@
 
 #pragma once
 
-#include <oddf/utility/CollectionView.h>
-
 #include <iostream>
 #include <memory>
 #include <cassert>

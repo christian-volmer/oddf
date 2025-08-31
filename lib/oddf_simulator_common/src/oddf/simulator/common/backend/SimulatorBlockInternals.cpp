@@ -26,10 +26,13 @@
 
 #include "SimulatorBlockInternals.h"
 
+#include <oddf/utility/MakeContainerView.h>
+
 #include <oddf/Exception.h>
 
 #include <vector>
 #include <utility>
+#include <cassert>
 
 namespace oddf::simulator::common::backend {
 
@@ -55,22 +58,25 @@ SimulatorBlockBase::Internals::Internals(SimulatorBlockBase &owningBlock, design
 	    Would this be possible despite InitialiseInputsAndOutputs requiring a
 	    `ListView` of const references?
 
-	    cf. https://stackoverflow.com/questions/11560339/returning-temporary-object-and-binding-to-const-reference
+	    cf.
+	      https://stackoverflow.com/questions/11560339/returning-temporary-object-and-binding-to-const-reference
+	      https://herbsutter.com/2008/01/01/gotw-88-a-candidate-for-the-most-important-const/
+
 	*/
 
 	auto designBlockOutputsList = designBlock.GetOutputsList();
 
 	std::vector<design::NodeType> designBlockOutputNodeTypes;
-	designBlockOutputNodeTypes.reserve(designBlockOutputsList.GetSize());
+	designBlockOutputNodeTypes.reserve(designBlockOutputsList->GetSize());
 
-	auto outputsEnum = designBlockOutputsList.GetEnumerator();
-	while (outputsEnum.MoveNext())
-		designBlockOutputNodeTypes.push_back(outputsEnum.GetCurrent().GetNodeType());
+	auto outputsEnum = designBlockOutputsList->GetEnumerator();
+	while (outputsEnum->MoveNext())
+		designBlockOutputNodeTypes.push_back(outputsEnum->GetCurrent().GetNodeType());
 
 	InitialiseInputsAndOutputs(
 		owningBlock,
-		designBlock.GetInputsList().GetSize(),
-		utility::MakeCollectionView(std::as_const(designBlockOutputNodeTypes)));
+		designBlock.GetInputsList()->GetSize(),
+		*utility::MakeContainerView(std::as_const(designBlockOutputNodeTypes)));
 }
 
 SimulatorBlockBase::Internals::Internals(SimulatorBlockBase &owningBlock, size_t numberOfInputs, std::initializer_list<design::NodeType> outputNodeTypes) :
@@ -81,11 +87,11 @@ SimulatorBlockBase::Internals::Internals(SimulatorBlockBase &owningBlock, size_t
 	m_inputs(),
 	m_outputs()
 {
-	InitialiseInputsAndOutputs(owningBlock, numberOfInputs, utility::MakeCollectionView(outputNodeTypes));
+	InitialiseInputsAndOutputs(owningBlock, numberOfInputs, *utility::MakeContainerView(outputNodeTypes));
 }
 
 void SimulatorBlockBase::Internals::InitialiseInputsAndOutputs(SimulatorBlockBase &owningBlock, size_t numberOfInputs,
-	utility::CollectionView<design::NodeType const &> const &outputNodeTypes)
+	utility::ICollectionView<design::NodeType const &> const &outputNodeTypes)
 {
 	m_inputs.reserve(numberOfInputs);
 	for (size_t i = 0; i < numberOfInputs; ++i)
@@ -98,8 +104,8 @@ void SimulatorBlockBase::Internals::InitialiseInputsAndOutputs(SimulatorBlockBas
 
 	for (size_t i = 0; i < numberOfOutputs; ++i) {
 
-		outputNodeTypesEnum.MoveNext();
-		m_outputs.emplace_back(owningBlock, outputNodeTypesEnum.GetCurrent(), i);
+		outputNodeTypesEnum->MoveNext();
+		m_outputs.emplace_back(owningBlock, outputNodeTypesEnum->GetCurrent(), i);
 	}
 }
 
@@ -108,12 +114,12 @@ void SimulatorBlockBase::Internals::MapConnections(ISimulatorBlockMapping const 
 	if (!m_designBlockReference)
 		throw oddf::Exception(oddf::ExceptionCode::IllegalMethodCall);
 
-	auto designInputEnumerator = m_designBlockReference->GetInputsList().GetEnumerator();
+	auto designInputEnumerator = m_designBlockReference->GetInputsList()->GetEnumerator();
 
 	for (auto &simInput : m_inputs) {
 
-		designInputEnumerator.MoveNext();
-		auto &designInput = designInputEnumerator.GetCurrent();
+		designInputEnumerator->MoveNext();
+		auto &designInput = designInputEnumerator->GetCurrent();
 
 		if (designInput.IsConnected()) {
 
@@ -134,7 +140,7 @@ void SimulatorBlockBase::Internals::MapConnections(ISimulatorBlockMapping const 
 		}
 	}
 
-	assert(!designInputEnumerator.MoveNext());
+	assert(!designInputEnumerator->MoveNext());
 }
 
 } // namespace oddf::simulator::common::backend

@@ -49,10 +49,10 @@ void Signal::Elaborate(ISimulatorElaborationContext &)
 {
 	auto outputs = GetOutputsList();
 
-	if (outputs.GetSize() != 1)
+	if (outputs->GetSize() != 1)
 		throw Exception(ExceptionCode::Unsupported);
 
-	auto typeId = outputs[0].GetType().GetTypeId();
+	auto typeId = outputs->Item(0).GetType().GetTypeId();
 
 	switch (typeId) {
 
@@ -66,7 +66,7 @@ void Signal::Elaborate(ISimulatorElaborationContext &)
 
 	auto inputs = GetInputsList();
 
-	if (inputs.GetSize() != 0)
+	if (inputs->GetSize() != 0)
 		throw Exception(ExceptionCode::Unsupported);
 }
 
@@ -85,7 +85,7 @@ void Signal::GenerateCode(ISimulatorCodeGenerationContext &context)
 	auto objectName = ":signals" + blockPath.Append(ResourcePath::Parse(signalBlock.GetTag())).ToString();
 
 	auto outputs = GetOutputsList();
-	auto const &output = outputs[0];
+	auto const &output = outputs->Item(0);
 
 	auto type = output.GetType();
 

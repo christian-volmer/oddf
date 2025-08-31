@@ -29,6 +29,8 @@
 
 #include "SimulatorBlockInternals.h"
 
+#include <oddf/utility/MakeContainerView.h>
+
 #include <oddf/Exception.h>
 
 namespace oddf::simulator::common::backend {
@@ -52,14 +54,14 @@ design::blocks::backend::IDesignBlock const *SimulatorBlockBase::GetDesignBlockR
 	return m_internals->m_designBlockReference;
 }
 
-utility::ListView<SimulatorBlockInput const &> SimulatorBlockBase::GetInputsList() const
+std::unique_ptr<utility::IListView<SimulatorBlockInput const &>> SimulatorBlockBase::GetInputsList() const
 {
-	return utility::MakeListView<SimulatorBlockInput const &>(m_internals->m_inputs);
+	return utility::MakeContainerView(m_internals->m_inputs, [](auto &e) -> SimulatorBlockInput const & { return e; });
 }
 
-utility::ListView<SimulatorBlockOutput const &> SimulatorBlockBase::GetOutputsList() const
+std::unique_ptr<utility::IListView<SimulatorBlockOutput const &>> SimulatorBlockBase::GetOutputsList() const
 {
-	return utility::MakeListView<SimulatorBlockOutput const &>(m_internals->m_outputs);
+	return utility::MakeContainerView(m_internals->m_outputs, [](auto &e) -> SimulatorBlockOutput const & { return e; });
 }
 
 bool SimulatorBlockBase::HasConnections() const noexcept

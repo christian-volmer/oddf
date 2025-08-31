@@ -28,6 +28,7 @@
 
 #include <oddf/simulator/backend/ISimulatorAccess.h>
 #include <oddf/Iid.h>
+#include <oddf/utility/GetInterfaceHelper.h>
 
 #include "../../Expect.h"
 
@@ -37,45 +38,73 @@ namespace oddf {
 
 namespace testing::simulator::backend {
 
-class ITestObjectInterface {
+class ITestInterface1 : public virtual oddf::IObject {
 
 public:
 
-	virtual int ReturnsEleven() const = 0;
+	virtual ~ITestInterface1() = default;
 
-	virtual ~ITestObjectInterface() = default;
+	virtual int TestFunction1() const = 0;
 };
 
-class IWrongInterface {
+class ITestInterface2 : public virtual ITestInterface1 {
 
 public:
 
-	virtual ~IWrongInterface() = default;
+	virtual ~ITestInterface2() = default;
+
+	virtual int TestFunction2() const = 0;
+};
+
+class ITestInterface3 : public virtual oddf::IObject {
+
+public:
+
+	virtual ~ITestInterface3() = default;
+
+	virtual int TestFunction3() const = 0;
 };
 
 } // namespace testing::simulator::backend
 
 template<>
-struct Iid<testing::simulator::backend::ITestObjectInterface> {
+struct Iid<testing::simulator::backend::ITestInterface1> {
 
 	static constexpr Uid value = { 0x5ece6339, 0x1045, 0x46ec, 0x8f, 0x68, 0x94, 0x2f, 0xe6, 0x55, 0xaf, 0x56 };
 };
 
 template<>
-struct Iid<testing::simulator::backend::IWrongInterface> {
+struct Iid<testing::simulator::backend::ITestInterface2> {
 
 	static constexpr Uid value = { 0xabd6f4a2, 0xa611, 0x4f8f, 0xb6, 0xb8, 0xae, 0x2b, 0x5d, 0x8b, 0x84, 0x51 };
 };
 
+template<>
+struct Iid<testing::simulator::backend::ITestInterface3> {
+
+	static constexpr Uid value = { 0xacfbfe4, 0x41e2, 0x4058, 0xa7, 0x71, 0x33, 0x80, 0x5, 0xb6, 0xbf, 0x87 };
+};
+
 namespace testing::simulator::backend {
 
-class TestSimulatorObject : public virtual ITestObjectInterface {
+class TestSimulatorObject : public virtual ITestInterface1, public virtual ITestInterface2 {
 
 public:
 
-	virtual int ReturnsEleven() const override
+	virtual int TestFunction1() const override
 	{
-		return 11;
+		return 1;
+	}
+
+	virtual int TestFunction2() const override
+	{
+		return 2;
+	}
+
+	virtual void *GetInterface(oddf::Uid const &iid) override
+	{
+		return oddf::utility::GetInterfaceHelper<
+			ITestInterface1, ITestInterface2, IObject>::GetInterface(this, iid);
 	}
 };
 
@@ -83,7 +112,7 @@ class TestSimulatorAccess : public virtual oddf::simulator::backend::ISimulatorA
 
 private:
 
-	std::unique_ptr<TestSimulatorObject> m_simulatorObject;
+	std::unique_ptr<oddf::IObject> m_simulatorObject;
 
 public:
 
@@ -96,10 +125,7 @@ public:
 	{
 		if (name == "ExistingObject") {
 
-			if (iid == Iid<ITestObjectInterface>::value)
-				return dynamic_cast<void *>(m_simulatorObject.get());
-			else
-				throw Exception(ExceptionCode::NoInterface);
+			return m_simulatorObject->GetInterface(iid);
 		}
 		else
 			throw Exception(ExceptionCode::NoResource);
@@ -127,16 +153,23 @@ void Test_ISimulatorAccess()
 {
 	TestSimulatorAccess simulatorAccess;
 
-	ITestObjectInterface &interface = simulatorAccess.GetNamedObjectInterface<ITestObjectInterface>("ExistingObject");
+	auto &interface1 = simulatorAccess.GetNamedObjectInterface<ITestInterface1>("ExistingObject");
 
-	Expect(interface.ReturnsEleven() == 11);
+	Expect(interface1.TestFunction1() == 1);
+
+	auto &obj = interface1.GetInterface<oddf::IObject>();
+	auto &interface2 = obj.GetInterface<ITestInterface2>();
+	Expect(interface2.TestFunction2() == 2);
+
+	auto &interface2b = interface1.GetInterface<ITestInterface2>();
+	Expect(interface2b.TestFunction2() == 2);
 
 	ExpectThrows(ExceptionCode::NoResource, [&]() {
-		simulatorAccess.GetNamedObjectInterface<ITestObjectInterface>("NonExistingObject");
+		simulatorAccess.GetNamedObjectInterface<ITestInterface1>("NonExistingObject");
 	});
 
 	ExpectThrows(ExceptionCode::NoInterface, [&]() {
-		simulatorAccess.GetNamedObjectInterface<IWrongInterface>("ExistingObject");
+		simulatorAccess.GetNamedObjectInterface<ITestInterface3>("ExistingObject");
 	});
 }
 

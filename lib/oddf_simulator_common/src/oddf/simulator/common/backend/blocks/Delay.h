@@ -112,12 +112,12 @@ public:
 
 		m_pState = delayObject.AddState<T>(m_type);
 
-		instructions::CopyInstruction<T>::Emit(context, GetOutputsList()[0], m_pState->ReferenceToCurrent());
+		instructions::CopyInstruction<T>::Emit(context, GetOutputsList()->Item(0), m_pState->ReferenceToCurrent());
 	}
 
 	virtual void Finalise(ISimulatorFinalisationContext &) override
 	{
-		m_pState->SetSource(m_endpoint.GetInputsList()[0].GetDriver().GetPointer<T>());
+		m_pState->SetSource(m_endpoint.GetInputsList()->Item(0).GetDriver().GetPointer<T>());
 	}
 };
 

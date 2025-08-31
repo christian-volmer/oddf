@@ -45,17 +45,17 @@ void Identity::Elaborate(ISimulatorElaborationContext &context)
 	auto inputs = GetInputsList();
 	auto outputs = GetOutputsList();
 
-	if (inputs.GetSize() != 1)
+	if (inputs->GetSize() != 1)
 		throw Exception(ExceptionCode::Unsupported);
 
-	if (outputs.GetSize() != 1)
+	if (outputs->GetSize() != 1)
 		throw Exception(ExceptionCode::Unsupported);
 
-	if (inputs[0].GetType() != outputs[0].GetType())
+	if (inputs->Item(0).GetType() != outputs->Item(0).GetType())
 		throw Exception(ExceptionCode::Unexpected);
 
-	context.TransferConnectivity(outputs[0], inputs[0].GetDriver());
-	context.DisconnectInput(inputs[0]);
+	context.TransferConnectivity(outputs->Item(0), inputs->Item(0).GetDriver());
+	context.DisconnectInput(inputs->Item(0));
 	context.RemoveThisBlock();
 }
 

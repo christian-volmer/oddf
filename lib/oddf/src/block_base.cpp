@@ -27,6 +27,7 @@
 
 #include "global.h"
 
+#include <oddf/utility/MakeContainerView.h>
 #include <oddf/utility/GetInterfaceHelper.h>
 
 #include "node.h"
@@ -222,14 +223,14 @@ oddf::design::blocks::backend::DesignBlockClass BlockBase::GetClass() const
 	return GetClassName();
 }
 
-oddf::utility::ListView<oddf::design::blocks::backend::IDesignBlockInput const &> BlockBase::GetInputsList() const
+std::unique_ptr<oddf::utility::IListView<oddf::design::blocks::backend::IDesignBlockInput const &>> BlockBase::GetInputsList() const
 {
-	return oddf::utility::MakeListView<oddf::design::blocks::backend::IDesignBlockInput const &>(inputPins);
+	return oddf::utility::MakeContainerView(inputPins, [](auto &e) -> oddf::design::blocks::backend::IDesignBlockInput const & { return *e; });
 }
 
-oddf::utility::ListView<oddf::design::blocks::backend::IDesignBlockOutput const &> BlockBase::GetOutputsList() const
+std::unique_ptr<oddf::utility::IListView<oddf::design::blocks::backend::IDesignBlockOutput const &>> BlockBase::GetOutputsList() const
 {
-	return oddf::utility::MakeListView<oddf::design::blocks::backend::IDesignBlockOutput const &>(outputPins);
+	return oddf::utility::MakeContainerView(outputPins, [](auto &e) -> oddf::design::blocks::backend::IDesignBlockOutput const & { return *e; });
 }
 
 /*

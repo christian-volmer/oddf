@@ -20,46 +20,32 @@
 
 /*
 
-    <no description>
+    Provides class `ElementTransformationDereference` that dereferences
+    pointer and pointer-like elements with our standard view implementations of
+    standard library containers.
 
 */
 
 #pragma once
 
-#include "backend/AbstractEnumeratorImplementation.h"
-
 namespace oddf::utility {
 
-template<typename referenceT>
-class Enumerator {
+/*
+    Dereferences pointer and pointer-like elements with our standard view
+    implementations of standard library containers.
+*/
+struct ElementTransformationDereference {
 
-	std::unique_ptr<backend::AbstractEnumeratorImplementation<referenceT>> m_implementation;
-
-public:
-
-	Enumerator(std::unique_ptr<backend::AbstractEnumeratorImplementation<referenceT>> &&implementation) :
-		m_implementation(std::move(implementation))
+	template<typename T>
+	auto &operator()(T &t) const
 	{
+		return *t;
 	}
 
-	Enumerator(Enumerator<referenceT> const &other) :
-		m_implementation(other.m_implementation->Clone())
+	template<typename T>
+	auto const &operator()(T const &t) const
 	{
-	}
-
-	referenceT GetCurrent() const
-	{
-		return m_implementation->GetCurrent();
-	}
-
-	bool MoveNext()
-	{
-		return m_implementation->MoveNext();
-	}
-
-	void Reset()
-	{
-		m_implementation->Reset();
+		return *t;
 	}
 };
 

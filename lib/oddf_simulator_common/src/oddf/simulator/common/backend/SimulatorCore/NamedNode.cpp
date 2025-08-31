@@ -26,6 +26,7 @@
 
 #include "NamedNode.h"
 
+#include <oddf/utility/MakeContainerView.h>
 #include <oddf/utility/GetInterfaceHelper.h>
 
 namespace oddf::simulator::common::backend {
@@ -64,9 +65,9 @@ void SimulatorCore::NamedNode::Read(void * /*buffer */, size_t /* count */) cons
 		throw Exception(ExceptionCode::IllegalMethodCall, "This node tree element has no associated node.");
 }
 
-utility::CollectionView<simulator::backend::ISimulatorNodeTreeElement const &> SimulatorCore::NamedNode::GetChildren() const
+std::unique_ptr<utility::ICollectionView<simulator::backend::ISimulatorNodeTreeElement const &>> SimulatorCore::NamedNode::GetChildren() const
 {
-	return utility::MakeCollectionView<ISimulatorNodeTreeElement const &>(m_children);
+	return utility::MakeContainerView(m_children, [](auto &e) -> ISimulatorNodeTreeElement const & { return e; });
 }
 
 void *SimulatorCore::NamedNode::GetInterface(oddf::Uid const &iid)

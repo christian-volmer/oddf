@@ -44,18 +44,18 @@ void NotMaster::Elaborate(ISimulatorElaborationContext &)
 {
 	auto outputs = GetOutputsList();
 
-	if (outputs.GetSize() != 1)
+	if (outputs->GetSize() != 1)
 		throw Exception(ExceptionCode::Unsupported);
 
-	if (outputs[0].GetType().GetTypeId() != design::NodeType::BOOLEAN)
+	if (outputs->Item(0).GetType().GetTypeId() != design::NodeType::BOOLEAN)
 		throw Exception(ExceptionCode::Unsupported);
 
 	auto inputs = GetInputsList();
 
-	if (inputs.GetSize() != 1)
+	if (inputs->GetSize() != 1)
 		throw Exception(ExceptionCode::Unsupported);
 
-	if (inputs[0].GetType().GetTypeId() != design::NodeType::BOOLEAN)
+	if (inputs->Item(0).GetType().GetTypeId() != design::NodeType::BOOLEAN)
 		throw Exception(ExceptionCode::Unsupported);
 }
 
@@ -87,7 +87,7 @@ public:
 
 void NotMaster::GenerateCode(ISimulatorCodeGenerationContext &context)
 {
-	NotInstruction::Emit(context, GetOutputsList()[0], GetInputsList()[0]);
+	NotInstruction::Emit(context, GetOutputsList()->Item(0), GetInputsList()->Item(0));
 }
 
 } // namespace oddf::simulator::common::backend::blocks

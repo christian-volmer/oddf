@@ -26,6 +26,8 @@
 
 #include <oddf/simulator/common/backend/SimulatorBlockBase.h>
 
+#include <oddf/utility/MakeContainerView.h>
+
 #include <oddf/Exception.h>
 
 namespace oddf::simulator::common::backend {
@@ -91,9 +93,9 @@ SimulatorBlockBase const &SimulatorBlockOutput::GetOwningBlock() const noexcept
 	return m_owningBlock;
 }
 
-utility::CollectionView<SimulatorBlockInput const &> SimulatorBlockOutput::GetTargetsCollection() const
+std::unique_ptr<utility::ICollectionView<SimulatorBlockInput const &>> SimulatorBlockOutput::GetTargetsCollection() const
 {
-	return utility::MakeCollectionView<SimulatorBlockInput const &>(m_targets);
+	return utility::MakeContainerView(m_targets, [](auto &e) -> SimulatorBlockInput const & { return *e; });
 }
 
 bool SimulatorBlockOutput::HasConnections() const noexcept

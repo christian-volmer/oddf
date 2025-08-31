@@ -48,15 +48,15 @@ void Probe::Elaborate(ISimulatorElaborationContext &context)
 {
 	auto outputs = GetOutputsList();
 
-	if (outputs.GetSize() != 0)
+	if (outputs->GetSize() != 0)
 		throw Exception(ExceptionCode::Unsupported);
 
 	auto inputs = GetInputsList();
 
-	if (inputs.GetSize() != 1)
+	if (inputs->GetSize() != 1)
 		throw Exception(ExceptionCode::Unsupported);
 
-	auto typeId = inputs[0].GetType().GetTypeId();
+	auto typeId = inputs->Item(0).GetType().GetTypeId();
 
 	switch (typeId) {
 
@@ -78,7 +78,7 @@ void Probe::Elaborate(ISimulatorElaborationContext &context)
 
 		// TODO: emit warning
 
-		context.DisconnectInput(inputs[0]);
+		context.DisconnectInput(inputs->Item(0));
 		context.RemoveThisBlock();
 	}
 }
@@ -101,7 +101,7 @@ void Probe::Finalise(ISimulatorFinalisationContext &context)
 	auto objectName = ":probes" + nodePath.ToString();
 
 	auto inputs = GetInputsList();
-	auto const &input = inputs[0];
+	auto const &input = inputs->Item(0);
 
 	context.RegisterNamedNode(nodePath, input.GetDriver());
 

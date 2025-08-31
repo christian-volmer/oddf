@@ -191,7 +191,7 @@ public:
 	// IDesign implementation
 	//
 
-	virtual oddf::utility::CollectionView<oddf::design::blocks::backend::IDesignBlock const &> GetBlockCollection() const override;
+	virtual std::unique_ptr<oddf::utility::ICollectionView<oddf::design::blocks::backend::IDesignBlock const &>> GetBlockCollection() const override;
 };
 
 namespace backend {

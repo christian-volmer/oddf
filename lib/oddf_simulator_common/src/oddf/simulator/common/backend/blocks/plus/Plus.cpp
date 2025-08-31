@@ -28,6 +28,8 @@
 
 #include <oddf/Exception.h>
 
+#include <cassert>
+
 namespace oddf::simulator::common::backend::blocks {
 
 Plus::Plus(design::blocks::backend::IDesignBlock const &designBlock) :
@@ -44,20 +46,20 @@ void Plus::Elaborate(ISimulatorElaborationContext &)
 {
 	auto outputs = GetOutputsList();
 
-	if (outputs.GetSize() != 1)
+	if (outputs->GetSize() != 1)
 		throw Exception(ExceptionCode::Unsupported);
 
-	if (outputs[0].GetType().GetTypeId() != design::NodeType::FIXED_POINT)
+	if (outputs->Item(0).GetType().GetTypeId() != design::NodeType::FIXED_POINT)
 		throw Exception(ExceptionCode::Unsupported);
 
 	auto inputs = GetInputsList();
 
-	if (inputs.GetSize() < 1)
+	if (inputs->GetSize() < 1)
 		throw Exception(ExceptionCode::Unsupported);
 
-	auto inputsEnumerator = inputs.GetEnumerator();
-	while (inputsEnumerator.MoveNext())
-		if (inputsEnumerator.GetCurrent().GetType().GetTypeId() != design::NodeType::FIXED_POINT)
+	auto inputsEnumerator = inputs->GetEnumerator();
+	while (inputsEnumerator->MoveNext())
+		if (inputsEnumerator->GetCurrent().GetType().GetTypeId() != design::NodeType::FIXED_POINT)
 			throw Exception(ExceptionCode::Unsupported);
 }
 
@@ -148,7 +150,7 @@ public:
 
 void EmitPlusInstruction(ISimulatorCodeGenerationContext &context,
 	SimulatorBlockOutput const &output,
-	utility::ListView<SimulatorBlockInput const &> const &inputs)
+	utility::IListView<SimulatorBlockInput const &> const &inputs)
 {
 	context.StartInstructionVariadic(
 		PlusInstruction::InstructionFunction,
@@ -166,7 +168,7 @@ void EmitPlusInstruction(ISimulatorCodeGenerationContext &context,
 
 	for (size_t i = 0; i < inputs.GetSize(); ++i) {
 
-		auto inputType = inputs[i].GetType();
+		auto inputType = inputs.Item(i).GetType();
 
 		context.BindInputReference(i, instruction->m_operands[i].m_input);
 
@@ -183,7 +185,7 @@ void EmitPlusInstruction(ISimulatorCodeGenerationContext &context,
 
 void Plus::GenerateCode(ISimulatorCodeGenerationContext &context)
 {
-	EmitPlusInstruction(context, GetOutputsList()[0], GetInputsList());
+	EmitPlusInstruction(context, GetOutputsList()->Item(0), *GetInputsList());
 }
 
 } // namespace oddf::simulator::common::backend::blocks

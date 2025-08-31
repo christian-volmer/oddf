@@ -170,8 +170,8 @@ public:
 
 	virtual oddf::ResourcePath GetPath() const override;
 	virtual oddf::design::blocks::backend::DesignBlockClass GetClass() const override;
-	virtual oddf::utility::ListView<oddf::design::blocks::backend::IDesignBlockInput const &> GetInputsList() const override;
-	virtual oddf::utility::ListView<oddf::design::blocks::backend::IDesignBlockOutput const &> GetOutputsList() const override;
+	virtual std::unique_ptr<oddf::utility::IListView<oddf::design::blocks::backend::IDesignBlockInput const &>> GetInputsList() const override;
+	virtual std::unique_ptr<oddf::utility::IListView<oddf::design::blocks::backend::IDesignBlockOutput const &>> GetOutputsList() const override;
 };
 
 } // namespace backend

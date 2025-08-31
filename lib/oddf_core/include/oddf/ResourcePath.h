@@ -77,8 +77,8 @@ public:
 
 	static constexpr bool IsValidCharacter(char c)
 	{
-		// All printable characters are allowed except space, delete, and slash.
-		return (c > 32) && (c < 127) && (c != '/');
+		// All printable characters are allowed except space, delete, slash, and backslash
+		return (c > 32) && (c < 127) && (c != '/') && (c != '\\');
 	}
 
 	static bool IsValidElement(std::string const &str);

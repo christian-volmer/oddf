@@ -71,12 +71,11 @@ std::unique_ptr<ISimulatorBlockMapping const> SimulatorCore::MapBlocks(design::I
 
 	auto designBlocks = design.GetBlockCollection();
 
-	m_blocks.reserve(designBlocks.GetSize());
-	auto designBlocksEnumerator = designBlocks.GetEnumerator();
+	m_blocks.reserve(designBlocks->GetSize());
 
-	for (designBlocksEnumerator.Reset(); designBlocksEnumerator.MoveNext();) {
+	for (auto designBlocksEnumerator = designBlocks->GetEnumerator(); designBlocksEnumerator->MoveNext();) {
 
-		auto const &designBlock = designBlocksEnumerator.GetCurrent();
+		auto const &designBlock = designBlocksEnumerator->GetCurrent();
 
 		auto blockClass = designBlock.GetClass();
 

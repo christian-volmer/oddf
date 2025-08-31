@@ -26,7 +26,7 @@
 
 #pragma once
 
-#include <oddf/utility/CollectionView.h>
+#include <oddf/utility/MakeContainerView.h>
 
 #include "../Expect.h"
 
@@ -89,57 +89,48 @@ inline void TestCollectionViewForStdContainer()
 	//
 
 	// Create default CollectionView
-	auto collectionView = oddf::utility::MakeCollectionView(container);
+	auto collectionView = oddf::utility::MakeContainerView(container);
 
 	// Get an Enumerator from the CollectionView
-	auto enumerator = collectionView.GetEnumerator();
+	auto enumerator = collectionView->GetEnumerator();
 
 	// Confirm the element type returned by the Enumerator
-	static_assert(std::is_same_v<decltype(enumerator.GetCurrent()), decltype(*container.begin())>);
+	static_assert(std::is_same_v<decltype(enumerator->GetCurrent()), decltype(*container.begin())>);
 
 	// Create a CollectionView where the elements of type unique_ptr<Derived> are converted to a plain pointer to const Base.
-	auto collectionViewToConstBasePointer = oddf::utility::MakeCollectionView<Base const *>(container);
-	auto enumeratorToConstBasePointer = collectionViewToConstBasePointer.GetEnumerator();
+	auto collectionViewToConstBasePointer = oddf::utility::MakeContainerView(container, [](auto &e) { return static_cast<Base const *>(e.get()); });
+
+	auto enumeratorToConstBasePointer = collectionViewToConstBasePointer->GetEnumerator();
 
 	// Confirm the element type returned by the Enumerator
-	static_assert(std::is_same_v<decltype(enumeratorToConstBasePointer.GetCurrent()), Base const *>);
+	static_assert(std::is_same_v<decltype(enumeratorToConstBasePointer->GetCurrent()), Base const *>);
 
-	// Create a CollectionView where the elements of type unique_ptr<Derived> are converted to a reference
-	auto collectionViewToReference = oddf::utility::MakeCollectionView<Derived &>(container);
-	auto enumeratorToReference = collectionViewToReference.GetEnumerator();
+	// Create a CollectionView where the elements of type unique_ptr<Derived> are converted to a const reference
+	auto collectionViewToReference = oddf::utility::MakeContainerView(container, [](auto &e) -> Derived const & { return *e; });
+	auto enumeratorToReference = collectionViewToReference->GetEnumerator();
 
 	// Confirm the element type returned by the Enumerator
-	static_assert(std::is_same_v<decltype(enumeratorToReference.GetCurrent()), Derived &>);
+	static_assert(std::is_same_v<decltype(enumeratorToReference->GetCurrent()), Derived const &>);
 
-	Expect(collectionView.GetSize() == 5);
-	Expect(collectionViewToConstBasePointer.GetSize() == 5);
-	Expect(collectionViewToReference.GetSize() == 5);
-
-	/*
-
-	TODO: should not be required anymore.
-
-	enumerator.Reset();
-	enumeratorToConstBasePointer.Reset();
-	enumeratorToReference.Reset();
-
-	*/
+	Expect(collectionView->GetSize() == 5);
+	Expect(collectionViewToConstBasePointer->GetSize() == 5);
+	Expect(collectionViewToReference->GetSize() == 5);
 
 	size_t i = 0;
 
-	while (enumerator.MoveNext()) {
+	while (enumerator->MoveNext()) {
 
-		enumeratorToConstBasePointer.MoveNext();
-		enumeratorToReference.MoveNext();
+		enumeratorToConstBasePointer->MoveNext();
+		enumeratorToReference->MoveNext();
 		++i;
 
-		Expect(enumerator.GetCurrent()->GetValue() == enumeratorToConstBasePointer.GetCurrent()->GetValue());
-		Expect(enumerator.GetCurrent()->GetValue() == enumeratorToReference.GetCurrent().GetValue());
+		Expect(enumerator->GetCurrent()->GetValue() == enumeratorToConstBasePointer->GetCurrent()->GetValue());
+		Expect(enumerator->GetCurrent()->GetValue() == enumeratorToReference->GetCurrent().GetValue());
 	}
 
-	Expect(enumeratorToConstBasePointer.MoveNext() == false);
-	Expect(enumeratorToReference.MoveNext() == false);
-	Expect(i == collectionView.GetSize());
+	Expect(enumeratorToConstBasePointer->MoveNext() == false);
+	Expect(enumeratorToReference->MoveNext() == false);
+	Expect(i == collectionView->GetSize());
 }
 
 } // namespace utility

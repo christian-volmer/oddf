@@ -20,32 +20,30 @@
 
 /*
 
-    <no description>
+    Provides class `ElementTransformationNone`, which is the default no-op
+    element transformation with our standard view implementations of standard
+    library containers.
 
 */
 
 #pragma once
 
-#include <memory>
+#include <utility>
 
-namespace oddf {
-namespace utility {
-namespace backend {
+namespace oddf::utility {
 
-template<typename referenceT>
-class AbstractEnumeratorImplementation {
+/*
+    Used as the default no-op element transformation with our standard
+    view implementations of standard library containers.
+*/
+struct ElementTransformationNone {
 
-public:
-
-	virtual std::unique_ptr<AbstractEnumeratorImplementation<referenceT>> Clone() const = 0;
-
-	virtual referenceT GetCurrent() const = 0;
-	virtual bool MoveNext() = 0;
-	virtual void Reset() = 0;
-
-	virtual ~AbstractEnumeratorImplementation() { }
+	template<class T>
+	constexpr T &&operator()(T &&t) const noexcept
+	{
+		// Taken from https://en.cppreference.com/w/cpp/utility/functional/identity.html
+		return std::forward<T>(t);
+	}
 };
 
-} // namespace backend
-} // namespace utility
-} // namespace oddf
+} // namespace oddf::utility

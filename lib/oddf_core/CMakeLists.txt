@@ -4,6 +4,7 @@ add_library(oddf_core
 	src/oddf/design/NodeType.cpp
 	src/oddf/utility/CopyBoolean.cpp
 	src/oddf/utility/CopyInteger.cpp
+	src/oddf/utility/StandardReferenceCountSentinel.cpp
 )
 
 target_include_directories(oddf_core PUBLIC include)

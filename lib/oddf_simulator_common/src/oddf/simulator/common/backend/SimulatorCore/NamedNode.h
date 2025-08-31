@@ -30,7 +30,7 @@
 #include "NamedNodeComparer.h"
 
 #include <oddf/simulator/backend/ISimulatorNodeTreeElement.h>
-#include <oddf/utility/CollectionView.h>
+#include <oddf/utility/ICollectionView.h>
 
 namespace oddf::simulator::common::backend {
 
@@ -60,7 +60,7 @@ struct SimulatorCore::NamedNode : public virtual simulator::backend::ISimulatorN
 	virtual design::NodeType GetType() const override;
 	virtual void Read(void * /*buffer */, size_t /* count */) const override;
 
-	virtual utility::CollectionView<ISimulatorNodeTreeElement const &> GetChildren() const override;
+	virtual std::unique_ptr<utility::ICollectionView<ISimulatorNodeTreeElement const &>> GetChildren() const override;
 
 	virtual void *GetInterface(oddf::Uid const &iid) override;
 };

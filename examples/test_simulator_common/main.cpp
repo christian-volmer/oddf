@@ -32,8 +32,6 @@
 
 #include <oddf/utility/GetInterfaceHelper.h>
 
-#include <map>
-
 namespace b = dfx::blocks;
 namespace sim = oddf::simulator;
 
@@ -89,10 +87,8 @@ public:
 		subPath += "/";
 
 		auto children = node.GetChildren();
-		auto enumerator = children.GetEnumerator();
-
-		while (enumerator.MoveNext())
-			Dump(subPath, enumerator.GetCurrent());
+		for (auto enumerator = children->GetEnumerator(); enumerator->MoveNext();)
+			Dump(subPath, enumerator->GetCurrent());
 	}
 
 	void Dump()
@@ -129,6 +125,22 @@ int main()
 		b::Probe(x, "probe");
 		b::Probe(x + 3, "my_probe");
 	}
+
+	// Hier gehts weiter:
+
+	/* NamedNode und ISimulatorNodeTreeElement
+
+	Das mit dem ListView und CollectionView funktioniert nicht zusammen
+	mit ISimulatorNodeTreeElement, jedenfalls nicht im ganz allgemeinen Fall.
+	Wir sollten Interfaces draus machen die �ber einen unique_ptr zur�ckgegeben
+	werden. Intern benutzen die ja ohnehin einen Zeiger auf ihre Implementierung,
+	evtl. kann man das elegant in einem l�sen.
+
+	Probe sollte intern �ber NamedNode den gleichen Mechanismus wie NamedNode benutzen?
+	Sollten eine Funktion GetNamedNode() im Simulator haben.
+
+
+	*/
 
 	b::Probe(x + 12345678, "probe2");
 
