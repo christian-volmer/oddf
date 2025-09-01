@@ -91,7 +91,7 @@ class IBuilder {
 
 public:
 
-	virtual ~IBuilder() { }
+	virtual ~IBuilder() = default;
 
 	virtual void Break(int extraPipelining) = 0;
 	virtual void Merge(int extraPipelining) = 0;
@@ -112,7 +112,7 @@ class IController {
 
 public:
 
-	virtual ~IController() { }
+	virtual ~IController() = default;
 
 	virtual void ClearAll() = 0;
 	virtual void Write(int theAddress, std::uint32_t const *values, int count) = 0;

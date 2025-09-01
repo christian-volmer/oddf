@@ -40,7 +40,7 @@ class IDesignBlockInput {
 
 public:
 
-	virtual ~IDesignBlockInput() { }
+	virtual ~IDesignBlockInput() = default;
 
 	// Returns a reference to the owning design block.
 	virtual IDesignBlock const &GetOwningBlock() const = 0;

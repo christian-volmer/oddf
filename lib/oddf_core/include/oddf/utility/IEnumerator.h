@@ -41,7 +41,7 @@ class IEnumerator {
 
 public:
 
-	virtual ~IEnumerator() { }
+	virtual ~IEnumerator() = default;
 
 	// Returns the current element. Throws if there is no current element.
 	virtual referenceT GetCurrent() const = 0;

@@ -41,7 +41,7 @@ public:
 
 	// Destructor allows an implementation to throw unless the reference
 	// count is zero.
-	virtual ~IReferenceCountSentinel() noexcept(false) { }
+	virtual ~IReferenceCountSentinel() noexcept(false) = default;
 
 	// Returns the current value of the reference count.
 	virtual size_t GetValue() const noexcept = 0;

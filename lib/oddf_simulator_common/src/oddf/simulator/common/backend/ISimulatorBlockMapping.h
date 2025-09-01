@@ -34,7 +34,7 @@ class ISimulatorBlockMapping {
 
 public:
 
-	virtual ~ISimulatorBlockMapping() { }
+	virtual ~ISimulatorBlockMapping() = default;
 
 	virtual SimulatorBlockBase *DesignBlockToSimulatorBlock(design::blocks::backend::IDesignBlock const &designBlock) const = 0;
 };

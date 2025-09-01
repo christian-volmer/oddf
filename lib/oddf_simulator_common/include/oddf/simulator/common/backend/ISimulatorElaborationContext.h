@@ -38,7 +38,7 @@ class ISimulatorElaborationContext {
 
 public:
 
-	virtual ~ISimulatorElaborationContext() { }
+	virtual ~ISimulatorElaborationContext() = default;
 
 	virtual void AddSimulatorBlock(std::unique_ptr<SimulatorBlockBase> &&block) = 0;
 	virtual void RemoveThisBlock() = 0;

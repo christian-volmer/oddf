@@ -34,7 +34,7 @@ class ISimulator {
 
 public:
 
-	virtual ~ISimulator() { }
+	virtual ~ISimulator() = default;
 
 	virtual backend::ISimulatorAccess &GetSimulatorAccess() = 0;
 };

@@ -45,7 +45,7 @@ inline void TestListViewForStdContainer()
 	struct Base {
 
 		virtual int GetValue() const = 0;
-		virtual ~Base() { }
+		virtual ~Base() = default;
 	};
 
 	struct Derived : public Base {

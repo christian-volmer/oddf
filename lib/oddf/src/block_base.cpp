@@ -79,10 +79,6 @@ BlockBase::BlockBase(char const *className, std::string const &tag) :
 	dfx::debug::internalLastBlockName = GetName();
 }
 
-BlockBase::~BlockBase()
-{
-}
-
 std::string BlockBase::GetClassName() const
 {
 	return className;

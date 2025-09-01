@@ -35,7 +35,7 @@ class IDesign {
 
 public:
 
-	virtual ~IDesign() { }
+	virtual ~IDesign() = default;
 
 	virtual std::unique_ptr<utility::ICollectionView<blocks::backend::IDesignBlock const &>> GetBlockCollection() const = 0;
 };

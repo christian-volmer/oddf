@@ -44,7 +44,7 @@ class ICollectionView {
 
 public:
 
-	virtual ~ICollectionView() { }
+	virtual ~ICollectionView() = default;
 
 	// Returns the number of elements in the collection.
 	virtual size_t GetSize() const = 0;

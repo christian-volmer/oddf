@@ -35,9 +35,8 @@ Simulator::Simulator() :
 {
 }
 
-Simulator::~Simulator()
-{
-}
+// Cannot be placed in header file because the type `backend::SimulatorCore` is incomplete there.
+Simulator::~Simulator() = default;
 
 bool Simulator::RegisterSimulatorBlockFactory(design::blocks::backend::DesignBlockClass const &designBlockClass,
 	std::unique_ptr<backend::ISimulatorBlockFactory> &&simulatorBlockFactory)

@@ -38,7 +38,7 @@ class ISimulatorBlockFactory {
 
 public:
 
-	virtual ~ISimulatorBlockFactory() { }
+	virtual ~ISimulatorBlockFactory() = default;
 
 	virtual std::unique_ptr<SimulatorBlockBase> CreateFromDesignBlock(design::blocks::backend::IDesignBlock const &designBlock) const = 0;
 };

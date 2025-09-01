@@ -45,9 +45,8 @@ SimulatorBlockBase::SimulatorBlockBase(size_t numberOfInputs, std::initializer_l
 {
 }
 
-SimulatorBlockBase::~SimulatorBlockBase()
-{
-}
+// Cannot be placed in the header file because the type `Internals` is incomplete there.
+SimulatorBlockBase::~SimulatorBlockBase() = default;
 
 design::blocks::backend::IDesignBlock const *SimulatorBlockBase::GetDesignBlockReference() const
 {

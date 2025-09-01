@@ -56,7 +56,7 @@ class IStep {
 
 public:
 
-	virtual ~IStep() { }
+	virtual ~IStep() = default;
 
 	virtual void Step() = 0;
 	virtual void AsyncReset() = 0;
@@ -108,7 +108,7 @@ public:
 	BlockBase(char const *className);
 	BlockBase(char const *className, std::string const &tag);
 	BlockBase(BlockBase const &) = delete;
-	virtual ~BlockBase();
+	virtual ~BlockBase() = default;
 
 	BlockBase &operator=(BlockBase const &) = delete;
 

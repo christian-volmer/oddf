@@ -32,7 +32,7 @@ class ISimulatorComponent {
 
 public:
 
-	virtual ~ISimulatorComponent() { }
+	virtual ~ISimulatorComponent() = default;
 
 	// Ensures that the state of the component is valid and can safely be accessed.
 	virtual void EnsureValidState() = 0;

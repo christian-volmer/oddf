@@ -45,6 +45,7 @@ SimulatorCore::SimulatorCore() :
 	RegisterDefaultBlockFactories();
 }
 
+// Cannot be placed in header file because the type `NamedNode` is undefined there.
 SimulatorCore::~SimulatorCore() = default;
 
 void SimulatorCore::RegisterGlobalObject(std::string name, std::unique_ptr<IObject> &&object)
