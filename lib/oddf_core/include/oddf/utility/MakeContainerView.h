@@ -28,7 +28,7 @@
 #pragma once
 
 #include "ElementTransformationNone.h"
-#include "IReferenceCountSentinel.h"
+#include "../IReferenceCountSentinel.h"
 
 #include "backend/StdListView.h"
 

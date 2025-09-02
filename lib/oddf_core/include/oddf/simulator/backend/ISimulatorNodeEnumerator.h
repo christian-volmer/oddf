@@ -20,37 +20,34 @@
 
 /*
 
-    <no description>
+    Provides `ISimulatorNodeEnumerator` for enumerating `ISimulatorNode`
+    interfaces to nodes in the simulator.
 
 */
 
 #pragma once
 
-#include <oddf/Uid.h>
-#include <oddf/IObject.h>
+#include "ISimulatorNode.h"
 
-#include <oddf/design/NodeType.h>
+#include <oddf/IEnumerator.h>
 
 namespace oddf {
 
 namespace simulator::backend {
 
-class ISignalAccess : public virtual IObject {
-
-public:
-
-	virtual design::NodeType GetType() const noexcept = 0;
-
-	virtual void Write(void const *buffer, size_t count) = 0;
-	virtual size_t GetSize() const noexcept = 0;
+/*
+    Enumerates `ISimulatorNode` interfaces to nodes in the simulator. Specialises
+    `IEnumerator` and derives from `IObject`.
+ */
+class ISimulatorNodeEnumerator : public virtual IObject, public virtual IEnumerator<ISimulatorNode const &> {
 };
 
 } // namespace simulator::backend
 
 template<>
-struct Iid<simulator::backend::ISignalAccess> {
+struct Iid<simulator::backend::ISimulatorNodeEnumerator> {
 
-	static constexpr Uid value = { 0x50bac9c2, 0x306c, 0x40b9, 0x9f, 0x2f, 0x84, 0x2b, 0x42, 0x27, 0xb9, 0x9 };
+	static constexpr Uid value = { 0x14de35ff, 0x447d, 0x4bfb, 0x80, 0xb1, 0x42, 0x4b, 0x3f, 0xd4, 0x59, 0x33 };
 };
 
 } // namespace oddf

@@ -35,7 +35,7 @@ namespace oddf {
 
 namespace simulator::backend {
 
-class IProbeAccess : public virtual oddf::IObject {
+class IProbeAccess : public virtual IObject {
 
 public:
 

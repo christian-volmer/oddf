@@ -20,31 +20,23 @@
 
 /*
 
-    Provides template interface `IListView`, a random-access view into a
-    collection of elements.
+    <no description>
 
 */
 
 #pragma once
 
-#include "ICollectionView.h"
+#include "../SimulatorCore.h"
 
-namespace oddf::utility {
+namespace oddf::simulator::common::backend {
 
-/*
-    A random-access view into a collection of elements, where the type of the
-    underlying container has been erased. The container itself cannot be
-    modified (i.e., elements cannot be added or deleted); but the elements can
-    if `referenceT` specifies a non-const reference or pointer. Derives from
-    template interface `ICollectionView`.
-*/
-template<typename referenceT>
-class IListView : public ICollectionView<referenceT> {
+struct SimulatorCore::SimulatorNodeHierarchyNodeComparer {
 
-public:
+	using is_transparent = std::true_type;
 
-	// Accesses the element at the given index.
-	virtual referenceT Item(size_t index) const = 0;
+	bool operator()(std::unique_ptr<SimulatorCore::SimulatorNodeHierarchyNode> const &lhs, std::string const &rhs) const;
+	bool operator()(std::string const &lhs, std::unique_ptr<SimulatorCore::SimulatorNodeHierarchyNode> const &rhs) const;
+	bool operator()(std::unique_ptr<SimulatorCore::SimulatorNodeHierarchyNode> const &lhs, std::unique_ptr<SimulatorCore::SimulatorNodeHierarchyNode> const &rhs) const;
 };
 
-} // namespace oddf::utility
+} // namespace oddf::simulator::common::backend

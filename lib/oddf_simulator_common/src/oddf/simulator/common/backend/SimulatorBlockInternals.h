@@ -65,7 +65,7 @@ public:
 	void operator=(Internals const &) = delete;
 
 	// Initialises members `m_inputs` and `m_outputs`.
-	void InitialiseInputsAndOutputs(SimulatorBlockBase &owningBlock, size_t numberOfInputs, utility::ICollectionView<design::NodeType const &> const &outputNodeTypes);
+	void InitialiseInputsAndOutputs(SimulatorBlockBase &owningBlock, size_t numberOfInputs, ICollectionView<design::NodeType const &> const &outputNodeTypes);
 
 	// Will map the connections to other blocks if the block was created from a design block.
 	void MapConnections(ISimulatorBlockMapping const &blockMapping);

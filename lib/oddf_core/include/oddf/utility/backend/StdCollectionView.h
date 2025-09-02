@@ -29,8 +29,8 @@
 
 #include "StdEnumerator.h"
 
-#include "../ICollectionView.h"
-#include "../IReferenceCountSentinel.h"
+#include "../../ICollectionView.h"
+#include "../../IReferenceCountSentinel.h"
 
 #include <type_traits>
 #include <utility>

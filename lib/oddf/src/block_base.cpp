@@ -219,12 +219,12 @@ oddf::design::blocks::backend::DesignBlockClass BlockBase::GetClass() const
 	return GetClassName();
 }
 
-std::unique_ptr<oddf::utility::IListView<oddf::design::blocks::backend::IDesignBlockInput const &>> BlockBase::GetInputsList() const
+std::unique_ptr<oddf::IListView<oddf::design::blocks::backend::IDesignBlockInput const &>> BlockBase::GetInputsList() const
 {
 	return oddf::utility::MakeContainerView(inputPins, [](auto &e) -> oddf::design::blocks::backend::IDesignBlockInput const & { return *e; });
 }
 
-std::unique_ptr<oddf::utility::IListView<oddf::design::blocks::backend::IDesignBlockOutput const &>> BlockBase::GetOutputsList() const
+std::unique_ptr<oddf::IListView<oddf::design::blocks::backend::IDesignBlockOutput const &>> BlockBase::GetOutputsList() const
 {
 	return oddf::utility::MakeContainerView(outputPins, [](auto &e) -> oddf::design::blocks::backend::IDesignBlockOutput const & { return *e; });
 }

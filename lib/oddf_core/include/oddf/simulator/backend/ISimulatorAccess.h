@@ -27,10 +27,9 @@
 #pragma once
 
 #include <oddf/simulator/backend/IClockable.h>
-#include <oddf/simulator/backend/ISimulatorNodeTreeElement.h>
 
-#include <oddf/Uid.h>
-#include <oddf/Iid.h>
+#include <oddf/IHierarchyNode.h>
+
 #include <string>
 
 namespace oddf::simulator::backend {
@@ -52,7 +51,7 @@ public:
 	virtual void RegisterClockable(IClockable &clockable) = 0;
 	virtual void UnregisterClockable(IClockable &clockable) = 0;
 
-	virtual ISimulatorNodeTreeElement const &GetNamedNodesRoot() const = 0;
+	virtual IHierarchyNode const &GetNodeHierarchyRoot() const = 0;
 };
 
 } // namespace oddf::simulator::backend

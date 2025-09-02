@@ -93,7 +93,7 @@ SimulatorBlockBase const &SimulatorBlockOutput::GetOwningBlock() const noexcept
 	return m_owningBlock;
 }
 
-std::unique_ptr<utility::ICollectionView<SimulatorBlockInput const &>> SimulatorBlockOutput::GetTargetsCollection() const
+std::unique_ptr<ICollectionView<SimulatorBlockInput const &>> SimulatorBlockOutput::GetTargetsCollection() const
 {
 	return utility::MakeContainerView(m_targets, [](auto &e) -> SimulatorBlockInput const & { return *e; });
 }

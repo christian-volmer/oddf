@@ -30,7 +30,7 @@
 #include "IEnumerator.h"
 #include <memory>
 
-namespace oddf::utility {
+namespace oddf {
 
 /*
     A view into a collection of elements, where the type of the underlying
@@ -62,4 +62,4 @@ public:
 	virtual std::unique_ptr<IEnumerator<referenceT>> GetEnumerator() const = 0;
 };
 
-} // namespace oddf::utility
+} // namespace oddf

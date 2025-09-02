@@ -27,7 +27,7 @@
 
 #pragma once
 
-namespace oddf::utility {
+namespace oddf {
 
 /*
     Enumeration of the elements of a collection, where the type of the
@@ -55,4 +55,4 @@ public:
 	virtual void Reset() = 0;
 };
 
-} // namespace oddf::utility
+} // namespace oddf

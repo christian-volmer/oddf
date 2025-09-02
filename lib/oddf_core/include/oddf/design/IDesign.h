@@ -27,7 +27,7 @@
 #pragma once
 
 #include <oddf/design/blocks/backend/IDesignBlock.h>
-#include <oddf/utility/ICollectionView.h>
+#include <oddf/ICollectionView.h>
 
 namespace oddf::design {
 
@@ -37,7 +37,7 @@ public:
 
 	virtual ~IDesign() = default;
 
-	virtual std::unique_ptr<utility::ICollectionView<blocks::backend::IDesignBlock const &>> GetBlockCollection() const = 0;
+	virtual std::unique_ptr<ICollectionView<blocks::backend::IDesignBlock const &>> GetBlockCollection() const = 0;
 };
 
 } // namespace oddf::design

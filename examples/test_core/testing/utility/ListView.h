@@ -91,7 +91,7 @@ inline void TestListViewForStdContainer()
 	std::shared_ptr listView = oddf::utility::MakeContainerView(container);
 
 	// ListView should be copyable into CollectionView
-	std::shared_ptr<oddf::utility::ICollectionView<elementT &>> collectionView = listView;
+	std::shared_ptr<oddf::ICollectionView<elementT &>> collectionView = listView;
 
 	// Get an Enumerator from the copied CollectionView
 	auto enumerator = collectionView->GetEnumerator();

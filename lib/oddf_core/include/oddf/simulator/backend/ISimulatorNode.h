@@ -20,45 +20,42 @@
 
 /*
 
-    <no description>
+    Provides the `ISimulatorNode` interface that represents a node in the
+    simulator.
 
 */
 
 #pragma once
 
-#include <oddf/design/NodeType.h>
-#include <oddf/utility/ICollectionView.h>
-#include <oddf/IObject.h>
+#include "ISimulatorNodeAccess.h"
+
+#include <string>
+#include <memory>
 
 namespace oddf {
 
 namespace simulator::backend {
 
-class ISimulatorNodeTreeElement : public virtual IObject {
+class ISimulatorNode : public virtual IObject {
 
 public:
 
-	// Returns the name of the current tree element.
+	// Returns the name of the node.
 	virtual std::string GetName() const = 0;
 
-	// Returns whether the current tree element refers to a simulator node.
-	virtual bool IsNode() const = 0;
-
+	// Returns the type of the node.
 	virtual design::NodeType GetType() const = 0;
 
-	// Reads from the simulator node.
-	virtual void Read(void *buffer, size_t count) const = 0;
-
-	// Returns the collection of child elements. The collection will be empty if there are no children.
-	virtual std::unique_ptr<utility::ICollectionView<ISimulatorNodeTreeElement const &>> GetChildren() const = 0;
+	// Returns an `ISimulatorNodeAccess` interface to the node.
+	virtual std::unique_ptr<ISimulatorNodeAccess> GetAccess() const = 0;
 };
 
 } // namespace simulator::backend
 
 template<>
-struct Iid<simulator::backend::ISimulatorNodeTreeElement> {
+struct Iid<simulator::backend::ISimulatorNode> {
 
-	static constexpr Uid value = { 0x14e4b2d5, 0x9884, 0x4dd2, 0xaa, 0x36, 0x42, 0x7e, 0x31, 0x37, 0x75, 0xa7 };
+	static constexpr Uid value = { 0x950075e0, 0x7f0c, 0x4643, 0xb6, 0xcb, 0x95, 0xd6, 0x5a, 0xca, 0x61, 0xf6 };
 };
 
 } // namespace oddf

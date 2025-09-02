@@ -27,10 +27,9 @@
 
 #pragma once
 
-#include "../IEnumerator.h"
-#include "../IReferenceCountSentinel.h"
-
 #include "../../Exception.h"
+#include "../../IEnumerator.h"
+#include "../../IReferenceCountSentinel.h"
 
 #include <type_traits>
 #include <utility>

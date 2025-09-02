@@ -63,10 +63,12 @@ private:
 
 	std::set<simulator::backend::IClockable *> m_clockables;
 
-	struct NamedNode;
-	struct NamedNodeComparer;
+	struct SimulatorNode;
+	struct SimulatorNodeComparer;
+	struct SimulatorNodeHierarchyNode;
+	struct SimulatorNodeHierarchyNodeComparer;
 
-	std::unique_ptr<NamedNode> m_namedNodesRoot;
+	std::unique_ptr<SimulatorNodeHierarchyNode> m_nodeHierarchyRoot;
 
 	// Registers simulator block factories for all standard ODDF design blocks.
 	void RegisterDefaultBlockFactories();
@@ -127,7 +129,7 @@ public:
 	virtual void RegisterClockable(simulator::backend::IClockable &clockable) override;
 	virtual void UnregisterClockable(simulator::backend::IClockable &clockable) override;
 
-	virtual simulator::backend::ISimulatorNodeTreeElement const &GetNamedNodesRoot() const override;
+	virtual IHierarchyNode const &GetNodeHierarchyRoot() const override;
 };
 
 } // namespace oddf::simulator::common::backend

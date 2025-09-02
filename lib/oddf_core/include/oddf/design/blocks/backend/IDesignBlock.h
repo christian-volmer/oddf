@@ -28,7 +28,7 @@
 #pragma once
 
 #include <oddf/IObject.h>
-#include <oddf/utility/IListView.h>
+#include <oddf/IListView.h>
 #include <oddf/ResourcePath.h>
 
 #include "DesignBlockClass.h"
@@ -55,10 +55,10 @@ public:
 	virtual DesignBlockClass GetClass() const = 0;
 
 	// Returns a `ListView` of the inputs of the design block.
-	virtual std::unique_ptr<utility::IListView<IDesignBlockInput const &>> GetInputsList() const = 0;
+	virtual std::unique_ptr<IListView<IDesignBlockInput const &>> GetInputsList() const = 0;
 
 	// Returns a `ListView` of the outputs of the design block.
-	virtual std::unique_ptr<utility::IListView<IDesignBlockOutput const &>> GetOutputsList() const = 0;
+	virtual std::unique_ptr<IListView<IDesignBlockOutput const &>> GetOutputsList() const = 0;
 };
 
 } // namespace design::blocks::backend

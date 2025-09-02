@@ -20,7 +20,8 @@
 
 /*
 
-    <no description>
+    Provides interface `IObject`, which provides a generic mechanism for
+    obtaining other supported interfaces of the implementing object.
 
 */
 
@@ -31,6 +32,10 @@
 
 namespace oddf {
 
+/*
+    Provides a generic mechanism for obtaining other supported interfaces of
+    the implementing object.
+*/
 class IObject {
 
 public:

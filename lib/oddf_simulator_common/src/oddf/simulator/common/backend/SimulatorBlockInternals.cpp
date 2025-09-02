@@ -91,7 +91,7 @@ SimulatorBlockBase::Internals::Internals(SimulatorBlockBase &owningBlock, size_t
 }
 
 void SimulatorBlockBase::Internals::InitialiseInputsAndOutputs(SimulatorBlockBase &owningBlock, size_t numberOfInputs,
-	utility::ICollectionView<design::NodeType const &> const &outputNodeTypes)
+	ICollectionView<design::NodeType const &> const &outputNodeTypes)
 {
 	m_inputs.reserve(numberOfInputs);
 	for (size_t i = 0; i < numberOfInputs; ++i)

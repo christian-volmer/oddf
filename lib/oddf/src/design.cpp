@@ -101,7 +101,7 @@ void Design::Report(std::basic_ostream<char> &os) const
 	os << endl;
 }
 
-std::unique_ptr<oddf::utility::ICollectionView<oddf::design::blocks::backend::IDesignBlock const &>> Design::GetBlockCollection() const
+std::unique_ptr<oddf::ICollectionView<oddf::design::blocks::backend::IDesignBlock const &>> Design::GetBlockCollection() const
 {
 	return oddf::utility::MakeContainerView(blocks, [](auto &e) -> oddf::design::blocks::backend::IDesignBlock const & { return *e; });
 }

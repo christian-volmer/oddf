@@ -36,7 +36,7 @@
 #include "SimulatorBlockInput.h"
 #include "SimulatorBlockOutput.h"
 
-#include <oddf/utility/IListView.h>
+#include <oddf/IListView.h>
 
 #include <initializer_list>
 #include <memory>
@@ -66,10 +66,10 @@ public:
 	design::blocks::backend::IDesignBlock const *GetDesignBlockReference() const;
 
 	// Returns a ListView into the list of inputs of this block.
-	std::unique_ptr<utility::IListView<SimulatorBlockInput const &>> GetInputsList() const;
+	std::unique_ptr<IListView<SimulatorBlockInput const &>> GetInputsList() const;
 
 	// Returns a ListView into the list of outputs of this block.
-	std::unique_ptr<utility::IListView<SimulatorBlockOutput const &>> GetOutputsList() const;
+	std::unique_ptr<IListView<SimulatorBlockOutput const &>> GetOutputsList() const;
 
 	// Returns whether the block has connections to other block.
 	bool HasConnections() const noexcept;

@@ -27,7 +27,9 @@
 #pragma once
 
 #include <oddf/design/NodeType.h>
-#include <oddf/utility/ICollectionView.h>
+#include <oddf/ICollectionView.h>
+
+#include <oddf/simulator/backend/ISimulatorNodeAccess.h>
 
 #include "Types.h"
 
@@ -83,7 +85,7 @@ public:
 	SimulatorBlockBase const &GetOwningBlock() const noexcept;
 
 	// Returns a CollectionView into the collection of inputs driven by this block.
-	std::unique_ptr<utility::ICollectionView<SimulatorBlockInput const &>> GetTargetsCollection() const;
+	std::unique_ptr<ICollectionView<SimulatorBlockInput const &>> GetTargetsCollection() const;
 
 	// Returns whether the output drives any inputs.
 	bool HasConnections() const noexcept;

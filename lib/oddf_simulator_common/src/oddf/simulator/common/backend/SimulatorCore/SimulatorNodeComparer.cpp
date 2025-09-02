@@ -24,33 +24,23 @@
 
 */
 
-#pragma once
+#include "SimulatorNodeComparer.h"
 
-#include <oddf/Uid.h>
-#include <oddf/IObject.h>
+namespace oddf::simulator::common::backend {
 
-#include <oddf/design/NodeType.h>
+bool SimulatorCore::SimulatorNodeComparer::operator()(SimulatorNode const &lhs, std::string const &rhs) const
+{
+	return lhs.m_name < rhs;
+}
 
-namespace oddf {
+bool SimulatorCore::SimulatorNodeComparer::operator()(std::string const &lhs, SimulatorNode const &rhs) const
+{
+	return lhs < rhs.m_name;
+}
 
-namespace simulator::backend {
+bool SimulatorCore::SimulatorNodeComparer::operator()(SimulatorNode const &lhs, SimulatorNode const &rhs) const
+{
+	return lhs.m_name < rhs.m_name;
+}
 
-class ISignalAccess : public virtual IObject {
-
-public:
-
-	virtual design::NodeType GetType() const noexcept = 0;
-
-	virtual void Write(void const *buffer, size_t count) = 0;
-	virtual size_t GetSize() const noexcept = 0;
-};
-
-} // namespace simulator::backend
-
-template<>
-struct Iid<simulator::backend::ISignalAccess> {
-
-	static constexpr Uid value = { 0x50bac9c2, 0x306c, 0x40b9, 0x9f, 0x2f, 0x84, 0x2b, 0x42, 0x27, 0xb9, 0x9 };
-};
-
-} // namespace oddf
+} // namespace oddf::simulator::common::backend

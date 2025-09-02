@@ -29,6 +29,7 @@
 #include <oddf/SimulatorCommon.h>
 #include <oddf/simulator/Signal.h>
 #include <oddf/simulator/Probe.h>
+#include <oddf/simulator/backend/ISimulatorNodeEnumerator.h>
 
 #include <oddf/utility/GetInterfaceHelper.h>
 
@@ -52,13 +53,13 @@ class Logger : public virtual backend::IClockable {
 	};
 
 	backend::ISimulatorAccess &m_simulatorAccess;
-	backend::ISimulatorNodeTreeElement const &m_nodesRoot;
+	IHierarchyNode const &m_nodesRoot;
 
 public:
 
 	Logger(ISimulator &simulator) :
 		m_simulatorAccess(simulator.GetSimulatorAccess()),
-		m_nodesRoot(m_simulatorAccess.GetNamedNodesRoot())
+		m_nodesRoot(m_simulatorAccess.GetNodeHierarchyRoot())
 	{
 		m_simulatorAccess.RegisterClockable(*this);
 	}
@@ -77,18 +78,26 @@ public:
 		return utility::GetInterfaceHelper<IObject, IClockable>::GetInterface(this, iid);
 	}
 
-	void Dump(std::string const &path, backend::ISimulatorNodeTreeElement const &node)
+	void Dump(std::string const &path, IHierarchyNode const &node)
 	{
-		std::string subPath = path + node.GetName();
+		std::string subPath = path + node.GetName() + "/";
+		std::cout << subPath << "\n";
 
-		if (node.IsNode())
-			std::cout << subPath << " : " << node.GetType().ToString() << "\n";
+		{
 
-		subPath += "/";
+			auto *enObj = node.GetData().release();
+			std::unique_ptr<simulator::backend::ISimulatorNodeEnumerator> nodes(&enObj->GetInterface<simulator::backend::ISimulatorNodeEnumerator>());
 
-		auto children = node.GetChildren();
-		for (auto enumerator = children->GetEnumerator(); enumerator->MoveNext();)
-			Dump(subPath, enumerator->GetCurrent());
+			for (; nodes->MoveNext();) {
+
+				auto &current = nodes->GetCurrent();
+
+				std::cout << "  " << current.GetName() << ": " << current.GetType().ToString() << "\n";
+			}
+		}
+
+		for (auto children = node.GetChildren(); children->MoveNext();)
+			Dump(subPath, children->GetCurrent());
 	}
 
 	void Dump()
@@ -126,19 +135,27 @@ int main()
 		b::Probe(x + 3, "my_probe");
 	}
 
-	// Hier gehts weiter:
+	/*
 
-	/* NamedNode und ISimulatorNodeTreeElement
+	Nächste Schritte:
 
-	Das mit dem ListView und CollectionView funktioniert nicht zusammen
-	mit ISimulatorNodeTreeElement, jedenfalls nicht im ganz allgemeinen Fall.
-	Wir sollten Interfaces draus machen die �ber einen unique_ptr zur�ckgegeben
-	werden. Intern benutzen die ja ohnehin einen Zeiger auf ihre Implementierung,
-	evtl. kann man das elegant in einem l�sen.
+	    - Über generische hierarchische Namespaces im Simulator nachdenken.
+	       - für Instanzen
+	       - für named nodes (Label, Name, Input, Output)
+	       - für Probes und Signals
+	       - für Modelle (Sin, oder komplexere Dinge)
 
-	Probe sollte intern �ber NamedNode den gleichen Mechanismus wie NamedNode benutzen?
-	Sollten eine Funktion GetNamedNode() im Simulator haben.
+	    - Generische Möglichkeit, Namespaces zu durchlaufen
+	    - An jedem Knoten über GetInterface ein entsprechendes Interface abrufen
+	    - Wir haben momentan die "Named Simulator Objects", reicht das nicht auch
+	      für alles was nicht einem Knoten entspricht?
+	        - Vielleicht für spätere Erweiterungen zusätzlich die generischen Namespaces. Man weiß ja nie?
+	    - ACHTUNG: Wir dürfen den Simulator aber nicht mit dem Design verwechseln!
 
+	    - Implementieren
+	      - Logging
+	      - Busse
+	        - Evtl. PRBS mit Bus-Bools, Bus-AND und Reduction-XOR?
 
 	*/
 
@@ -171,6 +188,8 @@ int main()
 
 	sim::Logger logger(simulator);
 	logger.Dump();
+
+	return 0;
 
 	auto myProbe = sim::Probe<int>(simulator, "/instance1/my_probe");
 	auto mySignal = sim::Signal<int>(simulator, "/duper_signal");

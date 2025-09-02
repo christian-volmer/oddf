@@ -25,7 +25,8 @@
 */
 
 #include "SimulatorCore.h"
-#include "SimulatorCore/NamedNode.h"
+#include "SimulatorCore/SimulatorNode.h"
+#include "SimulatorCore/SimulatorNodeHierarchyNode.h"
 
 #include <oddf/Exception.h>
 
@@ -40,7 +41,7 @@ SimulatorCore::SimulatorCore() :
 	m_invalidComponents(),
 	m_namedSimulatorObjects(),
 	m_clockables(),
-	m_namedNodesRoot(new NamedNode(""))
+	m_nodeHierarchyRoot(new SimulatorNodeHierarchyNode("", nullptr))
 {
 	RegisterDefaultBlockFactories();
 }
@@ -58,23 +59,35 @@ void SimulatorCore::RegisterGlobalObject(std::string name, std::unique_ptr<IObje
 
 void SimulatorCore::RegisterNamedNode(ResourcePath const &path, SimulatorBlockOutput const &output)
 {
-	NamedNode *current = m_namedNodesRoot.get();
+	SimulatorNodeHierarchyNode *hierarchyParent = nullptr;
+	SimulatorNodeHierarchyNode *hierarchyCurrent = m_nodeHierarchyRoot.get();
 
-	for (auto const &elem : path) {
+	auto pathCurrent = path.begin();
+	auto pathEnd = path.end();
 
-		current = const_cast<NamedNode *>(&*current->m_children.insert(elem).first);
+	if (pathCurrent == pathEnd)
+		throw Exception(ExceptionCode::InvalidArgument, "Argument `path` must not be empty.");
+
+	for (; std::next(pathCurrent) != pathEnd; ++pathCurrent) {
+
+		auto position = hierarchyCurrent->m_children.find(*pathCurrent);
+
+		if (position == hierarchyCurrent->m_children.end())
+			position = hierarchyCurrent->m_children.insert(std::make_unique<SimulatorNodeHierarchyNode>(*pathCurrent, hierarchyParent)).first;
+
+		hierarchyParent = hierarchyCurrent;
+		hierarchyCurrent = (*position).get();
 	}
 
-	if (current->m_pointer)
+	if (hierarchyCurrent->m_nodes.count(*pathCurrent))
 		throw Exception(ExceptionCode::InvalidArgument, "RegisterNamedNode(): a node has already been registered under the given path.");
 
-	current->m_pointer = output.GetPointer<void>();
-	current->m_type = output.GetType();
+	hierarchyCurrent->m_nodes.insert({ *pathCurrent, &output });
 }
 
-simulator::backend::ISimulatorNodeTreeElement const &SimulatorCore::GetNamedNodesRoot() const
+IHierarchyNode const &SimulatorCore::GetNodeHierarchyRoot() const
 {
-	return *m_namedNodesRoot;
+	return *m_nodeHierarchyRoot;
 }
 
 void SimulatorCore::RegisterClockable(simulator::backend::IClockable &clockable)

@@ -149,8 +149,7 @@ public:
 };
 
 void EmitPlusInstruction(ISimulatorCodeGenerationContext &context,
-	SimulatorBlockOutput const &output,
-	utility::IListView<SimulatorBlockInput const &> const &inputs)
+	SimulatorBlockOutput const &output, IListView<SimulatorBlockInput const &> const &inputs)
 {
 	context.StartInstructionVariadic(
 		PlusInstruction::InstructionFunction,

@@ -27,40 +27,45 @@
 #pragma once
 
 #include "../SimulatorCore.h"
-#include "NamedNodeComparer.h"
 
-#include <oddf/simulator/backend/ISimulatorNodeTreeElement.h>
-#include <oddf/utility/ICollectionView.h>
+#include "SimulatorNodeComparer.h"
+#include "SimulatorNodeHierarchyNodeComparer.h"
+
+#include <oddf/IEnumerator.h>
+#include <oddf/IHierarchyNode.h>
 
 namespace oddf::simulator::common::backend {
 
-struct SimulatorCore::NamedNode : public virtual simulator::backend::ISimulatorNodeTreeElement {
+struct SimulatorCore::SimulatorNodeHierarchyNode : public virtual IHierarchyNode {
 
 	std::string m_name;
-	oddf::design::NodeType m_type;
-	void const *m_pointer;
-	std::set<NamedNode, NamedNodeComparer> m_children;
+	SimulatorNodeHierarchyNode *m_parent;
+	std::set<std::unique_ptr<SimulatorNodeHierarchyNode>, SimulatorNodeHierarchyNodeComparer> m_children;
 
-	NamedNode(std::string const &name); /* :
-	     m_name(name),
-	     m_type(),
-	     m_pointer(),
-	     m_children()
-	 {
-	 }*/
+	std::set<SimulatorNode, SimulatorNodeComparer> m_nodes;
 
-	NamedNode(NamedNode const &) = delete;
-	void operator=(NamedNode const &) = delete;
+	SimulatorNodeHierarchyNode(std::string const &name, SimulatorNodeHierarchyNode *parent);
 
-	NamedNode(NamedNode &&) = default;
-	NamedNode &operator=(NamedNode &&) = default;
+	SimulatorNodeHierarchyNode(SimulatorNodeHierarchyNode const &) = delete;
+	void operator=(SimulatorNodeHierarchyNode const &) = delete;
+
+	//
+	// IHierarchyNode members
+	//
 
 	virtual std::string GetName() const override;
-	virtual bool IsNode() const override;
-	virtual design::NodeType GetType() const override;
-	virtual void Read(void * /*buffer */, size_t /* count */) const override;
 
-	virtual std::unique_ptr<utility::ICollectionView<ISimulatorNodeTreeElement const &>> GetChildren() const override;
+	virtual bool HasData() const noexcept override;
+	virtual std::unique_ptr<IObject> GetData() const override;
+
+	virtual bool HasChildren() const noexcept override;
+	virtual std::unique_ptr<IEnumerator<IHierarchyNode const &>> GetChildren() const override;
+
+	virtual IHierarchyNode const *GetParent() const override;
+
+	//
+	// IObject member
+	//
 
 	virtual void *GetInterface(oddf::Uid const &iid) override;
 };

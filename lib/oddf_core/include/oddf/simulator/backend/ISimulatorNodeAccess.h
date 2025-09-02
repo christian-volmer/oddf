@@ -20,37 +20,44 @@
 
 /*
 
-    <no description>
+    Provides the `ISimulatorNodeAccess` interface for reading the value on a
+    simulatornode.
 
 */
 
 #pragma once
 
-#include <oddf/Uid.h>
 #include <oddf/IObject.h>
-
 #include <oddf/design/NodeType.h>
 
 namespace oddf {
 
 namespace simulator::backend {
 
-class ISignalAccess : public virtual IObject {
+class ISimulatorNodeAccess : public virtual IObject {
 
 public:
 
-	virtual design::NodeType GetType() const noexcept = 0;
+	// Returns the type of the node.
+	virtual design::NodeType GetType() const = 0;
 
-	virtual void Write(void const *buffer, size_t count) = 0;
+	// Returns the number of bytes required to represent the value on the node.
 	virtual size_t GetSize() const noexcept = 0;
+
+	// Copies the value on the node into `buffer`. Its size must be passed as
+	// parameter `bufferSize`, which must be at least the value returned by
+	// `GetSize()`. Larger buffers receive appropriate padding to keep the
+	// representation meaningful (e.g., sign extension). Throws if `bufferSize`
+	// is too small.
+	virtual void Read(void *buffer, size_t bufferSize) const = 0;
 };
 
 } // namespace simulator::backend
 
 template<>
-struct Iid<simulator::backend::ISignalAccess> {
+struct Iid<simulator::backend::ISimulatorNodeAccess> {
 
-	static constexpr Uid value = { 0x50bac9c2, 0x306c, 0x40b9, 0x9f, 0x2f, 0x84, 0x2b, 0x42, 0x27, 0xb9, 0x9 };
+	static constexpr Uid value = { 0x3ca2e391, 0xabaf, 0x493f, 0xbe, 0x92, 0x17, 0x1f, 0x24, 0x60, 0x3c, 0xbd };
 };
 
 } // namespace oddf

@@ -27,7 +27,7 @@
 
 #pragma once
 
-#include "IReferenceCountSentinel.h"
+#include "../IReferenceCountSentinel.h"
 
 namespace oddf::utility {
 

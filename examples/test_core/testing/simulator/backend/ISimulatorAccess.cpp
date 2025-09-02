@@ -143,7 +143,7 @@ public:
 		throw Exception(ExceptionCode::NotImplemented);
 	}
 
-	virtual oddf::simulator::backend::ISimulatorNodeTreeElement const &GetNamedNodesRoot() const override
+	virtual oddf::IHierarchyNode const &GetNodeHierarchyRoot() const override
 	{
 		throw Exception(ExceptionCode::NotImplemented);
 	}

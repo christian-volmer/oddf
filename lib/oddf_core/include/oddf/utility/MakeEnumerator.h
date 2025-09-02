@@ -21,14 +21,14 @@
 /*
 
     Provides function `MakeEnumerator()` for obtaining an `IEnumerator<>`
-	interface for a standard library container.
+    interface for a standard library container.
 
 */
 
 #pragma once
 
 #include "ElementTransformationNone.h"
-#include "IReferenceCountSentinel.h"
+#include "../IReferenceCountSentinel.h"
 
 #include "backend/StdEnumerator.h"
 
@@ -36,7 +36,7 @@ namespace oddf::utility {
 
 /*
     Returns a `std::unique_ptr` to an `IEnumerator` implementation from
-	iterators `begin_it` and `end_it`. An optional `transformation` to be
+    iterators `begin_it` and `end_it`. An optional `transformation` to be
     performed on the container elements. An optional `sentinel` interface can be
     provided to guard against dangling references in case the underlying
     container becomes deleted before the collection view returned from this
