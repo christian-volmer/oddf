@@ -24,7 +24,7 @@
 
 */
 
-#include "SimulatorBlockInternals.h"
+#include "Internals.h"
 
 #include <oddf/utility/MakeContainerView.h>
 

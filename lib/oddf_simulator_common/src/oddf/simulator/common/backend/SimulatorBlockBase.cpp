@@ -27,7 +27,7 @@
 
 #include <oddf/simulator/common/backend/SimulatorBlockBase.h>
 
-#include "SimulatorBlockInternals.h"
+#include "SimulatorBlockBase/Internals.h"
 
 #include <oddf/utility/MakeContainerView.h>
 

@@ -30,7 +30,7 @@
 */
 
 #include "../SimulatorCore.h"
-#include "../SimulatorBlockInternals.h"
+#include "../SimulatorBlockBase/Internals.h"
 
 #include <oddf/Exception.h>
 
@@ -52,13 +52,16 @@ void SimulatorCore::ElaborateBlocks()
 
 	public:
 
-		// Pointer to the `unique_ptr` to the simulator block under elaboration. Used by member function `RemoveThisBlock()`.
+		// Pointer to the `unique_ptr` to the simulator block under elaboration.
+		// Used by member function `RemoveThisBlock()`.
 		SimulatorBlockBase *m_currentBlock;
 
-		// Vector of blocks created during elaboration. Becomes moved to the simulator block list.
+		// Vector of blocks created during elaboration. Becomes moved to the
+		// simulator block list.
 		std::vector<std::unique_ptr<SimulatorBlockBase>> m_newBlocks;
 
-		// Set of blocks that need to be elaborated again, because their connectivity has changed.
+		// Set of blocks that need to be elaborated again, because their
+		// connectivity has changed.
 		std::set<SimulatorBlockBase *> m_blocksForReelaboration;
 
 		ElaborationContext() :
@@ -223,7 +226,8 @@ void SimulatorCore::ElaborateBlocks()
 		// m_blocks.reserve(m_blocks.size() + context.m_newBlocks.size());
 		for (auto &newBlock : context.m_newBlocks) {
 
-			// The block will be elaborated anyway in the next elaboration round.
+			// The block will be elaborated anyway in the next elaboration
+			// round.
 
 			context.m_blocksForReelaboration.erase(newBlock.get());
 			m_blocks.push_back(std::move(newBlock));
@@ -233,8 +237,8 @@ void SimulatorCore::ElaborateBlocks()
 		std::swap(blocksForReelaboration, context.m_blocksForReelaboration);
 	}
 
-	// Go through all blocks once again and actually remove blocks that
-	// have been marked for removal
+	// Go through all blocks once again and actually remove blocks that have
+	// been marked for removal
 
 	current = 0;
 	while (current < m_blocks.size()) {

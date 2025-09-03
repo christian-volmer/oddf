@@ -26,7 +26,7 @@
 
 #include "SimulatorComponent.h"
 #include "SimulatorCore.h"
-#include "SimulatorBlockInternals.h"
+#include "SimulatorBlockBase/Internals.h"
 
 #include <oddf/simulator/common/backend/SimulatorInstruction.h>
 

@@ -53,11 +53,11 @@ bool SimulatorCore::SimulatorNodeHierarchyNode::HasData() const noexcept
 
 std::unique_ptr<IObject> SimulatorCore::SimulatorNodeHierarchyNode::GetData() const
 {
-	class SimulatorNodeEnumerator : public virtual simulator::backend::ISimulatorNodeEnumerator {
+	class SimulatorNodeEnumerator : public virtual simulator::backend::INamedSimulatorNodeEnumerator {
 
 	private:
 
-		using enumeratorT = std::unique_ptr<IEnumerator<simulator::backend::ISimulatorNode const &>>;
+		using enumeratorT = std::unique_ptr<IEnumerator<simulator::backend::INamedSimulatorNode const &>>;
 
 		enumeratorT m_nodeEnumerator;
 
@@ -68,7 +68,7 @@ std::unique_ptr<IObject> SimulatorCore::SimulatorNodeHierarchyNode::GetData() co
 		{
 		}
 
-		virtual simulator::backend::ISimulatorNode const &GetCurrent() const override
+		virtual simulator::backend::INamedSimulatorNode const &GetCurrent() const override
 		{
 			return m_nodeEnumerator->GetCurrent();
 		}
@@ -85,12 +85,12 @@ std::unique_ptr<IObject> SimulatorCore::SimulatorNodeHierarchyNode::GetData() co
 
 		virtual void *GetInterface(oddf::Uid const &iid) override
 		{
-			return utility::GetInterfaceHelper<ISimulatorNodeEnumerator, IObject>::GetInterface(this, iid);
+			return utility::GetInterfaceHelper<INamedSimulatorNodeEnumerator, IObject>::GetInterface(this, iid);
 		}
 	};
 
 	return std::make_unique<SimulatorNodeEnumerator>(
-		utility::MakeEnumerator(m_nodes.begin(), m_nodes.end(), [](auto &e) -> simulator::backend::ISimulatorNode const & { return e; }));
+		utility::MakeEnumerator(m_nodes.begin(), m_nodes.end(), [](auto &e) -> simulator::backend::INamedSimulatorNode const & { return e; }));
 }
 
 bool SimulatorCore::SimulatorNodeHierarchyNode::HasChildren() const noexcept

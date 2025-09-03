@@ -20,14 +20,14 @@
 
 /*
 
-    Provides `ISimulatorNodeEnumerator` for enumerating `ISimulatorNode`
-    interfaces to nodes in the simulator.
+    Provides `INamedSimulatorNodeEnumerator` for enumerating
+	`INamedSimulatorNode` interfaces to nodes in the simulator.
 
 */
 
 #pragma once
 
-#include "ISimulatorNode.h"
+#include "INamedSimulatorNode.h"
 
 #include <oddf/IEnumerator.h>
 
@@ -36,16 +36,16 @@ namespace oddf {
 namespace simulator::backend {
 
 /*
-    Enumerates `ISimulatorNode` interfaces to nodes in the simulator. Specialises
-    `IEnumerator` and derives from `IObject`.
+    Enumerates `INamedSimulatorNode` interfaces to nodes in the simulator.
+	Specialises `IEnumerator` and derives from `IObject`.
  */
-class ISimulatorNodeEnumerator : public virtual IObject, public virtual IEnumerator<ISimulatorNode const &> {
+class INamedSimulatorNodeEnumerator : public virtual IObject, public virtual IEnumerator<INamedSimulatorNode const &> {
 };
 
 } // namespace simulator::backend
 
 template<>
-struct Iid<simulator::backend::ISimulatorNodeEnumerator> {
+struct Iid<simulator::backend::INamedSimulatorNodeEnumerator> {
 
 	static constexpr Uid value = { 0x14de35ff, 0x447d, 0x4bfb, 0x80, 0xb1, 0x42, 0x4b, 0x3f, 0xd4, 0x59, 0x33 };
 };

@@ -24,9 +24,15 @@
 
 */
 
+#include "SimulatorBlockOutput/SimulatorNode.h"
+
+#include "SimulatorBlockBase/Internals.h"
+
+#include <oddf/simulator/common/backend/SimulatorBlockOutput.h>
 #include <oddf/simulator/common/backend/SimulatorBlockBase.h>
 
 #include <oddf/utility/MakeContainerView.h>
+#include <oddf/utility/GetInterfaceHelper.h>
 
 #include <oddf/Exception.h>
 
@@ -62,12 +68,18 @@ design::NodeType SimulatorBlockOutput::GetType() const noexcept
 template<>
 void const *SimulatorBlockOutput::GetPointer<void>() const
 {
-	return reinterpret_cast<void const *>(m_storagePointer);
+	if (!m_storagePointer || !m_owningBlock.m_internals->m_component)
+		throw Exception(ExceptionCode::IllegalMethodCall, "`GetPointer()` cannot be called before code generation is complete.");
+
+	return m_storagePointer;
 }
 
 template<>
 types::Boolean const *SimulatorBlockOutput::GetPointer<types::Boolean>() const
 {
+	if (!m_storagePointer || !m_owningBlock.m_internals->m_component)
+		throw Exception(ExceptionCode::IllegalMethodCall, "`GetPointer()` cannot be called before code generation is complete.");
+
 	if (GetType().GetTypeId() == design::NodeType::BOOLEAN)
 		return reinterpret_cast<types::Boolean const *>(m_storagePointer);
 	else
@@ -77,10 +89,21 @@ types::Boolean const *SimulatorBlockOutput::GetPointer<types::Boolean>() const
 template<>
 types::FixedPoint const *SimulatorBlockOutput::GetPointer<types::FixedPoint>() const
 {
+	if (!m_storagePointer || !m_owningBlock.m_internals->m_component)
+		throw Exception(ExceptionCode::IllegalMethodCall, "`GetPointer()` cannot be called before code generation is complete.");
+
 	if (GetType().GetTypeId() == design::NodeType::FIXED_POINT)
 		return reinterpret_cast<types::FixedPoint const *>(m_storagePointer);
 	else
 		throw Exception(ExceptionCode::InvalidArgument, "Type argument `T` (types::FixedPoint) does not match the type of the output.");
+}
+
+std::unique_ptr<simulator::backend::ISimulatorNode> SimulatorBlockOutput::CreateSimulatorNode() const
+{
+	if (!m_storagePointer || !m_owningBlock.m_internals->m_component)
+		throw Exception(ExceptionCode::IllegalMethodCall, "`CreateSimulatorNode()` cannot be called before code generation is complete.");
+
+	return std::make_unique<SimulatorNode>(m_owningBlock.m_internals->m_component, m_nodeType, m_storagePointer);
 }
 
 size_t SimulatorBlockOutput::GetIndex() const noexcept

@@ -20,24 +20,33 @@
 
 /*
 
-    <no description>
+    Provides the `INamedSimulatorNode` interface that represents a node in the
+    simulator with information about name in the design.
 
 */
 
 #pragma once
 
-#include "SimulatorNode.h"
-#include "SimulatorNodeComparer.h"
+#include "ISimulatorNode.h"
 
-namespace oddf::simulator::common::backend {
+namespace oddf {
 
-struct SimulatorCore::SimulatorNodeComparer {
+namespace simulator::backend {
 
-	using is_transparent = std::true_type;
+class INamedSimulatorNode : public virtual ISimulatorNode {
 
-	bool operator()(SimulatorNode const &lhs, std::string const &rhs) const;
-	bool operator()(std::string const &lhs, SimulatorNode const &rhs) const;
-	bool operator()(SimulatorNode const &lhs, SimulatorNode const &rhs) const;
+public:
+
+	// Returns the name of the node.
+	virtual std::string GetName() const = 0;
 };
 
-} // namespace oddf::simulator::common::backend
+} // namespace simulator::backend
+
+template<>
+struct Iid<simulator::backend::INamedSimulatorNode> {
+
+	static constexpr Uid value = { 0xd4bbf740, 0x4dfc, 0x46c4, 0xbd, 0x1c, 0x7e, 0x33, 0xf9, 0x5f, 0xe3, 0xff };
+};
+
+} // namespace oddf

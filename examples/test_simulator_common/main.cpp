@@ -86,7 +86,7 @@ public:
 		{
 
 			auto *enObj = node.GetData().release();
-			std::unique_ptr<simulator::backend::ISimulatorNodeEnumerator> nodes(&enObj->GetInterface<simulator::backend::ISimulatorNodeEnumerator>());
+			std::unique_ptr<simulator::backend::INamedSimulatorNodeEnumerator> nodes(&enObj->GetInterface<simulator::backend::INamedSimulatorNodeEnumerator>());
 
 			for (; nodes->MoveNext();) {
 
@@ -189,7 +189,7 @@ int main()
 	sim::Logger logger(simulator);
 	logger.Dump();
 
-	return 0;
+	//return 0;
 
 	auto myProbe = sim::Probe<int>(simulator, "/instance1/my_probe");
 	auto mySignal = sim::Signal<int>(simulator, "/duper_signal");

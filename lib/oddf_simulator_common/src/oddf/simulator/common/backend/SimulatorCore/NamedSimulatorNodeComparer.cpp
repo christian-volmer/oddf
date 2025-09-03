@@ -20,39 +20,27 @@
 
 /*
 
-    Provides the `ISimulatorNode` interface that represents a node in the
-    simulator.
+    <no description>
 
 */
 
-#pragma once
+#include "NamedSimulatorNodeComparer.h"
 
-#include "ISimulatorNodeAccess.h"
+namespace oddf::simulator::common::backend {
 
-#include <string>
-#include <memory>
+bool SimulatorCore::NamedSimulatorNodeComparer::operator()(NamedSimulatorNode const &lhs, std::string const &rhs) const
+{
+	return lhs.m_name < rhs;
+}
 
-namespace oddf {
+bool SimulatorCore::NamedSimulatorNodeComparer::operator()(std::string const &lhs, NamedSimulatorNode const &rhs) const
+{
+	return lhs < rhs.m_name;
+}
 
-namespace simulator::backend {
+bool SimulatorCore::NamedSimulatorNodeComparer::operator()(NamedSimulatorNode const &lhs, NamedSimulatorNode const &rhs) const
+{
+	return lhs.m_name < rhs.m_name;
+}
 
-class ISimulatorNode : public virtual IObject {
-
-public:
-
-	// Returns the type of the node.
-	virtual design::NodeType GetType() const = 0;
-
-	// Returns an `ISimulatorNodeAccess` interface to the node.
-	virtual std::unique_ptr<ISimulatorNodeAccess> GetAccess() const = 0;
-};
-
-} // namespace simulator::backend
-
-template<>
-struct Iid<simulator::backend::ISimulatorNode> {
-
-	static constexpr Uid value = { 0x950075e0, 0x7f0c, 0x4643, 0xb6, 0xcb, 0x95, 0xd6, 0x5a, 0xca, 0x61, 0xf6 };
-};
-
-} // namespace oddf
+} // namespace oddf::simulator::common::backend

@@ -20,52 +20,52 @@
 
 /*
 
-    Declaration of class `SimulatorCore::SimulatorNode`, which implements
-    the `simulator::backend::ISimulatorNode` interface.
+    Declares class `SimulatorBlockOutput::SimulatorNode`.
 
 */
 
 #pragma once
 
-#include "../SimulatorCore.h"
+#include <oddf/simulator/common/backend/SimulatorBlockOutput.h>
 
-#include <oddf/simulator/backend/ISimulatorNode.h>
+#include <oddf/simulator/common/backend/ISimulatorComponent.h>
+#include <oddf/design/NodeType.h>
 
 namespace oddf::simulator::common::backend {
 
 /*
-    Implementation of the `simulator::backend::ISimulatorNode` interface
+    Implementation of `ISimulatorNode`, which becomes returned by member
+    function `CreateSimulatorNode()`
 */
-struct SimulatorCore::SimulatorNode : public virtual simulator::backend::ISimulatorNode {
+class SimulatorBlockOutput::SimulatorNode : public virtual simulator::backend::ISimulatorNode {
 
 private:
 
-	std::string m_name;
+	class SimulatorNodeAccessBool;
+	class SimulatorNodeAccessFixedPoint;
+
+	ISimulatorComponent *m_component;
 	design::NodeType m_type;
 	void const *m_pointer;
 
-	friend struct SimulatorCore::SimulatorNodeComparer;
-
 public:
 
-	SimulatorNode(std::string const &name, SimulatorBlockOutput const *output);
+	SimulatorNode(ISimulatorComponent *component, design::NodeType type, void const *pointer);
+
+	~SimulatorNode() = default;
 
 	SimulatorNode(SimulatorNode const &) = delete;
 	void operator=(SimulatorNode const &) = delete;
-
-	SimulatorNode(SimulatorNode &&) = default;
-	SimulatorNode &operator=(SimulatorNode &&) = default;
 
 	//
 	// ISimulatorNode members
 	//
 
-	virtual std::string GetName() const override;
 	virtual design::NodeType GetType() const override;
 	virtual std::unique_ptr<simulator::backend::ISimulatorNodeAccess> GetAccess() const override;
 
 	//
-	// IObject member
+	// IObject members
 	//
 
 	virtual void *GetInterface(oddf::Uid const &iid) override;

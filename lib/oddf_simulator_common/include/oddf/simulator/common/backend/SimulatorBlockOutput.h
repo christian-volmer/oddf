@@ -29,7 +29,7 @@
 #include <oddf/design/NodeType.h>
 #include <oddf/ICollectionView.h>
 
-#include <oddf/simulator/backend/ISimulatorNodeAccess.h>
+#include <oddf/simulator/backend/ISimulatorNode.h>
 
 #include "Types.h"
 
@@ -48,6 +48,10 @@ private:
 	friend SimulatorCore;
 	friend SimulatorBlockInput;
 	friend SimulatorBlockBase;
+
+	// Implementation of `ISimulatorNode`, which becomes returned by member
+	// function `CreateSimulatorNode()`
+	class SimulatorNode;
 
 	SimulatorBlockBase &m_owningBlock;
 	design::NodeType m_nodeType;
@@ -77,6 +81,8 @@ public:
 	{
 		static_assert(false, "Type `T` must be a simulator type or `void`.");
 	}
+
+	std::unique_ptr<simulator::backend::ISimulatorNode> CreateSimulatorNode() const;
 
 	// Returns the index of this output within the list of outputs of the owning block.
 	size_t GetIndex() const noexcept;

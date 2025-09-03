@@ -28,8 +28,8 @@
 
 #include <oddf/simulator/common/backend/SimulatorBlockBase.h>
 
-#include "ISimulatorBlockMapping.h"
-#include "SimulatorComponent.h"
+#include "../ISimulatorBlockMapping.h"
+#include "../SimulatorComponent.h"
 
 #include <vector>
 #include <initializer_list>

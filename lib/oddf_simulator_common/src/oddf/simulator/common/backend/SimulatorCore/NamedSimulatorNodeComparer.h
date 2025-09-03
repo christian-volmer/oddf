@@ -24,23 +24,20 @@
 
 */
 
-#include "SimulatorNodeComparer.h"
+#pragma once
+
+#include "NamedSimulatorNode.h"
+#include "NamedSimulatorNodeComparer.h"
 
 namespace oddf::simulator::common::backend {
 
-bool SimulatorCore::SimulatorNodeComparer::operator()(SimulatorNode const &lhs, std::string const &rhs) const
-{
-	return lhs.m_name < rhs;
-}
+struct SimulatorCore::NamedSimulatorNodeComparer {
 
-bool SimulatorCore::SimulatorNodeComparer::operator()(std::string const &lhs, SimulatorNode const &rhs) const
-{
-	return lhs < rhs.m_name;
-}
+	using is_transparent = std::true_type;
 
-bool SimulatorCore::SimulatorNodeComparer::operator()(SimulatorNode const &lhs, SimulatorNode const &rhs) const
-{
-	return lhs.m_name < rhs.m_name;
-}
+	bool operator()(NamedSimulatorNode const &lhs, std::string const &rhs) const;
+	bool operator()(std::string const &lhs, NamedSimulatorNode const &rhs) const;
+	bool operator()(NamedSimulatorNode const &lhs, NamedSimulatorNode const &rhs) const;
+};
 
 } // namespace oddf::simulator::common::backend

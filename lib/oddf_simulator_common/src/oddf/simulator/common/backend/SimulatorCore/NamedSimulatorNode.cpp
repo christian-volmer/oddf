@@ -20,45 +20,44 @@
 
 /*
 
-    Definition of class `SimulatorCore::SimulatorNode`, which implements
-    the `simulator::backend::ISimulatorNode` interface.
+    Definition of class `SimulatorCore::NamedSimulatorNode`, which implements
+    the `simulator::backend::INamedSimulatorNode` interface.
 
 */
 
-#include "SimulatorNode.h"
+#include "NamedSimulatorNode.h"
 
 #include <oddf/utility/GetInterfaceHelper.h>
 
 namespace oddf::simulator::common::backend {
 
-SimulatorCore::SimulatorNode::SimulatorNode(std::string const &name, SimulatorBlockOutput const *output) :
+SimulatorCore::NamedSimulatorNode::NamedSimulatorNode(std::string const &name, std::unique_ptr<simulator::backend::ISimulatorNode> &&simulatorNode) :
 	m_name(name),
-	m_type(),
-	m_pointer(nullptr)
+	m_simulatorNode(std::move(simulatorNode))
 {
-	m_type = output->GetType();
-	m_pointer = output->GetPointer<void>();
 }
 
-void *SimulatorCore::SimulatorNode::GetInterface(oddf::Uid const &iid)
+void *SimulatorCore::NamedSimulatorNode::GetInterface(oddf::Uid const &iid)
 {
 	return oddf::utility::GetInterfaceHelper<
-		simulator::backend::ISimulatorNode, IObject>::GetInterface(this, iid);
+		simulator::backend::INamedSimulatorNode,
+		simulator::backend::ISimulatorNode,
+		IObject>::GetInterface(this, iid);
 }
 
-std::string SimulatorCore::SimulatorNode::GetName() const
+std::string SimulatorCore::NamedSimulatorNode::GetName() const
 {
 	return m_name;
 }
 
-design::NodeType SimulatorCore::SimulatorNode::GetType() const
+design::NodeType SimulatorCore::NamedSimulatorNode::GetType() const
 {
-	return m_type;
+	return m_simulatorNode->GetType();
 }
 
-std::unique_ptr<simulator::backend::ISimulatorNodeAccess> SimulatorCore::SimulatorNode::GetAccess() const
+std::unique_ptr<simulator::backend::ISimulatorNodeAccess> SimulatorCore::NamedSimulatorNode::GetAccess() const
 {
-	throw Exception(ExceptionCode::NotImplemented);
+	return m_simulatorNode->GetAccess();
 }
 
 } // namespace oddf::simulator::common::backend

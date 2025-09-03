@@ -21,7 +21,7 @@
 /*
 
     Provides the `ISimulatorNodeAccess` interface for reading the value on a
-    simulatornode.
+    simulator node.
 
 */
 
@@ -43,6 +43,10 @@ public:
 
 	// Returns the number of bytes required to represent the value on the node.
 	virtual size_t GetSize() const noexcept = 0;
+
+	// Ensures the value subsequently read by the `Read()` member function is
+	// up-to-date.
+	virtual void EnsureValid() = 0;
 
 	// Copies the value on the node into `buffer`. Its size must be passed as
 	// parameter `bufferSize`, which must be at least the value returned by

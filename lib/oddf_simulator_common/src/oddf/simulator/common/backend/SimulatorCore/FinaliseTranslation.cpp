@@ -25,7 +25,7 @@
 #include <oddf/Exception.h>
 
 #include "../SimulatorCore.h"
-#include "../SimulatorBlockInternals.h"
+#include "../SimulatorBlockBase/Internals.h"
 
 #include <cassert>
 

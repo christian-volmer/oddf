@@ -63,8 +63,8 @@ private:
 
 	std::set<simulator::backend::IClockable *> m_clockables;
 
-	struct SimulatorNode;
-	struct SimulatorNodeComparer;
+	struct NamedSimulatorNode;
+	struct NamedSimulatorNodeComparer;
 	struct SimulatorNodeHierarchyNode;
 	struct SimulatorNodeHierarchyNodeComparer;
 

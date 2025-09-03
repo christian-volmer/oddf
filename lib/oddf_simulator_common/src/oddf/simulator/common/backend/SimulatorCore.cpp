@@ -25,7 +25,7 @@
 */
 
 #include "SimulatorCore.h"
-#include "SimulatorCore/SimulatorNode.h"
+#include "SimulatorCore/NamedSimulatorNode.h"
 #include "SimulatorCore/SimulatorNodeHierarchyNode.h"
 
 #include <oddf/Exception.h>
@@ -68,6 +68,10 @@ void SimulatorCore::RegisterNamedNode(ResourcePath const &path, SimulatorBlockOu
 	if (pathCurrent == pathEnd)
 		throw Exception(ExceptionCode::InvalidArgument, "Argument `path` must not be empty.");
 
+	// We create the simulator node here before we modify the hierarchy tree in 
+	// case the call throws an exception.
+	auto simulatorNode = output.CreateSimulatorNode();
+
 	for (; std::next(pathCurrent) != pathEnd; ++pathCurrent) {
 
 		auto position = hierarchyCurrent->m_children.find(*pathCurrent);
@@ -82,7 +86,7 @@ void SimulatorCore::RegisterNamedNode(ResourcePath const &path, SimulatorBlockOu
 	if (hierarchyCurrent->m_nodes.count(*pathCurrent))
 		throw Exception(ExceptionCode::InvalidArgument, "RegisterNamedNode(): a node has already been registered under the given path.");
 
-	hierarchyCurrent->m_nodes.insert({ *pathCurrent, &output });
+	hierarchyCurrent->m_nodes.insert({ *pathCurrent, std::move(simulatorNode) });
 }
 
 IHierarchyNode const &SimulatorCore::GetNodeHierarchyRoot() const

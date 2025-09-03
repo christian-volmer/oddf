@@ -28,7 +28,7 @@
 
 #include "../SimulatorCore.h"
 
-#include "SimulatorNodeComparer.h"
+#include "NamedSimulatorNodeComparer.h"
 #include "SimulatorNodeHierarchyNodeComparer.h"
 
 #include <oddf/IEnumerator.h>
@@ -42,7 +42,7 @@ struct SimulatorCore::SimulatorNodeHierarchyNode : public virtual IHierarchyNode
 	SimulatorNodeHierarchyNode *m_parent;
 	std::set<std::unique_ptr<SimulatorNodeHierarchyNode>, SimulatorNodeHierarchyNodeComparer> m_children;
 
-	std::set<SimulatorNode, SimulatorNodeComparer> m_nodes;
+	std::set<NamedSimulatorNode, NamedSimulatorNodeComparer> m_nodes;
 
 	SimulatorNodeHierarchyNode(std::string const &name, SimulatorNodeHierarchyNode *parent);
 
