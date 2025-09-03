@@ -32,6 +32,7 @@
 #include <oddf/simulator/backend/ISimulatorNodeEnumerator.h>
 
 #include <oddf/utility/GetInterfaceHelper.h>
+#include <oddf/utility/ChangeInterface.h>
 
 namespace b = dfx::blocks;
 namespace sim = oddf::simulator;
@@ -83,17 +84,12 @@ public:
 		std::string subPath = path + node.GetName() + "/";
 		std::cout << subPath << "\n";
 
-		{
+		for (auto nodes = utility::ChangeInterface<simulator::backend::INamedSimulatorNodeEnumerator>(node.GetData());
+			nodes->MoveNext();) {
 
-			auto *enObj = node.GetData().release();
-			std::unique_ptr<simulator::backend::INamedSimulatorNodeEnumerator> nodes(&enObj->GetInterface<simulator::backend::INamedSimulatorNodeEnumerator>());
+			auto &current = nodes->GetCurrent();
 
-			for (; nodes->MoveNext();) {
-
-				auto &current = nodes->GetCurrent();
-
-				std::cout << "  " << current.GetName() << ": " << current.GetType().ToString() << "\n";
-			}
+			std::cout << "  " << current.GetName() << ": " << current.GetType().ToString() << "\n";
 		}
 
 		for (auto children = node.GetChildren(); children->MoveNext();)
@@ -189,7 +185,7 @@ int main()
 	sim::Logger logger(simulator);
 	logger.Dump();
 
-	//return 0;
+	// return 0;
 
 	auto myProbe = sim::Probe<int>(simulator, "/instance1/my_probe");
 	auto mySignal = sim::Signal<int>(simulator, "/duper_signal");
