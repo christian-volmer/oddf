@@ -30,36 +30,26 @@
 
 #include <oddf/simulator/common/backend/ISimulatorComponent.h>
 #include <oddf/simulator/common/backend/SimulatorBlockOutput.h>
-#include <oddf/simulator/common/backend/types/CheckFixedPointRepresentation.h>
 
 #include <oddf/design/NodeType.h>
 
-#include <oddf/utility/CopyBoolean.h>
-#include <oddf/utility/CopyInteger.h>
 #include <oddf/utility/GetInterfaceHelper.h>
-
-#include <cassert>
 
 namespace oddf::simulator::common::backend::blocks {
 
-template<typename simulatorT>
 class ProbeAccessObject : public virtual simulator::backend::IProbeAccess {
 
-	ISimulatorComponent &m_component;
-	design::NodeType m_nodeType;
-	simulatorT const *m_probedOutputPointer;
+	std::unique_ptr<simulator::backend::ISimulatorNodeAccess> m_nodeAccess;
 
 public:
 
 	~ProbeAccessObject() = default;
 
-	ProbeAccessObject(ProbeAccessObject<simulatorT> const &) = delete;
-	void operator=(ProbeAccessObject<simulatorT> const &) = delete;
+	ProbeAccessObject(ProbeAccessObject const &) = delete;
+	void operator=(ProbeAccessObject const &) = delete;
 
-	ProbeAccessObject(ISimulatorComponent &component, SimulatorBlockOutput const &driver) :
-		m_component(component),
-		m_nodeType(driver.GetType()),
-		m_probedOutputPointer(driver.GetPointer<simulatorT>())
+	ProbeAccessObject(std::unique_ptr<simulator::backend::ISimulatorNodeAccess> &&nodeAccess) :
+		m_nodeAccess(std::move(nodeAccess))
 	{
 	}
 
@@ -72,43 +62,19 @@ public:
 
 	virtual design::NodeType GetType() const noexcept override
 	{
-		return m_nodeType;
+		return m_nodeAccess->GetType();
 	}
 
 	virtual size_t GetSize() const noexcept override
 	{
-		return types::GetRequiredByteSize(m_nodeType);
+		return m_nodeAccess->GetSize();
 	}
 
-	virtual void Read(void *buffer, size_t count) const override;
+	virtual void Read(void *buffer, size_t bufferSize) const override
+	{
+		m_nodeAccess->EnsureValid();
+		m_nodeAccess->Read(buffer, bufferSize);
+	}
 };
-
-//
-// Implementation for types::Boolean
-//
-
-template<>
-inline void ProbeAccessObject<types::Boolean>::Read(void *buffer, size_t count) const
-{
-	m_component.EnsureValidState();
-	utility::CopyBoolean(buffer, count, m_probedOutputPointer, types::GetStoredByteSize(m_nodeType));
-}
-
-//
-// Implementation for types::FixedPoint
-//
-
-template<>
-inline void ProbeAccessObject<types::FixedPoint>::Read(void *buffer, size_t count) const
-{
-	m_component.EnsureValidState();
-
-	assert(types::CheckFixedPointRepresentation(*m_probedOutputPointer, m_nodeType));
-
-	if (m_nodeType.IsSigned())
-		utility::CopySignedInteger(buffer, count, m_probedOutputPointer->m_elements, types::GetStoredByteSize(m_nodeType));
-	else
-		utility::CopyUnsignedInteger(buffer, count, m_probedOutputPointer->m_elements, types::GetStoredByteSize(m_nodeType));
-}
 
 } // namespace oddf::simulator::common::backend::blocks

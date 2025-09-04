@@ -30,49 +30,40 @@
 
 #include <oddf/simulator/common/backend/ISimulatorComponent.h>
 #include <oddf/simulator/common/backend/Types.h>
-#include <oddf/simulator/common/backend/types/CheckFixedPointRepresentation.h>
 
 #include <oddf/utility/GetInterfaceHelper.h>
-#include <oddf/utility/CopyBoolean.h>
-#include <oddf/utility/CopyInteger.h>
+#include <oddf/utility/BooleanSupport.h>
+#include <oddf/utility/IntegerSupport.h>
 
 #include <memory>
 
 namespace oddf::simulator::common::backend::blocks {
-
-// TODO CLEANUP StoredType
-
-template<typename simulatorT>
-struct StoredType_t {
-
-	using type = simulatorT;
-};
-
-template<>
-struct StoredType_t<types::FixedPoint> {
-
-	using type = types::FixedPoint::ElementType;
-};
 
 template<typename simulatorT>
 class SignalAccessObject : public virtual simulator::backend::ISignalAccess {
 
 private:
 
-	using StoredType = typename StoredType_t<simulatorT>::type;
+	using dataT = typename simulatorT::DataType;
 
 	ISimulatorComponent &m_component;
 	design::NodeType m_nodeType;
 
-	std::unique_ptr<StoredType[]> m_value;
+	std::unique_ptr<unsigned char[]> m_value;
 
 public:
 
-	SignalAccessObject(ISimulatorComponent &component, design::NodeType const &nodeType);
-
-	StoredType const &GetSource() const
+	SignalAccessObject(ISimulatorComponent &component, design::NodeType const &nodeType) :
+		m_component(component),
+		m_nodeType(nodeType),
+		m_value()
 	{
-		return m_value[0];
+		m_value.reset(new unsigned char[simulatorT::GetDataSize(nodeType)] {});
+	}
+
+	dataT const &GetSource() const
+	{
+		return *reinterpret_cast<dataT const *>(m_value.get());
 	}
 
 	virtual void *GetInterface(Uid const &iid) override
@@ -89,55 +80,29 @@ public:
 
 	virtual size_t GetSize() const noexcept override
 	{
-		return types::GetRequiredByteSize(m_nodeType);
+		return simulatorT::GetValueSize(m_nodeType);
 	}
 
-	virtual void Write(void const *buffer, size_t count) override;
+	virtual void Write(void const *buffer, size_t bufferSize) override
+	{
+		auto *data = m_value.get();
+		auto dataSize = simulatorT::GetDataSize(m_nodeType);
+
+		try {
+
+			simulatorT::CopyData(data, dataSize, buffer, bufferSize, m_nodeType);
+
+			if (!simulatorT::FixDataIntegrity(data, dataSize, m_nodeType))
+				throw Exception(ExceptionCode::Overflow);
+
+			m_component.InvalidateState();
+		}
+		catch (...) {
+
+			m_component.InvalidateState();
+			throw;
+		}
+	}
 };
-
-//
-// Implementation for types::Boolean
-//
-
-template<>
-inline SignalAccessObject<types::Boolean>::SignalAccessObject(ISimulatorComponent &component, design::NodeType const &nodeType) :
-	m_component(component),
-	m_nodeType(nodeType),
-	m_value(new StoredType[1] {})
-{
-}
-
-template<>
-inline void SignalAccessObject<types::Boolean>::Write(void const *buffer, size_t count)
-{
-	utility::CopyBoolean(m_value.get(), types::GetStoredByteSize(m_nodeType), buffer, count);
-	m_component.InvalidateState();
-}
-
-//
-// Implementation for types::FixedPoint
-//
-
-template<>
-inline SignalAccessObject<types::FixedPoint>::SignalAccessObject(ISimulatorComponent &component, design::NodeType const &nodeType) :
-	m_component(component),
-	m_nodeType(nodeType),
-	m_value(new StoredType[types::FixedPoint::RequiredElementCount(nodeType)] {})
-{
-}
-
-template<>
-inline void SignalAccessObject<types::FixedPoint>::Write(void const *buffer, size_t count)
-{
-	if (m_nodeType.IsSigned())
-		utility::CopySignedInteger(m_value.get(), types::GetStoredByteSize(m_nodeType), buffer, count);
-	else
-		utility::CopyUnsignedInteger(m_value.get(), types::GetStoredByteSize(m_nodeType), buffer, count);
-
-	if (!types::CheckFixedPointRepresentation(m_value.get(), types::FixedPoint::RequiredElementCount(m_nodeType), m_nodeType))
-		throw Exception(ExceptionCode::Overflow);
-
-	m_component.InvalidateState();
-}
 
 } // namespace oddf::simulator::common::backend::blocks

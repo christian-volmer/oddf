@@ -27,8 +27,8 @@
 #include "../global.h"
 #include "../generator/properties.h"
 
-#include <oddf/utility/CopyBoolean.h>
-#include <oddf/utility/CopyInteger.h>
+#include <oddf/utility/BooleanSupport.h>
+#include <oddf/utility/IntegerSupport.h>
 #include <oddf/Exception.h>
 
 namespace dfx {
@@ -88,10 +88,10 @@ size_t constant_block<bool>::GetSize() const noexcept
 }
 
 template<>
-void constant_block<bool>::Read(void *buffer, size_t count) const
+void constant_block<bool>::Read(void *buffer, size_t bufferSize) const
 {
 	std::uint8_t value = outputs.front().value ? 1 : 0;
-	oddf::utility::CopyBoolean(buffer, count, &value, sizeof(value));
+	oddf::utility::BooleanCopy(buffer, bufferSize, &value, sizeof(value));
 }
 
 //
@@ -106,13 +106,13 @@ size_t constant_block<dynfix>::GetSize() const noexcept
 }
 
 template<>
-void constant_block<dynfix>::Read(void *buffer, size_t count) const
+void constant_block<dynfix>::Read(void *buffer, size_t bufferSize) const
 {
 	auto const &output = outputs.front();
-	if (output.GetNodeType().IsSigned())
-		oddf::utility::CopySignedInteger(buffer, count, &outputs.front().value.data, sizeof(dynfix::data));
-	else
-		oddf::utility::CopyUnsignedInteger(buffer, count, &outputs.front().value.data, sizeof(dynfix::data));
+	auto nodeType = output.GetNodeType();
+
+	oddf::utility::IntegerCopy(buffer, bufferSize, &outputs.front().value.data, sizeof(dynfix::data),
+		nodeType.GetWordWidth(), nodeType.IsSigned());
 }
 
 //

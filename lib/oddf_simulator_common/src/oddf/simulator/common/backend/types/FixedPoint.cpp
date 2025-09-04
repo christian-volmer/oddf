@@ -26,17 +26,83 @@
 
 #include <oddf/simulator/common/backend/types/FixedPoint.h>
 
+#include <oddf/utility/IntegerSupport.h>
+
 #include <oddf/Exception.h>
 
 namespace oddf::simulator::common::backend::types {
 
-size_t FixedPoint::RequiredElementCount(design::NodeType const &nodeType)
+size_t FixedPoint::GetDataSize(design::NodeType const &nodeType)
+{
+	return GetElementCount(nodeType) * ElementSize;
+}
+
+size_t FixedPoint::GetDataSize() const noexcept
+{
+	return m_length * ElementSize;
+}
+
+size_t FixedPoint::GetValueSize(design::NodeType const &nodeType)
 {
 	if (nodeType.GetTypeId() != design::NodeType::FIXED_POINT)
 		throw Exception(ExceptionCode::InvalidArgument);
 
 	auto wordWidth = nodeType.GetWordWidth();
-	return (wordWidth + ElementBitWidth - 1) / ElementBitWidth;
+	return (wordWidth + 7) / 8;
+}
+
+size_t FixedPoint::GetElementCount(design::NodeType const &nodeType)
+{
+	if (nodeType.GetTypeId() != design::NodeType::FIXED_POINT)
+		throw Exception(ExceptionCode::InvalidArgument);
+
+	auto wordWidth = nodeType.GetWordWidth();
+	return (wordWidth + ElementBitSize - 1) / ElementBitSize;
+}
+
+bool FixedPoint::CheckDataIntegrity(void const *buffer, size_t bufferSize, design::NodeType const &nodeType) noexcept
+{
+	if (nodeType.GetTypeId() != design::NodeType::FIXED_POINT)
+		return false;
+
+	return utility::IntegerCheckIntegrity(buffer, bufferSize, nodeType.GetWordWidth(), nodeType.IsSigned());
+}
+
+bool FixedPoint::FixDataIntegrity(void *buffer, size_t bufferSize, design::NodeType const &nodeType)
+{
+	if (nodeType.GetTypeId() != design::NodeType::FIXED_POINT)
+		throw Exception(ExceptionCode::InvalidArgument);
+
+	return utility::IntegerFixIntegrity(buffer, bufferSize, nodeType.GetWordWidth(), nodeType.IsSigned());
+}
+
+bool FixedPoint::CheckIntegrity(design::NodeType const &nodeType) const noexcept
+{
+	// `GetElementCount()` will throw if `nodeType` is not FixedPoint. So we do
+	// data integrity check first and check `m_length` later.
+
+	if (!CheckDataIntegrity(GetData(), GetDataSize(), nodeType))
+		return false;
+
+	return m_length == GetElementCount(nodeType);
+}
+
+void FixedPoint::CopyData(void *dest, size_t destSize, void const *src, size_t srcSize, design::NodeType const &nodeType)
+{
+	if (nodeType.GetTypeId() != design::NodeType::FIXED_POINT)
+		throw Exception(ExceptionCode::InvalidArgument);
+
+	utility::IntegerCopy(dest, destSize, src, srcSize, nodeType.GetWordWidth(), nodeType.IsSigned());
+}
+
+void *FixedPoint::GetData() noexcept
+{
+	return m_elements;
+}
+
+void const *FixedPoint::GetData() const noexcept
+{
+	return m_elements;
 }
 
 } // namespace oddf::simulator::common::backend::types

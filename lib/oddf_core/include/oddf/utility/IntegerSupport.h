@@ -20,43 +20,22 @@
 
 /*
 
-    Function for copying data from one memory location to another under
-    the assumption that the data represents a boolean value.
+    Functions for copying data from one memory location to another
+    under the assumption that the data represents a signed or
+    unsigned integer value.
 
 */
 
-#include <oddf/utility/CopyBoolean.h>
+#pragma once
 
-#include <oddf/Exception.h>
-
-#include <cstdint>
+#include <cstddef>
 
 namespace oddf::utility {
 
-void CopyBoolean(void *destination, size_t destinationSize, void const *source, size_t sourceSize)
-{
-	using uchar = unsigned char;
+void IntegerCopy(void *dest, size_t destSize, void const *src, size_t srcSize, size_t srcWordWidth, bool signedInteger);
 
-	uchar const *sourceAsUchar = static_cast<uchar const *>(source);
-	uchar *destinationAsUchar = static_cast<uchar *>(destination);
+bool IntegerCheckIntegrity(void const *buffer, size_t bufferSize, size_t wordWidth, bool signedInteger) noexcept;
 
-	if (destinationSize < 1)
-		throw Exception(ExceptionCode::Overflow);
-
-	bool value = false;
-
-	for (size_t i = 0; i < sourceSize; ++i) {
-
-		if (sourceAsUchar[i] != 0) {
-
-			value = true;
-			break;
-		}
-	}
-
-	destinationAsUchar[0] = value ? 1 : 0;
-	for (size_t i = 1; i < destinationSize; ++i)
-		destinationAsUchar[i] = 0;
-}
+bool IntegerFixIntegrity(void *buffer, size_t bufferSize, size_t wordWidth, bool signedInteger);
 
 } // namespace oddf::utility

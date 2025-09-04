@@ -31,6 +31,8 @@
 #include <oddf/design/blocks/backend/ITaggedBlock.h>
 #include <oddf/Exception.h>
 
+#include <cassert>
+
 namespace oddf::simulator::common::backend::blocks {
 
 Probe::Probe(design::blocks::backend::IDesignBlock const &designBlock) :
@@ -104,30 +106,7 @@ void Probe::Finalise(ISimulatorFinalisationContext &context)
 	auto const &input = inputs->Item(0);
 
 	context.RegisterNamedNode(nodePath, input.GetDriver());
-
-	switch (input.GetType().GetTypeId()) {
-
-		case design::NodeType::BOOLEAN: {
-
-			context.ConstructGlobalObject<ProbeAccessObject<types::Boolean>>(
-				objectName,
-				context.GetCurrentComponent(),
-				input.GetDriver());
-			break;
-		}
-
-		case design::NodeType::FIXED_POINT: {
-
-			context.ConstructGlobalObject<ProbeAccessObject<types::FixedPoint>>(
-				objectName,
-				context.GetCurrentComponent(),
-				input.GetDriver());
-			break;
-		}
-
-		default:
-			throw Exception(ExceptionCode::NotImplemented);
-	}
+	context.ConstructGlobalObject<ProbeAccessObject>(objectName, input.GetDriver().CreateSimulatorNode()->GetAccess());
 }
 
 } // namespace oddf::simulator::common::backend::blocks

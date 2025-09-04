@@ -176,8 +176,8 @@ void EmitFloorCastInstruction(ISimulatorCodeGenerationContext &context, Simulato
 	auto inputType = input.GetType();
 	auto outputType = output.GetType();
 
-	auto inputElementCount = types::FixedPoint::RequiredElementCount(inputType);
-	auto outputElementCount = types::FixedPoint::RequiredElementCount(outputType);
+	auto inputElementCount = types::FixedPoint::GetElementCount(inputType);
+	auto outputElementCount = types::FixedPoint::GetElementCount(outputType);
 
 	ptrdiff_t shiftLeft = outputType.GetFraction() - inputType.GetFraction();
 
@@ -201,7 +201,7 @@ void EmitFloorCastInstruction(ISimulatorCodeGenerationContext &context, Simulato
 			auto *instruction = context.CommitInstruction<FloorCastReduceUnsignedInstruction>();
 
 			instruction->m_mask = types::FixedPoint::SignedExtension
-				>> ((types::FixedPoint::ElementBitWidth - (outputType.GetWordWidth() % types::FixedPoint::ElementBitWidth)) % types::FixedPoint::ElementBitWidth);
+				>> ((types::FixedPoint::ElementBitSize - (outputType.GetWordWidth() % types::FixedPoint::ElementBitSize)) % types::FixedPoint::ElementBitSize);
 
 			/*
 

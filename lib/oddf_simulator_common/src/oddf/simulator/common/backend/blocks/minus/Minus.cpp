@@ -163,8 +163,8 @@ void EmitMinusInstruction(ISimulatorCodeGenerationContext &context, SimulatorBlo
 {
 	auto inputType = input.GetType();
 
-	auto inputElementCount = types::FixedPoint::RequiredElementCount(inputType);
-	auto outputElementCount = types::FixedPoint::RequiredElementCount(output.GetType());
+	auto inputElementCount = types::FixedPoint::GetElementCount(inputType);
+	auto outputElementCount = types::FixedPoint::GetElementCount(output.GetType());
 
 	if (outputElementCount == inputElementCount) {
 

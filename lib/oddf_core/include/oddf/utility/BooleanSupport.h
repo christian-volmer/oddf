@@ -20,9 +20,8 @@
 
 /*
 
-    Functions for copying data from one memory location to another
-    under the assumption that the data represents a signed or
-    unsigned integer value.
+    Function for copying data from one memory location to another under
+    the assumption that the data represents a boolean value.
 
 */
 
@@ -32,7 +31,10 @@
 
 namespace oddf::utility {
 
-void CopySignedInteger(void *destination, size_t destinationSize, void const *source, size_t sourceSize);
-void CopyUnsignedInteger(void *destination, size_t destinationSize, void const *source, size_t sourceSize);
+void BooleanCopy(void *dest, size_t destSize, void const *src, size_t srcSize);
+
+bool BooleanCheckIntegrity(void const *buffer, size_t bufferSize) noexcept;
+
+bool BooleanFixIntegrity(void *buffer, size_t bufferSize) noexcept;
 
 } // namespace oddf::utility

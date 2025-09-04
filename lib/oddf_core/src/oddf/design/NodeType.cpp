@@ -122,12 +122,12 @@ NodeType::TypeId NodeType::GetTypeId() const noexcept
 	return m_type;
 }
 
-int NodeType::GetWordWidth() const noexcept
+size_t NodeType::GetWordWidth() const noexcept
 {
 	if (m_param1 >= 0)
-		return m_param1;
+		return static_cast<size_t>(m_param1);
 	else
-		return -m_param1;
+		return static_cast<size_t>(-m_param1);
 }
 
 bool NodeType::IsSigned() const noexcept

@@ -28,7 +28,6 @@
 
 #include "../SimulatorNode.h"
 
-#include <oddf/utility/CopyBoolean.h>
 #include <oddf/utility/GetInterfaceHelper.h>
 
 #include <cassert>
@@ -41,11 +40,11 @@ class SimulatorBlockOutput::SimulatorNode::SimulatorNodeAccessBool
 private:
 
 	ISimulatorComponent *m_component;
-	void const *m_pointer;
+	types::Boolean const *m_pointer;
 
 public:
 
-	SimulatorNodeAccessBool(ISimulatorComponent *component, void const *pointer) :
+	SimulatorNodeAccessBool(ISimulatorComponent *component, types::Boolean const *pointer) :
 		m_component(component),
 		m_pointer(pointer)
 	{
@@ -64,7 +63,7 @@ public:
 
 	virtual size_t GetSize() const noexcept override
 	{
-		return types::GetRequiredByteSize(design::NodeType::Boolean());
+		return m_pointer->GetValueSize();
 	}
 
 	virtual void EnsureValid() override
@@ -74,7 +73,11 @@ public:
 
 	virtual void Read(void *buffer, size_t bufferSize) const override
 	{
-		utility::CopyBoolean(buffer, bufferSize, m_pointer, types::GetStoredByteSize(design::NodeType::Boolean()));
+		// This is an internal data consistency check, which should never fire.
+		if (!m_pointer->CheckIntegrity())
+			throw Exception(ExceptionCode::Unexpected);
+
+		m_pointer->CopyData(buffer, bufferSize, m_pointer->GetData(), m_pointer->GetDataSize());
 	}
 
 	virtual void *GetInterface(oddf::Uid const &iid) override

@@ -221,7 +221,7 @@ void SimulatorCore::GenerateCode()
 		{
 			auto &output = InternalRegisterOutput(index, &outputReference, design::NodeType::FIXED_POINT);
 
-			if (types::FixedPoint::RequiredElementCount(output.GetType()) != outputReference.m_length)
+			if (types::FixedPoint::GetElementCount(output.GetType()) != outputReference.m_length)
 				throw Exception(ExceptionCode::InvalidArgument, "The length (number of elements) of the given 'outputReference' does not match the type of the output.");
 		}
 

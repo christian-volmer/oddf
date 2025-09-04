@@ -142,12 +142,12 @@ inline size_t ISimulatorCodeGenerationContext::AddOutputRecord<types::FixedPoint
 {
 	using T = types::FixedPoint;
 
-	size_t elementCount = T::RequiredElementCount(nodeType);
+	size_t elementCount = T::GetElementCount(nodeType);
 
 	alignas(T) char tempStorage[sizeof(T)];
 	size_t offset = reinterpret_cast<char const *>(&(reinterpret_cast<T const *>(&tempStorage)->m_elements)) - tempStorage;
 
-	size_t size = offset + elementCount * sizeof(types::FixedPoint::m_elements[0]);
+	size_t size = offset + elementCount * T::ElementSize;
 
 	// Round up to the next multiple of alignof(types::FixedPoint)
 	size = ((size + alignof(T) - 1) / alignof(T)) * alignof(T);

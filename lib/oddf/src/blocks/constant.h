@@ -52,7 +52,7 @@ private:
 
 	void GetProperties(dfx::generator::Properties &properties) const override;
 
-	virtual void Read(void *buffer, size_t count) const override;
+	virtual void Read(void *buffer, size_t bufferSize) const override;
 	virtual size_t GetSize() const noexcept override;
 
 	virtual void *GetInterface(oddf::Uid const &iid) override;

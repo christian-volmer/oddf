@@ -28,7 +28,6 @@
 
 #include "../SimulatorNode.h"
 
-#include <oddf/utility/CopyInteger.h>
 #include <oddf/utility/GetInterfaceHelper.h>
 
 #include <oddf/Exception.h>
@@ -42,12 +41,12 @@ class SimulatorBlockOutput::SimulatorNode::SimulatorNodeAccessFixedPoint
 private:
 
 	ISimulatorComponent *m_component;
-	void const *m_pointer;
+	types::FixedPoint const *m_pointer;
 	design::NodeType m_type;
 
 public:
 
-	SimulatorNodeAccessFixedPoint(ISimulatorComponent *component, void const *pointer, design::NodeType type) :
+	SimulatorNodeAccessFixedPoint(ISimulatorComponent *component, types::FixedPoint const *pointer, design::NodeType type) :
 		m_component(component),
 		m_pointer(pointer),
 		m_type(type)
@@ -68,7 +67,7 @@ public:
 
 	virtual size_t GetSize() const noexcept override
 	{
-		return types::GetRequiredByteSize(m_type);
+		return m_pointer->GetValueSize(m_type);
 	}
 
 	virtual void EnsureValid() override
@@ -76,33 +75,13 @@ public:
 		m_component->EnsureValidState();
 	}
 
-	virtual void Read(void * /* buffer */, size_t /* bufferSize */) const override
+	virtual void Read(void *buffer, size_t bufferSize) const override
 	{
-		throw Exception(ExceptionCode::NotImplemented);
+		// This is an internal data consistency check, which should never fire.
+		if (!m_pointer->CheckIntegrity(m_type))
+			throw Exception(ExceptionCode::Unexpected);
 
-		/*
-		    TODO
-		     - CheckFixedPointRepresentation() sollte intern werden und jeden Typen überprüfen
-		       --> CheckInternalRepresentation?
-
-		     - CopySignedInteger und alle Verwandten sollen, wenn möglich keine void-Zeiger
-		       akzeptieren, sondern mit den Typen aus dem `types` namespace arbeiten. Man
-		       brancht dann funktionen für beide Richtungen (cf. für Signal und für Probe)
-
-		        - Dann muss man auch nicht immer die Größe angeben.
-
-		     - GetPointer<void>() entfernen?
-
-		     - Geht das alles, oder haben wir hier noch void-Zeiger herumfahren, die sich nicht
-		       vermeiden lassen?
-		*/
-
-		/*assert(types::CheckFixedPointRepresentation(*m_probedOutputPointer, m_nodeType));
-
-		if (m_nodeType.IsSigned())
-		    utility::CopySignedInteger(buffer, bufferSize, m_pointer, types::GetStoredByteSize(m_nodeType));
-		else
-		    utility::CopyUnsignedInteger(buffer, bufferSize, m_pointer, types::GetStoredByteSize(m_nodeType));*/
+		m_pointer->CopyData(buffer, bufferSize, m_pointer->GetData(), m_pointer->GetDataSize(), m_type);
 	}
 
 	virtual void *GetInterface(oddf::Uid const &iid) override

@@ -28,8 +28,6 @@
 
 #include <oddf/design/blocks/backend/IConstantBlock.h>
 
-#include <oddf/simulator/common/backend/types/CheckFixedPointRepresentation.h>
-
 #include <oddf/Exception.h>
 
 #include <cassert>
@@ -107,15 +105,15 @@ public:
 	static void Emit(ISimulatorCodeGenerationContext &context, SimulatorBlockOutput const &output, design::blocks::backend::IConstantBlock const &constantBlock)
 	{
 		auto nodeType = output.GetType();
-		auto elementCount = T::RequiredElementCount(nodeType);
+		auto elementCount = T::GetElementCount(nodeType);
 
 		context.StartInstructionWithOutput(InstructionFunction, &ConstantInstruction::m_output, elementCount);
 		auto *instruction = context.CommitInstruction<ConstantInstruction>();
 
 		context.BindOutput(output.GetIndex(), instruction->m_output);
-		constantBlock.Read(instruction->m_output.m_elements, sizeof(typename T::ElementType) * elementCount);
+		constantBlock.Read(instruction->m_output.GetData(), T::GetDataSize(nodeType));
 
-		if (!types::CheckFixedPointRepresentation(instruction->m_output, nodeType))
+		if (!instruction->m_output.CheckIntegrity(nodeType))
 			throw Exception(ExceptionCode::Unexpected);
 	};
 };

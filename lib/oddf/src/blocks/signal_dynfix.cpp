@@ -76,7 +76,7 @@ public:
 	signal_block_dynfix(oddf::design::NodeType const &nodeType, std::string const &tag) :
 		BlockBase("signal"),
 		m_tag(tag),
-		output(this, dynfix(nodeType.IsSigned(), nodeType.GetWordWidth(), nodeType.GetFraction()))
+		output(this, dynfix(nodeType.IsSigned(), (int)nodeType.GetWordWidth(), nodeType.GetFraction()))
 	{
 		if (!(tag.empty() || oddf::ResourcePath::IsValidElement(tag)))
 			throw oddf::Exception(oddf::ExceptionCode::InvalidArgument, "The tag contains characters that are not allowed as part of a resource path element.");

@@ -133,25 +133,18 @@ int main()
 
 	/*
 
-	Nächste Schritte:
-
-	    - Über generische hierarchische Namespaces im Simulator nachdenken.
-	       - für Instanzen
-	       - für named nodes (Label, Name, Input, Output)
-	       - für Probes und Signals
-	       - für Modelle (Sin, oder komplexere Dinge)
-
-	    - Generische Möglichkeit, Namespaces zu durchlaufen
-	    - An jedem Knoten über GetInterface ein entsprechendes Interface abrufen
-	    - Wir haben momentan die "Named Simulator Objects", reicht das nicht auch
-	      für alles was nicht einem Knoten entspricht?
-	        - Vielleicht für spätere Erweiterungen zusätzlich die generischen Namespaces. Man weiß ja nie?
-	    - ACHTUNG: Wir dürfen den Simulator aber nicht mit dem Design verwechseln!
-
-	    - Implementieren
-	      - Logging
-	      - Busse
-	        - Evtl. PRBS mit Bus-Bools, Bus-AND und Reduction-XOR?
+	- Next steps
+		- Further streamline the Emit function of the copy instruction.
+		- SignalAcces::Write will throw if simulator data type is wider than user buffer.
+			- Maybe revert to differentiating by type and use IntegerCopy() and so on.
+			- Revise CopyData-API, not always has the source a corresponding NodeType (see the Signal example)
+				- go back to Write and Read functions (non-static)?
+		- Comment new type support functions
+	    - Logging
+	    - Busse
+	    - Evtl. PRBS mit Bus-Bools, Bus-AND und Reduction-XOR?
+	    - Assertions?
+	    - Modelle?
 
 	*/
 
@@ -195,7 +188,7 @@ int main()
 	simulator.Run(1);
 
 	std::cout << "myprobe = " << myProbe.GetValue() << "\n";
-	std::cout << "signal = -1\n";
+	std::cout << "signal = 11\n";
 	mySignal.SetValue(11);
 	std::cout << "myprobe = " << myProbe.GetValue() << "\n";
 

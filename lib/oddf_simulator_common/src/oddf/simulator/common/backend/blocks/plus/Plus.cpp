@@ -97,8 +97,8 @@ private:
 
 			auto src_length = op.m_input->m_length;
 			auto const *src = op.m_input->m_elements;
-			auto src_element_shl = op.m_shiftLeft / types::FixedPoint::ElementBitWidth;
-			auto src_bit_shl = op.m_shiftLeft % types::FixedPoint::ElementBitWidth;
+			auto src_element_shl = op.m_shiftLeft / types::FixedPoint::ElementBitSize;
+			auto src_bit_shl = op.m_shiftLeft % types::FixedPoint::ElementBitSize;
 
 			intermediate_type temp = 0;
 
@@ -111,7 +111,7 @@ private:
 
 				dest[dest_i] = static_cast<element_type>(temp);
 
-				temp >>= types::FixedPoint::ElementBitWidth;
+				temp >>= types::FixedPoint::ElementBitSize;
 			}
 
 			intermediate_type src_extension
@@ -126,7 +126,7 @@ private:
 
 				dest[dest_i] = static_cast<element_type>(temp);
 
-				temp >>= types::FixedPoint::ElementBitWidth;
+				temp >>= types::FixedPoint::ElementBitSize;
 			}
 
 			/*

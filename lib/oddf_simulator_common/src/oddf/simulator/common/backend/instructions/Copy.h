@@ -39,17 +39,17 @@ class CopyInstruction<T, std::void_t<typename T::ValueType>> : public SimulatorI
 
 private:
 
-	T const *m_source;
+	typename T::DataType const *m_source;
 	T m_result;
 
 	static void InstructionFunction(CopyInstruction *instruction)
 	{
-		instruction->m_result.m_value = instruction->m_source->m_value;
+		instruction->m_result.m_value = *instruction->m_source;
 	}
 
 public:
 
-	static void Emit(ISimulatorCodeGenerationContext &context, SimulatorBlockOutput const &output, T const &source)
+	static void Emit(ISimulatorCodeGenerationContext &context, SimulatorBlockOutput const &output, typename T::DataType const &source)
 	{
 		context.StartInstruction<CopyInstruction>(InstructionFunction);
 		auto *instruction = context.CommitInstruction<CopyInstruction>();
@@ -77,7 +77,7 @@ public:
 
 	static void Emit(ISimulatorCodeGenerationContext &context, SimulatorBlockOutput const &output, typename T::ElementType const &source)
 	{
-		auto elementCount = T::RequiredElementCount(output.GetType());
+		auto elementCount = T::GetElementCount(output.GetType());
 
 		context.StartInstructionWithOutput<CopyInstruction>(
 			InstructionFunction,

@@ -69,7 +69,7 @@ public:
 	bool IsSigned() const noexcept;
 	bool IsUnsigned() const noexcept;
 
-	int GetWordWidth() const noexcept;
+	size_t GetWordWidth() const noexcept;
 	int GetFraction() const noexcept;
 
 	bool IsDefined() const noexcept;

@@ -53,10 +53,12 @@ std::unique_ptr<simulator::backend::ISimulatorNodeAccess> SimulatorBlockOutput::
 	switch (m_type.GetTypeId()) {
 
 		case design::NodeType::BOOLEAN:
-			return std::make_unique<SimulatorNodeAccessBool>(m_component, m_pointer);
+			return std::make_unique<SimulatorNodeAccessBool>(m_component,
+				reinterpret_cast<types::Boolean const *>(m_pointer));
 
 		case design::NodeType::FIXED_POINT:
-			return std::make_unique<SimulatorNodeAccessFixedPoint>(m_component, m_pointer, m_type);
+			return std::make_unique<SimulatorNodeAccessFixedPoint>(m_component,
+				reinterpret_cast<types::FixedPoint const *>(m_pointer), m_type);
 
 		default:
 			break;

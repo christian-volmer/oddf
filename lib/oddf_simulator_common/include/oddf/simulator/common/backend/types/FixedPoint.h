@@ -35,10 +35,17 @@ namespace oddf::simulator::common::backend::types {
 
 struct FixedPoint {
 
-	using ElementType = std::uint8_t;
-	using IntermediateType = std::uint16_t;
+	using ElementType = std::uint16_t;
+	using IntermediateType = std::uint32_t;
 
-	static constexpr size_t ElementBitWidth = sizeof(ElementType) * 8;
+	using DataType = ElementType;
+
+	// The size of an individual element, in bytes.
+	static constexpr size_t ElementSize = sizeof(ElementType);
+
+	// The size of an individual element, in bits.
+	static constexpr size_t ElementBitSize = ElementSize * 8;
+
 	static constexpr ElementType SignedExtension = ElementType(-1);
 	static constexpr ElementType SignedMinimumNegativeElement = SignedExtension - SignedExtension / 2;
 
@@ -51,8 +58,22 @@ struct FixedPoint {
 	FixedPoint(FixedPoint const &) = delete;
 	void operator=(FixedPoint const &) = delete;
 
-	// Returns the number of elements required to store values of the given node type.
-	static size_t RequiredElementCount(design::NodeType const &nodeType);
+	static size_t GetDataSize(design::NodeType const &nodeType);
+	size_t GetDataSize() const noexcept;
+
+	static size_t GetValueSize(design::NodeType const &nodeType);
+
+	static size_t GetElementCount(design::NodeType const &nodeType);
+
+	static bool CheckDataIntegrity(void const *buffer, size_t bufferSize, design::NodeType const &nodeType) noexcept;
+	static bool FixDataIntegrity(void *buffer, size_t bufferSize, design::NodeType const &nodeType);
+
+	bool CheckIntegrity(design::NodeType const &nodeType) const noexcept;
+
+	static void CopyData(void *dest, size_t destSize, void const *src, size_t srcSize, design::NodeType const &nodeType);
+
+	void *GetData() noexcept;
+	void const *GetData() const noexcept;
 };
 
 static_assert(std::is_unsigned_v<FixedPoint::ElementType>);

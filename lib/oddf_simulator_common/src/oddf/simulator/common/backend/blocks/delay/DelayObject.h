@@ -28,7 +28,6 @@
 
 #include <oddf/simulator/common/backend/Types.h>
 #include <oddf/simulator/common/backend/ISimulatorComponent.h>
-#include <oddf/simulator/common/backend/types/CheckFixedPointRepresentation.h>
 
 #include <oddf/simulator/backend/IClockable.h>
 
@@ -43,9 +42,13 @@ namespace oddf {
 namespace simulator::common::backend::blocks {
 
 class DelayStateBase {
-public:
+
+protected:
 
 	DelayStateBase() = default;
+
+public:
+
 	virtual ~DelayStateBase() = default;
 
 	DelayStateBase(DelayStateBase const &) = delete;
@@ -54,101 +57,49 @@ public:
 	virtual void Clock() = 0;
 };
 
-template<typename T, typename = void>
-class DelayState;
-
-template<typename T>
-class DelayState<T, std::void_t<typename T::ValueType>> : public DelayStateBase {
+template<typename simulatorT>
+class DelayState : public DelayStateBase {
 
 private:
 
-	T const *m_pSource;
-	T m_current;
-
-	virtual void Clock() override
-	{
-		m_current.m_value = m_pSource->m_value;
-	}
-
-public:
-
-	DelayState(design::NodeType const &) :
-		m_pSource(), m_current() { }
-
-	DelayState(DelayState const &) = delete;
-	void operator=(DelayState const &) = delete;
-
-	T const &ReferenceToCurrent()
-	{
-		return m_current;
-	}
-
-	void SetSource(T const *pSource)
-	{
-		m_pSource = pSource;
-	}
-};
-
-template<typename T>
-class DelayState<T, std::void_t<typename T::ElementType>> : public DelayStateBase {
-
-private:
-
-	using ElementType = typename T::ElementType;
-
-	size_t m_byteCount;
-	T const *m_pSource;
-	std::unique_ptr<ElementType[]> m_current;
-
-#ifndef NDEBUG
+	using dataT = typename simulatorT::DataType;
 
 	design::NodeType m_nodeType;
-
-	void InternalCheck() const
-	{
-		if constexpr (std::is_same_v<T, types::FixedPoint>)
-			assert(types::CheckFixedPointRepresentation(*m_pSource, m_nodeType));
-	}
-
-#else
-
-	void InternalCheck() const
-	{
-	}
-
-#endif
+	void const *m_source;
+	size_t m_dataSize;
+	std::unique_ptr<unsigned char[]> m_state;
 
 	virtual void Clock() override
 	{
-		InternalCheck();
-		memcpy(static_cast<void *>(&m_current[0]), m_pSource->m_elements, m_byteCount);
+		memcpy(m_state.get(), m_source, m_dataSize);
+
+		// This is an internal data consistency check, which should never fire.
+		if (!simulatorT::CheckDataIntegrity(m_state.get(), m_dataSize, m_nodeType))
+			throw Exception(ExceptionCode::Unexpected);
 	}
 
 public:
 
 	DelayState(design::NodeType const &nodeType) :
-		m_byteCount(T::RequiredElementCount(nodeType) * sizeof(ElementType)),
-		m_pSource(),
-		m_current(new ElementType[T::RequiredElementCount(nodeType)] {})
-#ifndef NDEBUG
-		,
-		m_nodeType(nodeType)
-#endif
+		m_nodeType(nodeType),
+		m_source(),
+		m_dataSize(simulatorT::GetDataSize(nodeType)),
+		m_state()
 	{
-		(void)nodeType;
+		m_state.reset(new unsigned char[m_dataSize] {});
 	}
 
 	DelayState(DelayState const &) = delete;
 	void operator=(DelayState const &) = delete;
 
-	ElementType const &ReferenceToCurrent()
+	dataT const &ReferenceToCurrent()
 	{
-		return m_current[0];
+		return *reinterpret_cast<dataT const *>(m_state.get());
 	}
 
-	void SetSource(T const *pSource)
+	void SetSource(simulatorT const *source)
 	{
-		m_pSource = pSource;
+		m_source = source->GetData();
 	}
 };
 
