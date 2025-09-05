@@ -29,8 +29,7 @@
 #include "../SimulatorNode.h"
 
 #include <oddf/utility/GetInterfaceHelper.h>
-
-#include <oddf/Exception.h>
+#include <oddf/utility/IntegerSupport.h>
 
 #include <cassert>
 
@@ -81,7 +80,8 @@ public:
 		if (!m_pointer->CheckIntegrity(m_type))
 			throw Exception(ExceptionCode::Unexpected);
 
-		m_pointer->CopyData(buffer, bufferSize, m_pointer->GetData(), m_pointer->GetDataSize(), m_type);
+		utility::IntegerCopy(buffer, bufferSize, m_pointer->GetData(), m_pointer->GetDataSize(),
+			m_type.GetWordWidth(), m_type.IsSigned());
 	}
 
 	virtual void *GetInterface(oddf::Uid const &iid) override

@@ -106,6 +106,23 @@ public:
 
 int main()
 {
+	/*
+
+	- Next steps
+	    - Comment new type support functions
+	    - Logging
+	    - Busses
+	        - Evtl. PRBS mit Bus-Bools, Bus-AND und Reduction-XOR?
+	        - Full boolean support (NOT, AND, OR, XOR, Reduction, ==, !=)
+	    - Assertions?
+	    - Models?
+	    - Fixed-Point arithmetic
+	        Helper-block to expand inputs to common type (helps with plus, <=>, decide)
+	    - Double
+	    - Machine integer
+
+	*/
+
 	using dfx::dynfix;
 	using dfx::sfix;
 	using dfx::ufix;
@@ -116,56 +133,18 @@ int main()
 
 	dfx::Design design;
 
-	// b::Probe(b::Delay(-b::Signal(oddf::design::NodeType::FixedPoint(true, 8, 0))));
+	dfx::node<dynfix> value = b::Signal(oddf::design::NodeType::FixedPoint(false, 19, 0), "ValueSignal");
 
-	dfx::forward_node<ufix<16>> x;
-
-	b::Probe(x, "probe");
-
-	auto incr = b::Signal(oddf::design::NodeType::FixedPoint(true, 8, 0), "duper_signal");
+	bool _tempBit = false;
+	dfx::node<bool> bit = b::Signal(&_tempBit, "BoolSignal");
 
 	{
 		DFX_INSTANCE("instance1", "my_module");
 
-		b::Probe(x, "probe");
-		b::Probe(x + 3, "my_probe");
+		b::Probe(b::Delay(100 - value), "ValueProbe");
+		b::Probe(b::Delay(bit), "BoolProbe");
+		b::Probe(!b::Constant(true), "ConstantBoolProbe");
 	}
-
-	/*
-
-	- Next steps
-		- Further streamline the Emit function of the copy instruction.
-		- SignalAcces::Write will throw if simulator data type is wider than user buffer.
-			- Maybe revert to differentiating by type and use IntegerCopy() and so on.
-			- Revise CopyData-API, not always has the source a corresponding NodeType (see the Signal example)
-				- go back to Write and Read functions (non-static)?
-		- Comment new type support functions
-	    - Logging
-	    - Busse
-	    - Evtl. PRBS mit Bus-Bools, Bus-AND und Reduction-XOR?
-	    - Assertions?
-	    - Modelle?
-
-	*/
-
-	b::Probe(x + 12345678, "probe2");
-
-	x <<= b::Delay(b::FloorCast<ufix<16>>(x + incr));
-
-	/*	x[0] = b::Constant<dynfix>(123);
-	    x[1] = b::Constant<dynfix>(-200);
-	    x[2] = b::Constant<dynfix>(+1024);
-	    x[3] = -b::Signal(oddf::design::NodeType::FixedPoint(true, 7, 0));
-
-	    b::Probe(b::Sum(x));*/
-
-	/*	b::Probe(-b::Constant<dynfix>(100));
-	    b::Signal(oddf::design::NodeType::FixedPoint(true, 8, 0));*/
-
-	/*
-	bool temp = 0;
-	b::Probe(!b::Delay(!b::Signal(&temp)));
-	*/
 
 	//
 	// Simulation
@@ -175,28 +154,42 @@ int main()
 
 	simulator.TranslateDesign(design);
 
+	std::cout << " --- logger.Dump() --- \n";
+
 	sim::Logger logger(simulator);
 	logger.Dump();
 
+	std::cout << "\n";
+
 	// return 0;
 
-	auto myProbe = sim::Probe<int>(simulator, "/instance1/my_probe");
-	auto mySignal = sim::Signal<int>(simulator, "/duper_signal");
+	auto valueSignal = sim::Signal<int>(simulator, "/ValueSignal");
+	auto boolSignal = sim::Signal<bool>(simulator, "/BoolSignal");
 
-	std::cout << "myprobe = " << myProbe.GetValue() << "\n";
-	std::cout << "run\n";
+	auto valueProbe = sim::Probe<int>(simulator, "/instance1/ValueProbe");
+	auto boolProbe = sim::Probe<bool>(simulator, "/instance1/BoolProbe");
+	auto constantBoolProbe = sim::Probe<bool>(simulator, "/instance1/ConstantBoolProbe");
+
+	std::cout << "ValueProbe         = " << valueProbe.GetValue() << "\n";
+	std::cout << "BoolProbe          = " << boolProbe.GetValue() << "\n";
+	std::cout << "ConstantBoolProbe  = " << constantBoolProbe.GetValue() << "\n";
+	std::cout << "\n";
+
+	std::cout << "Setting ValueSignal = 123 and BoolSignal = true.\n";
+
+	valueSignal.SetValue(123);
+	boolSignal.SetValue(true);
+
+	std::cout << "ValueProbe = " << valueProbe.GetValue() << "\n";
+	std::cout << "BoolProbe  = " << boolProbe.GetValue() << "\n";
+	std::cout << "\n";
+
+	std::cout << "Toggling clock.\n";
+
 	simulator.Run(1);
 
-	std::cout << "myprobe = " << myProbe.GetValue() << "\n";
-	std::cout << "signal = 11\n";
-	mySignal.SetValue(11);
-	std::cout << "myprobe = " << myProbe.GetValue() << "\n";
-
-	for (int i = 0; i < 20; ++i) {
-
-		simulator.Run(2);
-		std::cout << "myprobe = " << myProbe.GetValue() << "\n";
-	}
+	std::cout << "ValueProbe = " << valueProbe.GetValue() << "\n";
+	std::cout << "BoolProbe  = " << boolProbe.GetValue() << "\n";
 
 	return 0;
 }

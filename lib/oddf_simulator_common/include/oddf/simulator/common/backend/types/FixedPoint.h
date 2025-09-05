@@ -70,8 +70,6 @@ struct FixedPoint {
 
 	bool CheckIntegrity(design::NodeType const &nodeType) const noexcept;
 
-	static void CopyData(void *dest, size_t destSize, void const *src, size_t srcSize, design::NodeType const &nodeType);
-
 	void *GetData() noexcept;
 	void const *GetData() const noexcept;
 };

@@ -29,6 +29,7 @@
 #include "../SimulatorNode.h"
 
 #include <oddf/utility/GetInterfaceHelper.h>
+#include <oddf/utility/BooleanSupport.h>
 
 #include <cassert>
 
@@ -77,7 +78,7 @@ public:
 		if (!m_pointer->CheckIntegrity())
 			throw Exception(ExceptionCode::Unexpected);
 
-		m_pointer->CopyData(buffer, bufferSize, m_pointer->GetData(), m_pointer->GetDataSize());
+		utility::BooleanCopy(buffer, bufferSize, m_pointer->GetData(), m_pointer->GetDataSize());
 	}
 
 	virtual void *GetInterface(oddf::Uid const &iid) override

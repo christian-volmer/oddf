@@ -84,19 +84,6 @@ bool Boolean::CheckIntegrity() const noexcept
 	return CheckDataIntegrity(GetData(), GetDataSize(), design::NodeType::Boolean());
 }
 
-void Boolean::CopyData(void *dest, size_t destSize, void const *src, size_t srcSize, design::NodeType const &nodeType)
-{
-	if (nodeType.GetTypeId() != design::NodeType::BOOLEAN)
-		throw Exception(ExceptionCode::InvalidArgument);
-
-	utility::BooleanCopy(dest, destSize, src, srcSize);
-}
-
-void Boolean::CopyData(void *dest, size_t destSize, void const *src, size_t srcSize)
-{
-	utility::BooleanCopy(dest, destSize, src, srcSize);
-}
-
 void *Boolean::GetData() noexcept
 {
 	return &m_value;

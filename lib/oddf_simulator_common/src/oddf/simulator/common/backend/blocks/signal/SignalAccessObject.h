@@ -51,6 +51,8 @@ private:
 
 	std::unique_ptr<unsigned char[]> m_value;
 
+	void CopyData(void *dest, size_t destSize, void const *src, size_t srcSize);
+
 public:
 
 	SignalAccessObject(ISimulatorComponent &component, design::NodeType const &nodeType) :
@@ -90,7 +92,7 @@ public:
 
 		try {
 
-			simulatorT::CopyData(data, dataSize, buffer, bufferSize, m_nodeType);
+			CopyData(data, dataSize, buffer, bufferSize);
 
 			if (!simulatorT::FixDataIntegrity(data, dataSize, m_nodeType))
 				throw Exception(ExceptionCode::Overflow);
@@ -104,5 +106,17 @@ public:
 		}
 	}
 };
+
+template<>
+inline void SignalAccessObject<types::Boolean>::CopyData(void *dest, size_t destSize, void const *src, size_t srcSize)
+{
+	utility::BooleanCopy(dest, destSize, src, srcSize);
+}
+
+template<>
+inline void SignalAccessObject<types::FixedPoint>::CopyData(void *dest, size_t destSize, void const *src, size_t srcSize)
+{
+	utility::IntegerCopy(dest, destSize, src, srcSize, srcSize * 8, m_nodeType.IsSigned());
+}
 
 } // namespace oddf::simulator::common::backend::blocks

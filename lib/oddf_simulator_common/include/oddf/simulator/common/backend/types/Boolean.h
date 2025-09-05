@@ -59,9 +59,6 @@ struct Boolean {
 	bool CheckIntegrity(design::NodeType const &nodeType) const noexcept;
 	bool CheckIntegrity() const noexcept;
 
-	static void CopyData(void *dest, size_t destSize, void const *src, size_t srcSize, design::NodeType const &nodeType);
-	static void CopyData(void *dest, size_t destSize, void const *src, size_t srcSize);
-
 	void *GetData() noexcept;
 	void const *GetData() const noexcept;
 };

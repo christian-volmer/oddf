@@ -87,14 +87,6 @@ bool FixedPoint::CheckIntegrity(design::NodeType const &nodeType) const noexcept
 	return m_length == GetElementCount(nodeType);
 }
 
-void FixedPoint::CopyData(void *dest, size_t destSize, void const *src, size_t srcSize, design::NodeType const &nodeType)
-{
-	if (nodeType.GetTypeId() != design::NodeType::FIXED_POINT)
-		throw Exception(ExceptionCode::InvalidArgument);
-
-	utility::IntegerCopy(dest, destSize, src, srcSize, nodeType.GetWordWidth(), nodeType.IsSigned());
-}
-
 void *FixedPoint::GetData() noexcept
 {
 	return m_elements;
