@@ -46,7 +46,11 @@ struct FixedPoint {
 	// The size of an individual element, in bits.
 	static constexpr size_t ElementBitSize = ElementSize * 8;
 
+	// The value used for sign extension in a two's complement representation.
 	static constexpr ElementType SignedExtension = ElementType(-1);
+
+	// A two's complement number is negative if the most significant element is
+	// larger than or equal to this value.
 	static constexpr ElementType SignedMinimumNegativeElement = SignedExtension - SignedExtension / 2;
 
 	size_t m_length;
@@ -58,19 +62,42 @@ struct FixedPoint {
 	FixedPoint(FixedPoint const &) = delete;
 	void operator=(FixedPoint const &) = delete;
 
+	// Returns the number of bytes used internally by the simulator to represent a
+	// fixed-point number of the given type. Throws if `nodeType` is not
+	// `FixedPoint`.
 	static size_t GetDataSize(design::NodeType const &nodeType);
+
+	// Returns the number of bytes used internally by this instance to
+	// represent a fixed-point number.
 	size_t GetDataSize() const noexcept;
 
+	// Returns the minimum number of bytes required to fully represent a fixed-
+	// point number of the given type. Throws if `nodeType` is not `FixedPoint`.
 	static size_t GetValueSize(design::NodeType const &nodeType);
 
+	// Returns the number of elements used internally by the simulator to
+	// represent a fixed-point number of the given type. Throws if `nodeType` is
+	// not `FixedPoint`.
 	static size_t GetElementCount(design::NodeType const &nodeType);
 
+	// Calls `utility::IntegerCheckIntegrity()` on the buffer and returns the
+	// result. Returns `false` if `nodeType` is not `FixedPoint`.
 	static bool CheckDataIntegrity(void const *buffer, size_t bufferSize, design::NodeType const &nodeType) noexcept;
+
+	// Calls `utility::IntegerFixIntegrity()` on the buffer and returns the
+	// result. Throws if `nodeType` is not `FixedPoint`.
 	static bool FixDataIntegrity(void *buffer, size_t bufferSize, design::NodeType const &nodeType);
 
+	// Calls `CheckDataIntegrity()` on the stored value and returns the result.
+	// Returns `false` if `nodeType` is not `Boolean`.
 	bool CheckIntegrity(design::NodeType const &nodeType) const noexcept;
 
+	// Returns a void pointer to the stored value, which is a block of length
+	// `GetDataSize()` bytes.
 	void *GetData() noexcept;
+
+	// Returns a constant void pointer to the stored value, which is a block of
+	// length `GetDataSize()` bytes.
 	void const *GetData() const noexcept;
 };
 

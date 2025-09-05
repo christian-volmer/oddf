@@ -113,7 +113,7 @@ int main()
 	    - Logging
 	    - Busses
 	        - Evtl. PRBS mit Bus-Bools, Bus-AND und Reduction-XOR?
-	        - Full boolean support (NOT, AND, OR, XOR, Reduction, ==, !=)
+	        - Full Boolean support (NOT, AND, OR, XOR, Reduction, ==, !=)
 	    - Assertions?
 	    - Models?
 	    - Fixed-Point arithmetic
@@ -143,7 +143,11 @@ int main()
 
 		b::Probe(b::Delay(100 - value), "ValueProbe");
 		b::Probe(b::Delay(bit), "BoolProbe");
-		b::Probe(!b::Constant(true), "ConstantBoolProbe");
+
+		{
+			DFX_INSTANCE("sub_instance1", "my_module2");
+			b::Probe(!b::Constant(true), "ConstantBoolProbe");
+		}
 	}
 
 	//
@@ -168,7 +172,7 @@ int main()
 
 	auto valueProbe = sim::Probe<int>(simulator, "/instance1/ValueProbe");
 	auto boolProbe = sim::Probe<bool>(simulator, "/instance1/BoolProbe");
-	auto constantBoolProbe = sim::Probe<bool>(simulator, "/instance1/ConstantBoolProbe");
+	auto constantBoolProbe = sim::Probe<bool>(simulator, "/instance1/sub_instance1/ConstantBoolProbe");
 
 	std::cout << "ValueProbe         = " << valueProbe.GetValue() << "\n";
 	std::cout << "BoolProbe          = " << boolProbe.GetValue() << "\n";

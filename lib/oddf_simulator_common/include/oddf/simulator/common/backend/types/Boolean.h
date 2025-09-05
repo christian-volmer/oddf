@@ -47,19 +47,43 @@ struct Boolean {
 	Boolean(Boolean const &) = default;
 	void operator=(Boolean const &) = delete;
 
+	// Returns the number of bytes used internally by the simulator to represent a
+	// Boolean value. Throws if `nodeType` is not `Boolean`.
 	static size_t GetDataSize(design::NodeType const &nodeType);
+
+	// Returns the number of bytes used internally by the simulator to represent a
+	// Boolean value.
 	static size_t GetDataSize() noexcept;
 
+	// Returns the number 1, which is the minimum number of bytes required to
+	// fully represent a Boolean value. Throws if `nodeType` is not `Boolean`.
 	static size_t GetValueSize(design::NodeType const &nodeType);
+
+	// Returns the number 1, which is the minimum number of bytes required to
+	// fully represent a Boolean value.
 	static size_t GetValueSize() noexcept;
 
+	// Calls `utility::BooleanCheckIntegrity()` on the buffer and returns the
+	// result. Returns `false` if `nodeType` is not `Boolean`.
 	static bool CheckDataIntegrity(void const *buffer, size_t bufferSize, design::NodeType const &nodeType) noexcept;
+
+	// Calls `utility::BooleanFixIntegrity()` on the buffer and returns the
+	// result. Throws if `nodeType` is not `Boolean`.
 	static bool FixDataIntegrity(void *buffer, size_t bufferSize, design::NodeType const &nodeType);
 
+	// Calls `CheckDataIntegrity()` on the stored value and returns the result.
+	// Returns `false` if `nodeType` is not `Boolean`.
 	bool CheckIntegrity(design::NodeType const &nodeType) const noexcept;
+
+	// Calls `CheckDataIntegrity()` on the stored value and returns the result.
 	bool CheckIntegrity() const noexcept;
 
+	// Returns a void pointer to the stored value, which is a block of length
+	// `GetDataSize()` bytes.
 	void *GetData() noexcept;
+
+	// Returns a constant void pointer to the stored value, which is a block of
+	// length `GetDataSize()` bytes.
 	void const *GetData() const noexcept;
 };
 

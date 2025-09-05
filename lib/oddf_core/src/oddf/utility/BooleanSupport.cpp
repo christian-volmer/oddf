@@ -21,7 +21,7 @@
 /*
 
     Function for copying data from one memory location to another under
-    the assumption that the data represents a boolean value.
+    the assumption that the data represents a Boolean value.
 
 */
 

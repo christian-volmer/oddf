@@ -32,10 +32,27 @@
 
 namespace oddf::utility {
 
+// Copies an integer from one buffer to another. The number in the source
+// buffer is assumed to have the specified word width and signedness. For
+// negative numbers, the two's complement representation is assumed. Bits
+// beyond the source word width will be ignored and be replaced by correct
+// padding or sign-extension in the destination buffer. If the buffer is too
+// small to contain the *actual* source value, the function will throw with
+// `ExceptionCode::Overflow`.
 void IntegerCopy(void *dest, size_t destSize, void const *src, size_t srcSize, size_t srcWordWidth, bool signedInteger);
 
+// Checks if the buffer represents an integer of given word width and
+// signedness with correct padding or sign-extension up to the full size
+// of the buffer. Two's complement representation is assumed for negative
+// numbers.
 bool IntegerCheckIntegrity(void const *buffer, size_t bufferSize, size_t wordWidth, bool signedInteger) noexcept;
 
+// Performs the integrity check according to function
+// `IntegerCheckIntegrity()`. If the check fails, the representation will be
+// corrected by doing a modulo operation in accordance  with the given word
+// width and signedness. This behaviour is also known as 'wrap-around'. Returns
+// `true` if the representation was correct in the first place and `false` if
+// corrections had to be applied.
 bool IntegerFixIntegrity(void *buffer, size_t bufferSize, size_t wordWidth, bool signedInteger);
 
 } // namespace oddf::utility
