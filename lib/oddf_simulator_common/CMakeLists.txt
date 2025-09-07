@@ -1,6 +1,7 @@
 add_library(oddf_simulator_common
 	"src/oddf/simulator/common/Simulator.cpp"
-	"src/oddf/simulator/common/backend/blocks/constant/ConstantMaster.cpp"
+	"src/oddf/simulator/common/backend/blocks/BooleanFlat/BooleanFlat.cpp"
+	"src/oddf/simulator/common/backend/blocks/Constant/Constant.cpp"
 	"src/oddf/simulator/common/backend/blocks/delay/DelayEndpoint.cpp"
 	"src/oddf/simulator/common/backend/blocks/delay/DelayMaster.cpp"
 	"src/oddf/simulator/common/backend/blocks/minus/Minus.cpp"

@@ -28,6 +28,7 @@
 
 #include "../GenericSimulatorBlockFactory.h"
 
+#include "../blocks/BooleanFlat.h"
 #include "../blocks/Constant.h"
 #include "../blocks/Delay.h"
 #include "../blocks/FloorCast.h"
@@ -45,7 +46,10 @@ void SimulatorCore::RegisterDefaultBlockFactories()
 {
 	using design::blocks::backend::DesignBlockClass;
 
-	RegisterSimulatorBlockFactory(DesignBlockClass("constant"), MakeSimulatorBlockFactory<blocks::ConstantMaster>());
+	RegisterSimulatorBlockFactory(DesignBlockClass("and"), MakeSimulatorBlockFactory<blocks::BooleanFlat<std::logical_and<bool>, true>>());
+	RegisterSimulatorBlockFactory(DesignBlockClass("or"), MakeSimulatorBlockFactory<blocks::BooleanFlat<std::logical_or<bool>, false>>());
+	RegisterSimulatorBlockFactory(DesignBlockClass("xor"), MakeSimulatorBlockFactory<blocks::BooleanFlat<std::not_equal_to<bool>, false>>());
+	RegisterSimulatorBlockFactory(DesignBlockClass("constant"), MakeSimulatorBlockFactory<blocks::Constant>());
 	RegisterSimulatorBlockFactory(DesignBlockClass("delay"), MakeSimulatorBlockFactory<blocks::DelayMaster>());
 	RegisterSimulatorBlockFactory(DesignBlockClass("floor_cast"), MakeSimulatorBlockFactory<blocks::FloorCast>());
 	RegisterSimulatorBlockFactory(DesignBlockClass("identity"), MakeSimulatorBlockFactory<blocks::Identity>());

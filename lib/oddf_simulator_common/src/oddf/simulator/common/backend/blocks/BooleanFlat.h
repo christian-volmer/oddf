@@ -20,38 +20,32 @@
 
 /*
 
-    <no description>
+    Simulator support for the Boolean operators AND, OR, and XOR.
 
 */
 
 #pragma once
 
-#include <oddf/Uid.h>
-#include <oddf/IObject.h>
+#include <oddf/simulator/common/backend/SimulatorBlockBase.h>
 
-namespace oddf {
+#include <functional>
 
-namespace design::blocks::backend {
+namespace oddf::simulator::common::backend::blocks {
 
-class IConstantBlock : public virtual IObject {
+template<typename functionT, bool identityValue>
+class BooleanFlat : public SimulatorBlockBase {
 
 public:
 
-	// Reads the data of the constant value of the output identified by the
-	// parameter `index`.
-	virtual void Read(size_t index, void *buffer, size_t count) const = 0;
+	BooleanFlat(design::blocks::backend::IDesignBlock const &designBlock);
 
-	// Returns the size of the data of the constant value of the output
-	// identified by the parameter `index`.
-	virtual size_t GetSize(size_t index) const = 0;
+	BooleanFlat(design::blocks::backend::IDesignBlock const *designBlock, size_t numberOfInputs);
+
+	virtual std::string GetDesignPathHint() const override;
+
+	virtual void Elaborate(ISimulatorElaborationContext &context) override;
+
+	virtual void GenerateCode(ISimulatorCodeGenerationContext &context) override;
 };
 
-} // namespace design::blocks::backend
-
-template<>
-struct Iid<design::blocks::backend::IConstantBlock> {
-
-	static constexpr Uid value = { 0xde952010, 0x8672, 0x4886, 0x98, 0x33, 0xdb, 0xdc, 0x76, 0x3, 0xdb, 0x5b };
-};
-
-} // namespace oddf
+} // namespace oddf::simulator::common::backend::blocks

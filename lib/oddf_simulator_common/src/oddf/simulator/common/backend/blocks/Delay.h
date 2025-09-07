@@ -54,10 +54,6 @@ public:
 
 class DelayEndpoint : public SimulatorBlockBase {
 
-private:
-
-	design::blocks::backend::IDesignBlock const *m_originalDesignBlock;
-
 public:
 
 	DelayEndpoint(design::blocks::backend::IDesignBlock const *originalDesignBlock);
@@ -80,7 +76,6 @@ class DelayStartingPoint : public SimulatorBlockBase {
 
 private:
 
-	design::blocks::backend::IDesignBlock const *m_originalDesignBlock;
 	design::NodeType m_type;
 	DelayEndpoint const &m_endpoint;
 	DelayState<T> *m_pState;
@@ -88,8 +83,7 @@ private:
 public:
 
 	DelayStartingPoint(design::blocks::backend::IDesignBlock const *originalDesignBlock, design::NodeType const &type, DelayEndpoint const &endpoint) :
-		SimulatorBlockBase(0, { type }),
-		m_originalDesignBlock(originalDesignBlock),
+		SimulatorBlockBase(originalDesignBlock, 0, { type }),
 		m_type(type),
 		m_endpoint(endpoint),
 		m_pState()
@@ -101,7 +95,7 @@ public:
 
 	virtual std::string GetDesignPathHint() const override
 	{
-		return m_originalDesignBlock->GetPath().ToString() + ":StartingPoint";
+		return GetDesignBlockReference()->GetPath().ToString() + ":StartingPoint";
 	}
 
 	virtual void Elaborate(ISimulatorElaborationContext &) override { }

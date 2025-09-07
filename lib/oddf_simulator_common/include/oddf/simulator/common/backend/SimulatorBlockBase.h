@@ -58,11 +58,15 @@ public:
 	SimulatorBlockBase(design::blocks::backend::IDesignBlock const &designBlock);
 
 	// Constructs the simulator block with given numbers of inputs and outputs.
-	SimulatorBlockBase(size_t numberOfInputs, std::initializer_list<design::NodeType> outputNodeTypes);
+	// The reference to a design block `designBlock` is optional and can be
+	// `nullptr`.
+	SimulatorBlockBase(design::blocks::backend::IDesignBlock const *designBlock,
+		size_t numberOfInputs, std::initializer_list<design::NodeType> outputNodeTypes);
 
 	virtual ~SimulatorBlockBase();
 
-	// If the block was created based on a design block, will return a pointer to that design block, or nullptr otherwise.
+	// If the block was created based on a design block, will return a pointer
+	// to that design block, or nullptr otherwise.
 	design::blocks::backend::IDesignBlock const *GetDesignBlockReference() const;
 
 	// Returns a ListView into the list of inputs of this block.
@@ -74,7 +78,8 @@ public:
 	// Returns whether the block has connections to other block.
 	bool HasConnections() const noexcept;
 
-	// Elaborates the block. Implementation should check the number of inputs and outputs and their types.
+	// Elaborates the block. Implementation should check the number of inputs
+	// and outputs and their types.
 	virtual void Elaborate(ISimulatorElaborationContext &context) = 0;
 
 	// Generates the final code for this block. Default implementation throws.
@@ -83,7 +88,8 @@ public:
 	// Finalises the block. Default implementation does nothing.
 	virtual void Finalise(ISimulatorFinalisationContext &context);
 
-	// Returns a descriptive string (similar to a resource path) that hints at the origin of this simulator block in the original design.
+	// Returns a descriptive string (similar to a resource path) that hints at
+	// the origin of this simulator block in the original design.
 	virtual std::string GetDesignPathHint() const = 0;
 };
 

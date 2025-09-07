@@ -42,31 +42,15 @@ std::string DelayMaster::GetDesignPathHint() const
 
 void DelayMaster::Elaborate(ISimulatorElaborationContext &context)
 {
-	auto outputs = GetOutputsList();
-
-	size_t pathCount = outputs->GetSize();
-
-	if (pathCount != 1)
-		throw Exception(ExceptionCode::Unsupported);
-
-	auto type = outputs->Item(0).GetType();
-
-	if (!((type.GetTypeId() == design::NodeType::BOOLEAN)
-			|| (type.GetTypeId() == design::NodeType::FIXED_POINT)))
-		throw Exception(ExceptionCode::Unsupported);
-
-	for (size_t i = 1; i < pathCount; ++i)
-		if (outputs->Item(i).GetType() != type)
-			throw Exception(ExceptionCode::Unsupported);
-
 	auto inputs = GetInputsList();
+	auto inputsCount = inputs->GetSize();
 
-	if (inputs->GetSize() != pathCount)
-		throw Exception(ExceptionCode::Unsupported);
+	auto outputs = GetOutputsList();
+	auto outputsCount = outputs->GetSize();
 
-	for (size_t i = 0; i < pathCount; ++i)
-		if (inputs->Item(i).GetType() != type)
-			throw Exception(ExceptionCode::Unsupported);
+	// The numbers of inputs and outputs must match
+	if (outputsCount != inputsCount)
+		throw Exception(ExceptionCode::Unexpected);
 
 	/*
 
@@ -81,36 +65,43 @@ void DelayMaster::Elaborate(ISimulatorElaborationContext &context)
 
 	*/
 
-	auto &endpoint = context.AddSimulatorBlock<DelayEndpoint>(GetDesignBlockReference());
+	for (size_t i = 0; i < inputsCount; ++i) {
 
-	SimulatorBlockBase *startingPoint;
+		auto const &input = inputs->Item(i);
+		auto const &output = outputs->Item(i);
 
-	switch (type.GetTypeId()) {
+		auto type = input.GetType();
 
-		case design::NodeType::BOOLEAN: {
+		// The input and output types must be identical
+		if (type != output.GetType())
+			throw Exception(ExceptionCode::Unexpected);
 
-			startingPoint = &context.AddSimulatorBlock<DelayStartingPoint<types::Boolean>>(
-				GetDesignBlockReference(),
-				type,
-				endpoint);
-			break;
+		auto &endpoint = context.AddSimulatorBlock<DelayEndpoint>(GetDesignBlockReference());
+		SimulatorBlockBase *startingPoint;
+
+		switch (type.GetTypeId()) {
+
+			case design::NodeType::BOOLEAN: {
+
+				startingPoint = &context.AddSimulatorBlock<DelayStartingPoint<types::Boolean>>(
+					GetDesignBlockReference(), type, endpoint);
+				break;
+			}
+
+			case design::NodeType::FIXED_POINT: {
+
+				startingPoint = &context.AddSimulatorBlock<DelayStartingPoint<types::FixedPoint>>(
+					GetDesignBlockReference(), type, endpoint);
+				break;
+			}
+
+			default:
+				throw Exception(ExceptionCode::NotImplemented);
 		}
 
-		case design::NodeType::FIXED_POINT: {
-
-			startingPoint = &context.AddSimulatorBlock<DelayStartingPoint<types::FixedPoint>>(
-				GetDesignBlockReference(),
-				type,
-				endpoint);
-			break;
-		}
-
-		default:
-			throw Exception(ExceptionCode::NotImplemented);
+		context.TransferConnectivity(inputs->Item(i), endpoint.GetInputsList()->Item(0));
+		context.TransferConnectivity(outputs->Item(i), startingPoint->GetOutputsList()->Item(0));
 	}
-
-	context.TransferConnectivity(inputs->Item(0), endpoint.GetInputsList()->Item(0));
-	context.TransferConnectivity(outputs->Item(0), startingPoint->GetOutputsList()->Item(0));
 
 	context.RemoveThisBlock();
 }

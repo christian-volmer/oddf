@@ -30,14 +30,13 @@
 namespace oddf::simulator::common::backend::blocks {
 
 DelayEndpoint::DelayEndpoint(design::blocks::backend::IDesignBlock const *originalDesignBlock) :
-	SimulatorBlockBase(1, {}),
-	m_originalDesignBlock(originalDesignBlock)
+	SimulatorBlockBase(originalDesignBlock, 1, {})
 {
 }
 
 std::string DelayEndpoint::GetDesignPathHint() const
 {
-	return m_originalDesignBlock->GetPath().ToString() + ":Endpoint";
+	return GetDesignBlockReference()->GetPath().ToString() + ":EndPoint";
 }
 
 } // namespace oddf::simulator::common::backend::blocks

@@ -30,15 +30,15 @@
 
 namespace oddf::simulator::common::backend::blocks {
 
-//
-// ConstantMaster
-//
+class Constant : public SimulatorBlockBase {
 
-class ConstantMaster : public SimulatorBlockBase {
+private:
+
+	design::NodeType::TypeId m_typeId;
 
 public:
 
-	ConstantMaster(design::blocks::backend::IDesignBlock const &designBlock);
+	Constant(design::blocks::backend::IDesignBlock const &designBlock);
 
 	virtual std::string GetDesignPathHint() const override;
 

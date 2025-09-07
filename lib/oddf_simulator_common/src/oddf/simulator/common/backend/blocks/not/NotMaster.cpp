@@ -70,7 +70,7 @@ private:
 
 	static void InstructionFunction(NotInstruction *instruction)
 	{
-		instruction->m_result.m_value = (~(instruction->m_operand->m_value)) & 1;
+		instruction->m_result.m_value = instruction->m_operand->m_value == 0;
 	}
 
 public:

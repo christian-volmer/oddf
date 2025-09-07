@@ -59,7 +59,8 @@ public:
 	std::vector<SimulatorBlockOutput> m_outputs;
 
 	Internals(SimulatorBlockBase &owningBlock, design::blocks::backend::IDesignBlock const &designBlock);
-	Internals(SimulatorBlockBase &owningBlock, size_t numberOfInputs, std::initializer_list<design::NodeType> outputNodeTypes);
+	Internals(SimulatorBlockBase &owningBlock, design::blocks::backend::IDesignBlock const *designBlock,
+		size_t numberOfInputs, std::initializer_list<design::NodeType> outputNodeTypes);
 
 	Internals(Internals const &) = delete;
 	void operator=(Internals const &) = delete;

@@ -140,8 +140,7 @@ private:
 
 public:
 
-	static void
-	InstructionFunction(PlusInstruction *instruction)
+	static void InstructionFunction(PlusInstruction *instruction)
 	{
 		types::FixedPoint &result = instruction->GetRecord<types::FixedPoint>(instruction->m_resultOffset);
 		instruction->Operate(result);

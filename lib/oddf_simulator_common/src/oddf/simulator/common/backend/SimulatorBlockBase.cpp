@@ -40,8 +40,9 @@ SimulatorBlockBase::SimulatorBlockBase(design::blocks::backend::IDesignBlock con
 {
 }
 
-SimulatorBlockBase::SimulatorBlockBase(size_t numberOfInputs, std::initializer_list<design::NodeType> outputNodeTypes) :
-	m_internals(new Internals(*this, numberOfInputs, outputNodeTypes))
+SimulatorBlockBase::SimulatorBlockBase(design::blocks::backend::IDesignBlock const *designBlock,
+	size_t numberOfInputs, std::initializer_list<design::NodeType> outputNodeTypes) :
+	m_internals(new Internals(*this, designBlock, numberOfInputs, outputNodeTypes))
 {
 }
 

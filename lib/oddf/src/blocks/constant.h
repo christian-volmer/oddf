@@ -52,8 +52,16 @@ private:
 
 	void GetProperties(dfx::generator::Properties &properties) const override;
 
-	virtual void Read(void *buffer, size_t bufferSize) const override;
-	virtual size_t GetSize() const noexcept override;
+	//
+	// IConstantBlock implementation
+	//
+
+	virtual void Read(size_t index, void *buffer, size_t bufferSize) const override;
+	virtual size_t GetSize(size_t index) const override;
+
+	//
+	// IObject implementation
+	//
 
 	virtual void *GetInterface(oddf::Uid const &iid) override;
 

@@ -34,6 +34,8 @@
 #include <oddf/utility/GetInterfaceHelper.h>
 #include <oddf/utility/ChangeInterface.h>
 
+#include <chrono>
+
 namespace b = dfx::blocks;
 namespace sim = oddf::simulator;
 
@@ -41,28 +43,51 @@ namespace oddf::simulator {
 
 class Logger : public virtual backend::IClockable {
 
-	struct Node {
+	struct LoggedNode {
 
-		bool m_valid;
-		std::map<std::string, Node> m_children;
+		std::string m_path;
+		std::unique_ptr<simulator::backend::ISimulatorNodeAccess> m_nodeAccess;
 
-		Node() :
-			m_valid(false),
-			m_children()
+		LoggedNode(std::string const &path, std::unique_ptr<simulator::backend::ISimulatorNodeAccess> &&nodeAccess) :
+			m_path(path), m_nodeAccess(std::move(nodeAccess))
 		{
 		}
 	};
 
 	backend::ISimulatorAccess &m_simulatorAccess;
-	IHierarchyNode const &m_nodesRoot;
+
+	size_t m_clockCycle;
+	std::vector<LoggedNode> m_loggedNodes;
+
+	void TraverseNodeHierarchy(ResourcePath const &currentHierarchyPath, IHierarchyNode const &currentHierarchyNode)
+	{
+		for (auto simulatorNodes = utility::ChangeInterface<simulator::backend::INamedSimulatorNodeEnumerator>(currentHierarchyNode.GetData());
+			simulatorNodes->MoveNext();) {
+
+			auto &simulatorNode = simulatorNodes->GetCurrent();
+
+			auto simulatorNodePath = currentHierarchyPath.Append(ResourcePath::Parse(simulatorNode.GetName()));
+			m_loggedNodes.emplace_back(simulatorNodePath.ToString(), simulatorNode.GetAccess());
+		}
+
+		for (auto children = currentHierarchyNode.GetChildren(); children->MoveNext();) {
+
+			auto const &childHierarchyNode = children->GetCurrent();
+			auto childPath = currentHierarchyPath.Append(ResourcePath::Parse(childHierarchyNode.GetName()));
+			TraverseNodeHierarchy(childPath, childHierarchyNode);
+		}
+	}
 
 public:
 
 	Logger(ISimulator &simulator) :
 		m_simulatorAccess(simulator.GetSimulatorAccess()),
-		m_nodesRoot(m_simulatorAccess.GetNodeHierarchyRoot())
+		m_clockCycle(0),
+		m_loggedNodes()
 	{
 		m_simulatorAccess.RegisterClockable(*this);
+
+		TraverseNodeHierarchy({}, m_simulatorAccess.GetNodeHierarchyRoot());
 	}
 
 	virtual ~Logger()
@@ -72,33 +97,21 @@ public:
 
 	virtual void Clock() override
 	{
+		std::cout << "cycle = " << m_clockCycle << "\n";
+		for (auto const &loggedNode : m_loggedNodes) {
+
+			std::int64_t value;
+
+			loggedNode.m_nodeAccess->Read(&value, sizeof(value));
+
+			std::cout << "  " << loggedNode.m_path << " = " << value << "\n";
+		}
+		++m_clockCycle;
 	}
 
 	virtual void *GetInterface(Uid const &iid) override
 	{
 		return utility::GetInterfaceHelper<IObject, IClockable>::GetInterface(this, iid);
-	}
-
-	void Dump(std::string const &path, IHierarchyNode const &node)
-	{
-		std::string subPath = path + node.GetName() + "/";
-		std::cout << subPath << "\n";
-
-		for (auto nodes = utility::ChangeInterface<simulator::backend::INamedSimulatorNodeEnumerator>(node.GetData());
-			nodes->MoveNext();) {
-
-			auto &current = nodes->GetCurrent();
-
-			std::cout << "  " << current.GetName() << ": " << current.GetType().ToString() << "\n";
-		}
-
-		for (auto children = node.GetChildren(); children->MoveNext();)
-			Dump(subPath, children->GetCurrent());
-	}
-
-	void Dump()
-	{
-		Dump("", m_nodesRoot);
 	}
 };
 
@@ -109,8 +122,12 @@ int main()
 	/*
 
 	- Next steps
-	    - Comment new type support functions
 	    - Logging
+	        - Busses
+	        - Name aliases
+	        - Export as CSV
+	        - Print as table
+	        - Get as vector
 	    - Busses
 	        - Evtl. PRBS mit Bus-Bools, Bus-AND und Reduction-XOR?
 	        - Full Boolean support (NOT, AND, OR, XOR, Reduction, ==, !=)
@@ -133,67 +150,38 @@ int main()
 
 	dfx::Design design;
 
-	dfx::node<dynfix> value = b::Signal(oddf::design::NodeType::FixedPoint(false, 19, 0), "ValueSignal");
+	// Coefficients of exponent 1 .. n (the x^0 term is ignored).
+	// Here: 1 + x^2 + x^5
+	dfx::bus<bool> taps = b::Constant({ false, true, false, false, true });
 
-	bool _tempBit = false;
-	dfx::node<bool> bit = b::Signal(&_tempBit, "BoolSignal");
+	dfx::bus<bool> reset = b::RepeatedConstant(false, taps.width());
+	reset[0] = !b::Delay(b::Constant(true));
 
-	{
-		DFX_INSTANCE("instance1", "my_module");
+	dfx::forward_bus<bool> state(taps.width());
 
-		b::Probe(b::Delay(100 - value), "ValueProbe");
-		b::Probe(b::Delay(bit), "BoolProbe");
+	state <<= b::Or(b::Delay(dfx::join(
+						b::ReductionXor(b::And(state, taps)),
+						state.most())),
+		reset);
 
-		{
-			DFX_INSTANCE("sub_instance1", "my_module2");
-			b::Probe(!b::Constant(true), "ConstantBoolProbe");
-		}
-	}
-
-	//
-	// Simulation
-	//
+	auto *outProbe = b::Probe(state[0], "out");
 
 	sim::common::Simulator simulator;
-
 	simulator.TranslateDesign(design);
 
-	std::cout << " --- logger.Dump() --- \n";
+	auto out = sim::Probe<bool>(simulator, "out");
 
-	sim::Logger logger(simulator);
-	logger.Dump();
+	size_t len = (1 << taps.width()) - 1;
 
-	std::cout << "\n";
+	for (int j = 0; j < 3; ++j) {
 
-	// return 0;
+		for (int i = 0; i < len; ++i) {
 
-	auto valueSignal = sim::Signal<int>(simulator, "/ValueSignal");
-	auto boolSignal = sim::Signal<bool>(simulator, "/BoolSignal");
-
-	auto valueProbe = sim::Probe<int>(simulator, "/instance1/ValueProbe");
-	auto boolProbe = sim::Probe<bool>(simulator, "/instance1/BoolProbe");
-	auto constantBoolProbe = sim::Probe<bool>(simulator, "/instance1/sub_instance1/ConstantBoolProbe");
-
-	std::cout << "ValueProbe         = " << valueProbe.GetValue() << "\n";
-	std::cout << "BoolProbe          = " << boolProbe.GetValue() << "\n";
-	std::cout << "ConstantBoolProbe  = " << constantBoolProbe.GetValue() << "\n";
-	std::cout << "\n";
-
-	std::cout << "Setting ValueSignal = 123 and BoolSignal = true.\n";
-
-	valueSignal.SetValue(123);
-	boolSignal.SetValue(true);
-
-	std::cout << "ValueProbe = " << valueProbe.GetValue() << "\n";
-	std::cout << "BoolProbe  = " << boolProbe.GetValue() << "\n";
-	std::cout << "\n";
-
-	std::cout << "Toggling clock.\n";
-
-	simulator.Run(1);
-
-	std::cout << "ValueProbe = " << valueProbe.GetValue() << "\n";
-	std::cout << "BoolProbe  = " << boolProbe.GetValue() << "\n";
+			std::cout << out.GetValue();
+			simulator.Run(1);
+		}
+		std::cout << "\n";
+	}
 
 	return 0;
 }

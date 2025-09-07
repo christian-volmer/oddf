@@ -43,19 +43,30 @@ std::string Identity::GetDesignPathHint() const
 void Identity::Elaborate(ISimulatorElaborationContext &context)
 {
 	auto inputs = GetInputsList();
+	auto inputsCount = inputs->GetSize();
+
 	auto outputs = GetOutputsList();
+	auto outputsCount = outputs->GetSize();
 
-	if (inputs->GetSize() != 1)
-		throw Exception(ExceptionCode::Unsupported);
-
-	if (outputs->GetSize() != 1)
-		throw Exception(ExceptionCode::Unsupported);
-
-	if (inputs->Item(0).GetType() != outputs->Item(0).GetType())
+	// The numbers of inputs and outputs must match
+	if (outputsCount != inputsCount)
 		throw Exception(ExceptionCode::Unexpected);
 
-	context.TransferConnectivity(outputs->Item(0), inputs->Item(0).GetDriver());
-	context.DisconnectInput(inputs->Item(0));
+	for (size_t i = 0; i < inputsCount; ++i) {
+
+		auto const &input = inputs->Item(i);
+		auto const &output = outputs->Item(i);
+
+		if (input.IsConnected()) {
+
+			if (input.GetType() != output.GetType())
+				throw Exception(ExceptionCode::Unexpected);
+
+			context.TransferConnectivity(output, input.GetDriver());
+			context.DisconnectInput(input);
+		}
+	}
+
 	context.RemoveThisBlock();
 }
 

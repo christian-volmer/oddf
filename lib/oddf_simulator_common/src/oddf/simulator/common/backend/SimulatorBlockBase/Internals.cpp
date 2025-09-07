@@ -79,11 +79,11 @@ SimulatorBlockBase::Internals::Internals(SimulatorBlockBase &owningBlock, design
 		*utility::MakeContainerView(std::as_const(designBlockOutputNodeTypes)));
 }
 
-SimulatorBlockBase::Internals::Internals(SimulatorBlockBase &owningBlock, size_t numberOfInputs, std::initializer_list<design::NodeType> outputNodeTypes) :
+SimulatorBlockBase::Internals::Internals(SimulatorBlockBase &owningBlock, design::blocks::backend::IDesignBlock const *designBlock, size_t numberOfInputs, std::initializer_list<design::NodeType> outputNodeTypes) :
 	m_component(nullptr),
 	m_visiting(false),
 	m_removed(false),
-	m_designBlockReference(nullptr),
+	m_designBlockReference(designBlock),
 	m_inputs(),
 	m_outputs()
 {

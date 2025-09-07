@@ -82,15 +82,24 @@ void *constant_block<T>::GetInterface(oddf::Uid const &iid)
 //
 
 template<>
-size_t constant_block<bool>::GetSize() const noexcept
+size_t constant_block<bool>::GetSize(size_t index) const
 {
+	if (index >= outputs.size())
+		throw oddf::Exception(oddf::ExceptionCode::Bounds);
+
 	return 1;
 }
 
 template<>
-void constant_block<bool>::Read(void *buffer, size_t bufferSize) const
+void constant_block<bool>::Read(size_t index, void *buffer, size_t bufferSize) const
 {
-	std::uint8_t value = outputs.front().value ? 1 : 0;
+	if (index >= outputs.size())
+		throw oddf::Exception(oddf::ExceptionCode::Bounds);
+
+	auto output = outputs.cbegin();
+	std::advance(output, index);
+
+	std::uint8_t value = output->value ? 1 : 0;
 	oddf::utility::BooleanCopy(buffer, bufferSize, &value, sizeof(value));
 }
 
@@ -99,19 +108,30 @@ void constant_block<bool>::Read(void *buffer, size_t bufferSize) const
 //
 
 template<>
-size_t constant_block<dynfix>::GetSize() const noexcept
+size_t constant_block<dynfix>::GetSize(size_t index) const
 {
-	auto wordWidth = outputs.front().GetNodeType().GetWordWidth();
+	if (index >= outputs.size())
+		throw oddf::Exception(oddf::ExceptionCode::Bounds);
+
+	auto output = outputs.cbegin();
+	std::advance(output, index);
+
+	auto wordWidth = output->GetNodeType().GetWordWidth();
 	return (wordWidth + 7) / 8;
 }
 
 template<>
-void constant_block<dynfix>::Read(void *buffer, size_t bufferSize) const
+void constant_block<dynfix>::Read(size_t index, void *buffer, size_t bufferSize) const
 {
-	auto const &output = outputs.front();
-	auto nodeType = output.GetNodeType();
+	if (index >= outputs.size())
+		throw oddf::Exception(oddf::ExceptionCode::Bounds);
 
-	oddf::utility::IntegerCopy(buffer, bufferSize, &outputs.front().value.data, sizeof(dynfix::data),
+	auto output = outputs.cbegin();
+	std::advance(output, index);
+
+	auto nodeType = output->GetNodeType();
+
+	oddf::utility::IntegerCopy(buffer, bufferSize, &output->value.data, sizeof(dynfix::data),
 		nodeType.GetWordWidth(), nodeType.IsSigned());
 }
 
@@ -120,14 +140,20 @@ void constant_block<dynfix>::Read(void *buffer, size_t bufferSize) const
 //
 
 template<typename T>
-size_t constant_block<T>::GetSize() const noexcept
+size_t constant_block<T>::GetSize(size_t index) const
 {
-	return 0;
+	if (index >= outputs.size())
+		throw oddf::Exception(oddf::ExceptionCode::Bounds);
+
+	throw oddf::Exception(oddf::ExceptionCode::NotImplemented);
 }
 
 template<typename T>
-void constant_block<T>::Read(void * /* buffer */, size_t /* count */) const
+void constant_block<T>::Read(size_t index, void * /* buffer */, size_t /* count */) const
 {
+	if (index >= outputs.size())
+		throw oddf::Exception(oddf::ExceptionCode::Bounds);
+
 	throw oddf::Exception(oddf::ExceptionCode::NotImplemented);
 }
 

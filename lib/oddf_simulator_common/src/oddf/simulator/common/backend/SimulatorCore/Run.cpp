@@ -34,10 +34,10 @@ void SimulatorCore::Run(size_t cycles)
 
 	for (size_t i = 0; i < cycles; ++i) {
 
-		EnsureAllComponentStatesValid();
-
 		for (auto &clockable : m_clockables)
 			clockable->Clock();
+
+		EnsureAllComponentStatesValid();
 	}
 }
 
