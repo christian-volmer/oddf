@@ -30,10 +30,6 @@
 
 namespace oddf::simulator::common::backend::blocks {
 
-//
-// Identity
-//
-
 class Identity : public SimulatorBlockBase {
 
 public:

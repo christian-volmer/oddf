@@ -24,22 +24,30 @@
 
 */
 
-#include "DelayEndpoint.h"
+#include "DelayElement.h"
+
+#include <oddf/simulator/common/backend/types/Support.h>
+
+#include <oddf/Exception.h>
 
 namespace oddf::simulator::common::backend::blocks {
 
-DelayEndpoint::DelayEndpoint(design::blocks::backend::IDesignBlock const *originalDesignBlock, ptrdiff_t busIndex) :
-	SimulatorBlockBase(originalDesignBlock, 1, {}),
-	m_busIndex(busIndex)
+DelayElement::DelayElement(design::NodeType const &nodeType) :
+	m_nodeType(nodeType),
+	m_source(),
+	m_dataSize(types::GetDataSizeForNodeType(nodeType)),
+	m_state()
 {
+	m_state.reset(new unsigned char[m_dataSize] {});
 }
 
-std::string DelayEndpoint::GetDesignPathHint() const
+void DelayElement::Clock()
 {
-	if (m_busIndex >= 0)
-		return GetDesignBlockReference()->GetPath().ToString() + "<" + std::to_string(m_busIndex) + ">:Endpoint";
-	else
-		return GetDesignBlockReference()->GetPath().ToString() + ":Endpoint";
+	memcpy(m_state.get(), m_source, m_dataSize);
+
+	// This is an internal data consistency check, which should never fire.
+	if (!types::CheckDataIntegrityForNodeType(m_state.get(), m_dataSize, m_nodeType))
+		throw Exception(ExceptionCode::Unexpected);
 }
 
 } // namespace oddf::simulator::common::backend::blocks

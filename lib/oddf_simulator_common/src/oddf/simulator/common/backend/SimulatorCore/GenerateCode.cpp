@@ -31,6 +31,7 @@
 
 #include <cassert>
 #include <vector>
+#include <iostream>
 
 namespace oddf::simulator::common::backend {
 
@@ -289,6 +290,8 @@ void SimulatorCore::GenerateCode()
 				assert(block);
 				m_currentBlock = block;
 
+				std::cout << "  '" << block->GetDesignPathHint() << "'\n";
+
 				if (m_currentInstruction) {
 
 					assert(m_currentInstructionCommitted);
@@ -329,10 +332,16 @@ void SimulatorCore::GenerateCode()
 		}
 	};
 
+	size_t componentIndex = 0;
 	for (auto &component : m_components) {
 
+		std::cout << "Generating code for component " << componentIndex << "\n";
 		auto codeGenerationContext = CodeGenerationContext(component);
 		codeGenerationContext.GenerateCode();
+
+		std::cout << "  Code size = " << component.m_code.size() << " bytes\n\n";
+
+		++componentIndex;
 	}
 }
 

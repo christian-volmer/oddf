@@ -20,27 +20,30 @@
 
 /*
 
-    Simulator support for the 'identity' design block.
+    <no description>
 
 */
 
-#include "Identity.h"
+#include "../Delay.h"
+
+#include "DelayEndpoint.h"
+#include "DelayStartingPoint.h"
 
 #include <oddf/Exception.h>
 
 namespace oddf::simulator::common::backend::blocks {
 
-Identity::Identity(design::blocks::backend::IDesignBlock const &designBlock) :
+Delay::Delay(design::blocks::backend::IDesignBlock const &designBlock) :
 	SimulatorBlockBase(designBlock)
 {
 }
 
-std::string Identity::GetDesignPathHint() const
+std::string Delay::GetDesignPathHint() const
 {
 	return GetDesignBlockReference()->GetPath().ToString();
 }
 
-void Identity::Elaborate(ISimulatorElaborationContext &context)
+void Delay::Elaborate(ISimulatorElaborationContext &context)
 {
 	auto inputs = GetInputsList();
 	auto inputsCount = inputs->GetSize();
@@ -52,19 +55,42 @@ void Identity::Elaborate(ISimulatorElaborationContext &context)
 	if (outputsCount != inputsCount)
 		throw Exception(ExceptionCode::Unexpected);
 
+	/*
+
+	Elaboration splits the original delay block ('Delay') up into two
+	separate blocks: a starting point, which acts as the source of the value
+	stored in the flip-flop; and an endpoint, which accepts the value for
+	storage.
+
+	The following code detaches all original connections from the 'Delay'
+	and attaches them to the newly created 'DelayStartingPoint' and
+	'DelayEndpoint' simulator blocks.
+
+	*/
+
 	for (size_t i = 0; i < inputsCount; ++i) {
 
 		auto const &input = inputs->Item(i);
 		auto const &output = outputs->Item(i);
 
-		if (input.IsConnected()) {
+		if (!output.HasConnections()) {
 
-			if (input.GetType() != output.GetType())
-				throw Exception(ExceptionCode::Unexpected);
-
-			context.TransferConnectivity(output, input.GetDriver());
 			context.DisconnectInput(input);
+			continue;
 		}
+
+		auto type = input.GetType();
+
+		// The input and output types must be identical
+		if (type != output.GetType())
+			throw Exception(ExceptionCode::Unexpected);
+
+		ptrdiff_t busIndex = inputsCount == 1 ? -1 : i;
+		auto &endpoint = context.AddSimulatorBlock<DelayEndpoint>(GetDesignBlockReference(), busIndex);
+		auto &startingPoint = context.AddSimulatorBlock<DelayStartingPoint>(GetDesignBlockReference(), type, endpoint);
+
+		context.TransferConnectivity(inputs->Item(i), endpoint.GetInputsList()->Item(0));
+		context.TransferConnectivity(outputs->Item(i), startingPoint.GetOutputsList()->Item(0));
 	}
 
 	context.RemoveThisBlock();

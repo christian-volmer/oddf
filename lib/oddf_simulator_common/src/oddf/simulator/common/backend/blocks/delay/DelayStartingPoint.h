@@ -24,34 +24,33 @@
 
 */
 
-#include "Temp.h"
+#pragma once
 
-#include <oddf/Exception.h>
+#include "DelayEndpoint.h"
+#include "DelayElement.h"
 
 namespace oddf::simulator::common::backend::blocks {
 
-TempMaster::TempMaster(design::blocks::backend::IDesignBlock const &designBlock) :
-	SimulatorBlockBase(designBlock)
-{
-}
+class DelayStartingPoint : public SimulatorBlockBase {
 
-std::string TempMaster::GetDesignPathHint() const
-{
-	return GetDesignBlockReference()->GetPath().ToString();
-}
+private:
 
-void TempMaster::Elaborate(ISimulatorElaborationContext &context)
-{
-	// Temp blocks become disconnected during elaboration and should eventually
-	// remove themselves.
+	DelayEndpoint const &m_endpoint;
+	DelayElement *m_delayElement;
 
-	if (!HasConnections())
-		context.RemoveThisBlock();
-}
+public:
 
-void TempMaster::GenerateCode(ISimulatorCodeGenerationContext & /* context */)
-{
-	throw Exception(ExceptionCode::Fail, "The simulator encountered a temporary design block that is still connected to other blocks in the design. Did you forget to assign a `forward_node`?");
-}
+	DelayStartingPoint(design::blocks::backend::IDesignBlock const *originalDesignBlock,
+		design::NodeType const &type, DelayEndpoint const &endpoint);
+
+	DelayStartingPoint(DelayStartingPoint const &) = delete;
+	void operator=(DelayStartingPoint const &) = delete;
+
+	virtual std::string GetDesignPathHint() const override;
+
+	virtual void Elaborate(ISimulatorElaborationContext &) override { }
+	virtual void GenerateCode(ISimulatorCodeGenerationContext &context) override;
+	virtual void Finalise(ISimulatorFinalisationContext &) override;
+};
 
 } // namespace oddf::simulator::common::backend::blocks

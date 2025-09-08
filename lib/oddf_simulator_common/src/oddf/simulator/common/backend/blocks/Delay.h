@@ -28,91 +28,17 @@
 
 #include <oddf/simulator/common/backend/SimulatorBlockBase.h>
 
-#include "delay/DelayObject.h"
-#include "../instructions/Copy.h"
-
 namespace oddf::simulator::common::backend::blocks {
 
-//
-// DelayMaster
-//
-
-class DelayMaster : public SimulatorBlockBase {
+class Delay : public SimulatorBlockBase {
 
 public:
 
-	DelayMaster(design::blocks::backend::IDesignBlock const &designBlock);
+	Delay(design::blocks::backend::IDesignBlock const &designBlock);
 
 	virtual std::string GetDesignPathHint() const override;
 
 	virtual void Elaborate(ISimulatorElaborationContext &context) override;
-};
-
-//
-// DelayEndpoint
-//
-
-class DelayEndpoint : public SimulatorBlockBase {
-
-public:
-
-	DelayEndpoint(design::blocks::backend::IDesignBlock const *originalDesignBlock);
-
-	DelayEndpoint(DelayEndpoint const &) = delete;
-	void operator=(DelayEndpoint const &) = delete;
-
-	virtual std::string GetDesignPathHint() const override;
-
-	virtual void Elaborate(ISimulatorElaborationContext &) override { }
-	virtual void GenerateCode(ISimulatorCodeGenerationContext &) override { }
-};
-
-//
-// DelayStartingPoint
-//
-
-template<typename T>
-class DelayStartingPoint : public SimulatorBlockBase {
-
-private:
-
-	design::NodeType m_type;
-	DelayEndpoint const &m_endpoint;
-	DelayState<T> *m_pState;
-
-public:
-
-	DelayStartingPoint(design::blocks::backend::IDesignBlock const *originalDesignBlock, design::NodeType const &type, DelayEndpoint const &endpoint) :
-		SimulatorBlockBase(originalDesignBlock, 0, { type }),
-		m_type(type),
-		m_endpoint(endpoint),
-		m_pState()
-	{
-	}
-
-	DelayStartingPoint(DelayStartingPoint<T> const &) = delete;
-	void operator=(DelayStartingPoint<T> const &) = delete;
-
-	virtual std::string GetDesignPathHint() const override
-	{
-		return GetDesignBlockReference()->GetPath().ToString() + ":StartingPoint";
-	}
-
-	virtual void Elaborate(ISimulatorElaborationContext &) override { }
-
-	virtual void GenerateCode(ISimulatorCodeGenerationContext &context) override
-	{
-		auto &delayObject = context.GetOrConstructComponentObject<DelayObject>(context.GetCurrentComponent());
-
-		m_pState = delayObject.AddState<T>(m_type);
-
-		instructions::CopyInstruction<T>::Emit(context, GetOutputsList()->Item(0), m_pState->ReferenceToCurrent());
-	}
-
-	virtual void Finalise(ISimulatorFinalisationContext &) override
-	{
-		m_pState->SetSource(m_endpoint.GetInputsList()->Item(0).GetDriver().GetPointer<T>());
-	}
 };
 
 } // namespace oddf::simulator::common::backend::blocks

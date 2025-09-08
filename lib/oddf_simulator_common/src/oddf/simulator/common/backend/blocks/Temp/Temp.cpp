@@ -24,22 +24,34 @@
 
 */
 
-#include "DelayEndpoint.h"
+#include "../Temp.h"
+
+#include <oddf/Exception.h>
 
 namespace oddf::simulator::common::backend::blocks {
 
-DelayEndpoint::DelayEndpoint(design::blocks::backend::IDesignBlock const *originalDesignBlock, ptrdiff_t busIndex) :
-	SimulatorBlockBase(originalDesignBlock, 1, {}),
-	m_busIndex(busIndex)
+Temp::Temp(design::blocks::backend::IDesignBlock const &designBlock) :
+	SimulatorBlockBase(designBlock)
 {
 }
 
-std::string DelayEndpoint::GetDesignPathHint() const
+std::string Temp::GetDesignPathHint() const
 {
-	if (m_busIndex >= 0)
-		return GetDesignBlockReference()->GetPath().ToString() + "<" + std::to_string(m_busIndex) + ">:Endpoint";
-	else
-		return GetDesignBlockReference()->GetPath().ToString() + ":Endpoint";
+	return GetDesignBlockReference()->GetPath().ToString();
+}
+
+void Temp::Elaborate(ISimulatorElaborationContext &context)
+{
+	// Temp blocks become disconnected during elaboration and should eventually
+	// remove themselves.
+
+	if (!HasConnections())
+		context.RemoveThisBlock();
+}
+
+void Temp::GenerateCode(ISimulatorCodeGenerationContext & /* context */)
+{
+	throw Exception(ExceptionCode::Fail, "The simulator encountered a temporary design block that is still connected to other blocks in the design. Did you forget to assign a `forward_node`?");
 }
 
 } // namespace oddf::simulator::common::backend::blocks

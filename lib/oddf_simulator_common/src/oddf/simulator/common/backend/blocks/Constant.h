@@ -34,16 +34,21 @@ class Constant : public SimulatorBlockBase {
 
 private:
 
+	// The type-id of the constant values.
 	design::NodeType::TypeId m_typeId;
+
+	// The bus index within the original block, or -1 if this is not applicable.
+	ptrdiff_t m_busIndex;
 
 public:
 
 	Constant(design::blocks::backend::IDesignBlock const &designBlock);
 
+	Constant(design::blocks::backend::IDesignBlock const *designBlock, design::NodeType const &type, ptrdiff_t busIndex);
+
 	virtual std::string GetDesignPathHint() const override;
 
 	virtual void Elaborate(ISimulatorElaborationContext &context) override;
-
 	virtual void GenerateCode(ISimulatorCodeGenerationContext &context) override;
 };
 

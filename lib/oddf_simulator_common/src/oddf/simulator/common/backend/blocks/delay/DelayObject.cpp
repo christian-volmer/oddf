@@ -24,22 +24,37 @@
 
 */
 
-#include "DelayEndpoint.h"
+#include "DelayObject.h"
+
+#include <oddf/utility/GetInterfaceHelper.h>
 
 namespace oddf::simulator::common::backend::blocks {
 
-DelayEndpoint::DelayEndpoint(design::blocks::backend::IDesignBlock const *originalDesignBlock, ptrdiff_t busIndex) :
-	SimulatorBlockBase(originalDesignBlock, 1, {}),
-	m_busIndex(busIndex)
+DelayObject::DelayObject(ISimulatorComponent &component) :
+	m_component(component),
+	m_states()
 {
 }
 
-std::string DelayEndpoint::GetDesignPathHint() const
+DelayElement *DelayObject::AddDelayElement(design::NodeType const &nodeType)
 {
-	if (m_busIndex >= 0)
-		return GetDesignBlockReference()->GetPath().ToString() + "<" + std::to_string(m_busIndex) + ">:Endpoint";
-	else
-		return GetDesignBlockReference()->GetPath().ToString() + ":Endpoint";
+	auto state = std::unique_ptr<DelayElement>(new DelayElement(nodeType));
+	auto *ptr = state.get();
+	m_states.emplace_back(std::move(state));
+	return ptr;
+}
+
+void *DelayObject::GetInterface(Uid const &iid)
+{
+	return utility::GetInterfaceHelper<IObject, IClockable>::GetInterface(this, iid);
+}
+
+void DelayObject::Clock()
+{
+	for (auto &state : m_states)
+		state->Clock();
+
+	m_component.InvalidateState();
 }
 
 } // namespace oddf::simulator::common::backend::blocks

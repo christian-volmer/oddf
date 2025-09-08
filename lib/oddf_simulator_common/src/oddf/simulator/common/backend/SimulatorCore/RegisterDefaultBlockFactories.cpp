@@ -46,11 +46,11 @@ void SimulatorCore::RegisterDefaultBlockFactories()
 {
 	using design::blocks::backend::DesignBlockClass;
 
-	RegisterSimulatorBlockFactory(DesignBlockClass("and"), MakeSimulatorBlockFactory<blocks::BooleanFlat<std::logical_and<bool>, true>>());
-	RegisterSimulatorBlockFactory(DesignBlockClass("or"), MakeSimulatorBlockFactory<blocks::BooleanFlat<std::logical_or<bool>, false>>());
-	RegisterSimulatorBlockFactory(DesignBlockClass("xor"), MakeSimulatorBlockFactory<blocks::BooleanFlat<std::not_equal_to<bool>, false>>());
+	RegisterSimulatorBlockFactory(DesignBlockClass("and"), MakeSimulatorBlockFactory<blocks::BooleanFlat>());
+	RegisterSimulatorBlockFactory(DesignBlockClass("or"), MakeSimulatorBlockFactory<blocks::BooleanFlat>());
+	RegisterSimulatorBlockFactory(DesignBlockClass("xor"), MakeSimulatorBlockFactory<blocks::BooleanFlat>());
 	RegisterSimulatorBlockFactory(DesignBlockClass("constant"), MakeSimulatorBlockFactory<blocks::Constant>());
-	RegisterSimulatorBlockFactory(DesignBlockClass("delay"), MakeSimulatorBlockFactory<blocks::DelayMaster>());
+	RegisterSimulatorBlockFactory(DesignBlockClass("delay"), MakeSimulatorBlockFactory<blocks::Delay>());
 	RegisterSimulatorBlockFactory(DesignBlockClass("floor_cast"), MakeSimulatorBlockFactory<blocks::FloorCast>());
 	RegisterSimulatorBlockFactory(DesignBlockClass("identity"), MakeSimulatorBlockFactory<blocks::Identity>());
 	RegisterSimulatorBlockFactory(DesignBlockClass("negate"), MakeSimulatorBlockFactory<blocks::Minus>());
@@ -58,7 +58,7 @@ void SimulatorCore::RegisterDefaultBlockFactories()
 	RegisterSimulatorBlockFactory(DesignBlockClass("plus"), MakeSimulatorBlockFactory<blocks::Plus>());
 	RegisterSimulatorBlockFactory(DesignBlockClass("probe"), MakeSimulatorBlockFactory<blocks::Probe>());
 	RegisterSimulatorBlockFactory(DesignBlockClass("signal"), MakeSimulatorBlockFactory<blocks::Signal>());
-	RegisterSimulatorBlockFactory(DesignBlockClass("temporary"), MakeSimulatorBlockFactory<blocks::TempMaster>());
+	RegisterSimulatorBlockFactory(DesignBlockClass("temporary"), MakeSimulatorBlockFactory<blocks::Temp>());
 }
 
 } // namespace oddf::simulator::common::backend

@@ -26,82 +26,22 @@
 
 #pragma once
 
-#include <oddf/simulator/common/backend/Types.h>
+#include "DelayElement.h"
+
 #include <oddf/simulator/common/backend/ISimulatorComponent.h>
 
 #include <oddf/simulator/backend/IClockable.h>
 
-#include <oddf/utility/GetInterfaceHelper.h>
+#include <oddf/design/NodeType.h>
+
 #include <oddf/Clsid.h>
 
 #include <list>
-#include <cassert>
+#include <memory>
 
 namespace oddf {
 
 namespace simulator::common::backend::blocks {
-
-class DelayStateBase {
-
-protected:
-
-	DelayStateBase() = default;
-
-public:
-
-	virtual ~DelayStateBase() = default;
-
-	DelayStateBase(DelayStateBase const &) = delete;
-	void operator=(DelayStateBase const &) = delete;
-
-	virtual void Clock() = 0;
-};
-
-template<typename simulatorT>
-class DelayState : public DelayStateBase {
-
-private:
-
-	using dataT = typename simulatorT::DataType;
-
-	design::NodeType m_nodeType;
-	void const *m_source;
-	size_t m_dataSize;
-	std::unique_ptr<unsigned char[]> m_state;
-
-	virtual void Clock() override
-	{
-		memcpy(m_state.get(), m_source, m_dataSize);
-
-		// This is an internal data consistency check, which should never fire.
-		if (!simulatorT::CheckDataIntegrity(m_state.get(), m_dataSize, m_nodeType))
-			throw Exception(ExceptionCode::Unexpected);
-	}
-
-public:
-
-	DelayState(design::NodeType const &nodeType) :
-		m_nodeType(nodeType),
-		m_source(),
-		m_dataSize(simulatorT::GetDataSize(nodeType)),
-		m_state()
-	{
-		m_state.reset(new unsigned char[m_dataSize] {});
-	}
-
-	DelayState(DelayState const &) = delete;
-	void operator=(DelayState const &) = delete;
-
-	dataT const &ReferenceToCurrent()
-	{
-		return *reinterpret_cast<dataT const *>(m_state.get());
-	}
-
-	void SetSource(simulatorT const *source)
-	{
-		m_source = source->GetData();
-	}
-};
 
 class DelayObject : public virtual simulator::backend::IClockable {
 
@@ -109,45 +49,25 @@ private:
 
 	ISimulatorComponent &m_component;
 
-	std::list<std::unique_ptr<DelayStateBase>> m_states;
+	std::list<std::unique_ptr<DelayElement>> m_states;
 
 public:
 
-	DelayObject(ISimulatorComponent &component) :
-		m_component(component),
-		m_states()
-	{
-	}
+	DelayObject(ISimulatorComponent &component);
 
-	template<typename T>
-	DelayState<T> *AddState(design::NodeType const &nodeType)
-	{
-		auto state = std::make_unique<DelayState<T>>(nodeType);
-		auto *ptr = state.get();
-		m_states.emplace_back(std::move(state));
-		return ptr;
-	}
+	DelayElement *AddDelayElement(design::NodeType const &nodeType);
 
 	//
-	// IObject
+	// IObject member
 	//
 
-	virtual void *GetInterface(Uid const &iid) override
-	{
-		return utility::GetInterfaceHelper<IObject, IClockable>::GetInterface(this, iid);
-	}
+	virtual void *GetInterface(Uid const &iid) override;
 
 	//
-	// IClockable
+	// IClockable member
 	//
 
-	virtual void Clock() override
-	{
-		for (auto &state : m_states)
-			state->Clock();
-
-		m_component.InvalidateState();
-	}
+	virtual void Clock() override;
 };
 
 } // namespace simulator::common::backend::blocks

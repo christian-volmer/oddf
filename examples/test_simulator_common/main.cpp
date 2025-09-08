@@ -122,15 +122,18 @@ int main()
 	/*
 
 	- Next steps
+	    - Simulator options
+	        - Elaboration options (split bus instances yes/no) --> see e.g., BooleanFlat::Elaborate
+	        - Verbosity
+	    - Reporting: general, info, warning, error
 	    - Logging
 	        - Busses
-	        - Name aliases
+	        - Name aliases?
 	        - Export as CSV
 	        - Print as table
-	        - Get as vector
-	    - Busses
-	        - Evtl. PRBS mit Bus-Bools, Bus-AND und Reduction-XOR?
-	        - Full Boolean support (NOT, AND, OR, XOR, Reduction, ==, !=)
+	        - Get as vector (or copy to std container)
+	    - Boolean
+	        ==, !=, decide, select, replace
 	    - Assertions?
 	    - Models?
 	    - Fixed-Point arithmetic
@@ -164,7 +167,7 @@ int main()
 						state.most())),
 		reset);
 
-	auto *outProbe = b::Probe(state[0], "out");
+	b::Probe(state[0], "out");
 
 	sim::common::Simulator simulator;
 	simulator.TranslateDesign(design);
@@ -175,7 +178,7 @@ int main()
 
 	for (int j = 0; j < 3; ++j) {
 
-		for (int i = 0; i < len; ++i) {
+		for (size_t i = 0; i < len; ++i) {
 
 			std::cout << out.GetValue();
 			simulator.Run(1);

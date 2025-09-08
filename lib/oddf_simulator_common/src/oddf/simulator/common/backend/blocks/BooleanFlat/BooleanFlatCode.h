@@ -20,26 +20,18 @@
 
 /*
 
-    <no description>
+    Simulator support for the Boolean operators AND, OR, and XOR.
 
 */
 
-#include "DelayEndpoint.h"
+#pragma once
+
+#include <oddf/simulator/common/backend/ISimulatorCodeGenerationContext.h>
 
 namespace oddf::simulator::common::backend::blocks {
 
-DelayEndpoint::DelayEndpoint(design::blocks::backend::IDesignBlock const *originalDesignBlock, ptrdiff_t busIndex) :
-	SimulatorBlockBase(originalDesignBlock, 1, {}),
-	m_busIndex(busIndex)
-{
-}
-
-std::string DelayEndpoint::GetDesignPathHint() const
-{
-	if (m_busIndex >= 0)
-		return GetDesignBlockReference()->GetPath().ToString() + "<" + std::to_string(m_busIndex) + ">:Endpoint";
-	else
-		return GetDesignBlockReference()->GetPath().ToString() + ":Endpoint";
-}
+void EmitBooleanAndCode(ISimulatorCodeGenerationContext &context, size_t inputsCount, size_t outputsCount);
+void EmitBooleanOrCode(ISimulatorCodeGenerationContext &context, size_t inputsCount, size_t outputsCount);
+void EmitBooleanXorCode(ISimulatorCodeGenerationContext &context, size_t inputsCount, size_t outputsCount);
 
 } // namespace oddf::simulator::common::backend::blocks

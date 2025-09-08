@@ -28,23 +28,30 @@
 
 #include <oddf/simulator/common/backend/SimulatorBlockBase.h>
 
-#include <functional>
-
 namespace oddf::simulator::common::backend::blocks {
 
-template<typename functionT, bool identityValue>
 class BooleanFlat : public SimulatorBlockBase {
+
+private:
+
+	enum class OperationName;
+
+	// The name of the boolean function (AND, OR, XOR)
+	OperationName m_operationName;
+
+	// The bus index within the original block, or -1 if this is not applicable.
+	ptrdiff_t m_busIndex;
 
 public:
 
 	BooleanFlat(design::blocks::backend::IDesignBlock const &designBlock);
 
-	BooleanFlat(design::blocks::backend::IDesignBlock const *designBlock, size_t numberOfInputs);
+	BooleanFlat(design::blocks::backend::IDesignBlock const *designBlock, OperationName operationName,
+		size_t numberOfInputs, ptrdiff_t busIndex);
 
 	virtual std::string GetDesignPathHint() const override;
 
 	virtual void Elaborate(ISimulatorElaborationContext &context) override;
-
 	virtual void GenerateCode(ISimulatorCodeGenerationContext &context) override;
 };
 

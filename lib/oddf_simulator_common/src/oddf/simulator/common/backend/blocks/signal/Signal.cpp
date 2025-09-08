@@ -28,7 +28,7 @@
 
 #include "SignalAccessObject.h"
 
-#include "../../instructions/Copy.h"
+#include "../Copy/CopyCode.h"
 
 #include <oddf/design/blocks/backend/ITaggedBlock.h>
 #include <oddf/Exception.h>
@@ -96,7 +96,7 @@ void Signal::GenerateCode(ISimulatorCodeGenerationContext &context)
 			auto &signalAccessObject = context.ConstructGlobalObject<SignalAccessObject<types::Boolean>>(objectName,
 				context.GetCurrentComponent(), type);
 
-			instructions::CopyInstruction<types::Boolean>::Emit(context, output, signalAccessObject.GetSource());
+			EmitCopyCode<types::Boolean>(context, output, &signalAccessObject.GetSource());
 			break;
 		}
 
@@ -105,7 +105,7 @@ void Signal::GenerateCode(ISimulatorCodeGenerationContext &context)
 			auto &signalAccessObject = context.ConstructGlobalObject<SignalAccessObject<types::FixedPoint>>(objectName,
 				context.GetCurrentComponent(), type);
 
-			instructions::CopyInstruction<types::FixedPoint>::Emit(context, output, signalAccessObject.GetSource());
+			EmitCopyCode<types::FixedPoint>(context, output, &signalAccessObject.GetSource());
 			break;
 		}
 

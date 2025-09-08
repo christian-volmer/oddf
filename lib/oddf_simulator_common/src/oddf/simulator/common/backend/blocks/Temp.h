@@ -32,15 +32,11 @@
 
 namespace oddf::simulator::common::backend::blocks {
 
-//
-// TempMaster
-//
-
-class TempMaster : public SimulatorBlockBase {
+class Temp : public SimulatorBlockBase {
 
 public:
 
-	TempMaster(design::blocks::backend::IDesignBlock const &designBlock);
+	Temp(design::blocks::backend::IDesignBlock const &designBlock);
 
 	virtual std::string GetDesignPathHint() const override;
 

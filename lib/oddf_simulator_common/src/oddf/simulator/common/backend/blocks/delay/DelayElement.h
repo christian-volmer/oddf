@@ -24,22 +24,45 @@
 
 */
 
-#include "DelayEndpoint.h"
+#pragma once
+
+#include <oddf/design/NodeType.h>
+
+#include <memory>
 
 namespace oddf::simulator::common::backend::blocks {
 
-DelayEndpoint::DelayEndpoint(design::blocks::backend::IDesignBlock const *originalDesignBlock, ptrdiff_t busIndex) :
-	SimulatorBlockBase(originalDesignBlock, 1, {}),
-	m_busIndex(busIndex)
-{
-}
+class DelayElement {
 
-std::string DelayEndpoint::GetDesignPathHint() const
-{
-	if (m_busIndex >= 0)
-		return GetDesignBlockReference()->GetPath().ToString() + "<" + std::to_string(m_busIndex) + ">:Endpoint";
-	else
-		return GetDesignBlockReference()->GetPath().ToString() + ":Endpoint";
-}
+private:
+
+	design::NodeType m_nodeType;
+	void const *m_source;
+	size_t m_dataSize;
+	std::unique_ptr<unsigned char[]> m_state;
+
+	friend class DelayObject;
+
+	DelayElement(design::NodeType const &nodeType);
+
+	void Clock();
+
+public:
+
+	DelayElement(DelayElement const &) = delete;
+	void operator=(DelayElement const &) = delete;
+
+	template<typename simulatorT>
+	typename simulatorT::DataType const *GetStateData() const
+	{
+		return reinterpret_cast<typename simulatorT::DataType const *>(m_state.get());
+	}
+
+	template<typename simulatorT>
+	void SetSource(simulatorT const *source)
+	{
+		m_source = source->GetData();
+	}
+};
 
 } // namespace oddf::simulator::common::backend::blocks

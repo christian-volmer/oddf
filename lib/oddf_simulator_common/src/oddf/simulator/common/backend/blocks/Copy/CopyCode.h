@@ -24,22 +24,16 @@
 
 */
 
-#include "DelayEndpoint.h"
+#pragma once
+
+#include <oddf/simulator/common/backend/ISimulatorCodeGenerationContext.h>
+
+#include <oddf/simulator/common/backend/SimulatorBlockOutput.h>
 
 namespace oddf::simulator::common::backend::blocks {
 
-DelayEndpoint::DelayEndpoint(design::blocks::backend::IDesignBlock const *originalDesignBlock, ptrdiff_t busIndex) :
-	SimulatorBlockBase(originalDesignBlock, 1, {}),
-	m_busIndex(busIndex)
-{
-}
-
-std::string DelayEndpoint::GetDesignPathHint() const
-{
-	if (m_busIndex >= 0)
-		return GetDesignBlockReference()->GetPath().ToString() + "<" + std::to_string(m_busIndex) + ">:Endpoint";
-	else
-		return GetDesignBlockReference()->GetPath().ToString() + ":Endpoint";
-}
+template<typename simulatorT>
+void EmitCopyCode(ISimulatorCodeGenerationContext &context, SimulatorBlockOutput const &output,
+	typename simulatorT::DataType const *source);
 
 } // namespace oddf::simulator::common::backend::blocks

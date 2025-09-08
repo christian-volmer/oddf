@@ -25,45 +25,70 @@
 */
 
 #include "../BooleanFlat.h"
+#include "BooleanFlatCode.h"
 
 #include <oddf/Exception.h>
 
-#include <cassert>
-
 namespace oddf::simulator::common::backend::blocks {
 
-// Explicit template implementation of AND, OR, and XOR
+enum class BooleanFlat::OperationName {
 
-template class BooleanFlat<std::logical_and<bool>, true>;
-template class BooleanFlat<std::logical_or<bool>, false>;
-template class BooleanFlat<std::not_equal_to<bool>, false>;
+	UNDEFINED = 0,
+	AND = 1,
+	OR = 2,
+	XOR = 3
+};
 
-template<typename functionT, bool identityValue>
-BooleanFlat<functionT, identityValue>::BooleanFlat(design::blocks::backend::IDesignBlock const &designBlock) :
-	SimulatorBlockBase(designBlock)
+BooleanFlat::BooleanFlat(design::blocks::backend::IDesignBlock const &designBlock) :
+	SimulatorBlockBase(designBlock),
+	m_operationName(OperationName::UNDEFINED),
+	m_busIndex(-1)
+{
+	auto blockClass = designBlock.GetClass();
+
+	if (blockClass == std::string("and"))
+		m_operationName = OperationName::AND;
+	else if (blockClass == std::string("or"))
+		m_operationName = OperationName::OR;
+	else if (blockClass == std::string("xor"))
+		m_operationName = OperationName::XOR;
+	else
+		throw Exception(ExceptionCode::Unexpected);
+}
+
+BooleanFlat::BooleanFlat(design::blocks::backend::IDesignBlock const *designBlock, OperationName operationName, size_t numberOfInputs, ptrdiff_t busIndex) :
+	SimulatorBlockBase(designBlock, numberOfInputs, { design::NodeType::Boolean() }),
+	m_operationName(operationName),
+	m_busIndex(busIndex)
 {
 }
 
-template<typename functionT, bool identityValue>
-BooleanFlat<functionT, identityValue>::BooleanFlat(design::blocks::backend::IDesignBlock const *designBlock, size_t numberOfInputs) :
-	SimulatorBlockBase(designBlock, numberOfInputs, { design::NodeType::Boolean() })
+std::string BooleanFlat::GetDesignPathHint() const
 {
+	if (m_busIndex >= 0)
+		return GetDesignBlockReference()->GetPath().ToString() + "<" + std::to_string(m_busIndex) + ">";
+	else
+		return GetDesignBlockReference()->GetPath().ToString();
 }
 
-template<typename functionT, bool identityValue>
-std::string BooleanFlat<functionT, identityValue>::GetDesignPathHint() const
-{
-	return GetDesignBlockReference()->GetPath().ToString();
-}
-
-template<typename functionT, bool identityValue>
-void BooleanFlat<functionT, identityValue>::Elaborate(ISimulatorElaborationContext &context)
+void BooleanFlat::Elaborate(ISimulatorElaborationContext &context)
 {
 	auto inputs = GetInputsList();
 	auto inputsCount = inputs->GetSize();
 
 	auto outputs = GetOutputsList();
 	auto outputsCount = outputs->GetSize();
+
+	if (outputsCount == 0) {
+
+		if (inputsCount == 0) {
+
+			context.RemoveThisBlock();
+			return;
+		}
+
+		throw Exception(ExceptionCode::Unexpected);
+	}
 
 	/*
 
@@ -74,7 +99,7 @@ void BooleanFlat<functionT, identityValue>::Elaborate(ISimulatorElaborationConte
 
 	*/
 
-	if (outputsCount == 0 || (inputsCount % outputsCount != 0))
+	if (inputsCount % outputsCount != 0)
 		throw Exception(ExceptionCode::Unexpected);
 
 	/*
@@ -98,6 +123,8 @@ void BooleanFlat<functionT, identityValue>::Elaborate(ISimulatorElaborationConte
 	     contiguous block of bytes without any alignment padding. This has not been
 	     implemented yet.
 
+	    TODO: introduce simulator options (elaboration option to control the behaviour)
+
 	*/
 
 	if (outputsCount > 1) {
@@ -106,76 +133,55 @@ void BooleanFlat<functionT, identityValue>::Elaborate(ISimulatorElaborationConte
 
 		for (size_t i = 0; i < outputsCount; ++i) {
 
-			auto &block = context.AddSimulatorBlock<BooleanFlat>(GetDesignBlockReference(), inputsPerOperator);
+			auto &newBlock = context.AddSimulatorBlock<BooleanFlat>(GetDesignBlockReference(), m_operationName, inputsPerOperator, i);
 
 			for (size_t j = 0; j < inputsPerOperator; ++j)
-				context.TransferConnectivity(inputs->Item(inputsPerOperator * i + j), block.GetInputsList()->Item(j));
+				context.TransferConnectivity(inputs->Item(inputsPerOperator * i + j), newBlock.GetInputsList()->Item(j));
 
-			context.TransferConnectivity(outputs->Item(i), block.GetOutputsList()->Item(0));
+			context.TransferConnectivity(outputs->Item(i), newBlock.GetOutputsList()->Item(0));
 		}
 
 		context.RemoveThisBlock();
 		return;
 	}
 
-	for (auto outputsEnumerator = outputs->GetEnumerator(); outputsEnumerator->MoveNext();)
-		if (outputsEnumerator->GetCurrent().GetType().GetTypeId() != design::NodeType::BOOLEAN)
+	if (!HasConnections()) {
+
+		context.RemoveThisBlock();
+		return;
+	}
+
+	for (size_t i = 0; i < inputsCount; ++i)
+		if (inputs->Item(i).GetType().GetTypeId() != design::NodeType::BOOLEAN)
 			throw Exception(ExceptionCode::Unexpected);
 
-	for (auto inputsEnumerator = inputs->GetEnumerator(); inputsEnumerator->MoveNext();)
-		if (inputsEnumerator->GetCurrent().GetType().GetTypeId() != design::NodeType::BOOLEAN)
+	for (size_t i = 0; i < outputsCount; ++i)
+		if (outputs->Item(i).GetType().GetTypeId() != design::NodeType::BOOLEAN)
 			throw Exception(ExceptionCode::Unexpected);
 }
 
-template<typename functionT, bool identityValue>
-struct BooleanFlatInstruction : public SimulatorInstruction {
-
-	types::Boolean m_result;
-	size_t m_operandCount;
-	types::Boolean const *m_operands[1];
-
-private:
-
-	void Operate()
-	{
-		bool result = identityValue;
-		for (size_t i = 0; i < m_operandCount; ++i)
-			result = functionT {}(result, m_operands[i]->m_value != 0);
-
-		m_result.m_value = result;
-	}
-
-	static void InstructionFunction(BooleanFlatInstruction *instruction)
-	{
-		instruction->Operate();
-	}
-
-public:
-
-	static void Emit(ISimulatorCodeGenerationContext &context, size_t outputIndex, size_t inputsStartingIndex, size_t inputsCount)
-	{
-		context.StartInstructionVariadic(BooleanFlatInstruction::InstructionFunction, &BooleanFlatInstruction::m_operands, inputsCount);
-		auto *instruction = context.CommitInstruction<BooleanFlatInstruction>();
-
-		instruction->m_operandCount = inputsCount;
-
-		for (size_t i = 0; i < inputsCount; ++i)
-			context.BindInputReference(inputsStartingIndex + i, instruction->m_operands[i]);
-
-		context.BindOutput(outputIndex, instruction->m_result);
-	}
-};
-
-template<typename functionT, bool identityValue>
-void BooleanFlat<functionT, identityValue>::GenerateCode(ISimulatorCodeGenerationContext &context)
+void BooleanFlat::GenerateCode(ISimulatorCodeGenerationContext &context)
 {
 	size_t inputsCount = GetInputsList()->GetSize();
 	size_t outputsCount = GetOutputsList()->GetSize();
 
-	auto inputsPerOperator = inputsCount / outputsCount;
+	switch (m_operationName) {
 
-	for (size_t i = 0; i < outputsCount; ++i)
-		BooleanFlatInstruction<functionT, identityValue>::Emit(context, i, inputsPerOperator * i, inputsPerOperator);
+		case OperationName::AND:
+			EmitBooleanAndCode(context, inputsCount, outputsCount);
+			break;
+
+		case OperationName::OR:
+			EmitBooleanOrCode(context, inputsCount, outputsCount);
+			break;
+
+		case OperationName::XOR:
+			EmitBooleanXorCode(context, inputsCount, outputsCount);
+			break;
+
+		default:
+			throw Exception(ExceptionCode::Unexpected);
+	}
 }
 
 } // namespace oddf::simulator::common::backend::blocks

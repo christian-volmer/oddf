@@ -24,22 +24,13 @@
 
 */
 
-#include "DelayEndpoint.h"
+#pragma once
 
-namespace oddf::simulator::common::backend::blocks {
+#include <oddf/design/NodeType.h>
 
-DelayEndpoint::DelayEndpoint(design::blocks::backend::IDesignBlock const *originalDesignBlock, ptrdiff_t busIndex) :
-	SimulatorBlockBase(originalDesignBlock, 1, {}),
-	m_busIndex(busIndex)
-{
-}
+namespace oddf::simulator::common::backend::types {
 
-std::string DelayEndpoint::GetDesignPathHint() const
-{
-	if (m_busIndex >= 0)
-		return GetDesignBlockReference()->GetPath().ToString() + "<" + std::to_string(m_busIndex) + ">:Endpoint";
-	else
-		return GetDesignBlockReference()->GetPath().ToString() + ":Endpoint";
-}
+size_t GetDataSizeForNodeType(design::NodeType const &nodeType);
+bool CheckDataIntegrityForNodeType(void const *buffer, size_t bufferSize, design::NodeType const &nodeType);
 
-} // namespace oddf::simulator::common::backend::blocks
+} // namespace oddf::simulator::common::backend::types
