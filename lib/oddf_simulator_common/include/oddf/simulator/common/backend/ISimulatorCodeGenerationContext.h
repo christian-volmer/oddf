@@ -59,9 +59,9 @@ public:
 			reinterpret_cast<SimulatorInstructionFunction<> *>(instructionFunction));
 	}
 
-	template<typename instructionT, typename memberT>
+	template<typename instructionT, typename memberT, typename useInstructionT = instructionT>
 	void StartInstructionVariadic(SimulatorInstructionFunction<instructionT> *instructionFunction,
-		memberT (instructionT::*variaticMember)[1], size_t count)
+		memberT (useInstructionT::*variaticMember)[1], size_t count)
 	{
 		static_assert(std::is_base_of_v<SimulatorInstruction, instructionT>);
 
@@ -81,9 +81,9 @@ public:
 			reinterpret_cast<SimulatorInstructionFunction<> *>(instructionFunction));
 	}
 
-	template<typename instructionT>
+	template<typename instructionT, typename useInstructionT = instructionT>
 	void StartInstructionWithOutput(SimulatorInstructionFunction<instructionT> *instructionFunction,
-		types::FixedPoint(instructionT::*outputMember), size_t elementCount)
+		types::FixedPoint(useInstructionT::*outputMember), size_t elementCount)
 	{
 		static_assert(std::is_base_of_v<SimulatorInstruction, instructionT>);
 

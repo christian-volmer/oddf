@@ -24,26 +24,26 @@
 
 */
 
-#include "../Minus.h"
-#include "MinusCode.h"
+#include "../Not.h"
+#include "NotCode.h"
 
 #include <oddf/Exception.h>
 
 namespace oddf::simulator::common::backend::blocks {
 
-Minus::Minus(design::blocks::backend::IDesignBlock const &designBlock) :
+Not::Not(design::blocks::backend::IDesignBlock const &designBlock) :
 	SimulatorBlockBase(designBlock),
 	m_busIndex(-1)
 {
 }
 
-Minus::Minus(design::blocks::backend::IDesignBlock const *designBlock, design::NodeType const &type, ptrdiff_t busIndex) :
-	SimulatorBlockBase(designBlock, 1, { type }),
+Not::Not(design::blocks::backend::IDesignBlock const *designBlock, ptrdiff_t busIndex) :
+	SimulatorBlockBase(designBlock, 1, { design::NodeType::Boolean() }),
 	m_busIndex(busIndex)
 {
 }
 
-std::string Minus::GetDesignPathHint() const
+std::string Not::GetDesignPathHint() const
 {
 	if (m_busIndex >= 0)
 		return GetDesignBlockReference()->GetPath().ToString() + "<" + std::to_string(m_busIndex) + ">";
@@ -51,7 +51,7 @@ std::string Minus::GetDesignPathHint() const
 		return GetDesignBlockReference()->GetPath().ToString();
 }
 
-void Minus::Elaborate(ISimulatorElaborationContext &context)
+void Not::Elaborate(ISimulatorElaborationContext &context)
 {
 	auto inputs = GetInputsList();
 	auto inputsCount = inputs->GetSize();
@@ -67,7 +67,7 @@ void Minus::Elaborate(ISimulatorElaborationContext &context)
 
 		for (size_t i = 0; i < outputsCount; ++i) {
 
-			auto &newBlock = context.AddSimulatorBlock<Minus>(GetDesignBlockReference(), outputs->Item(i).GetType(), i);
+			auto &newBlock = context.AddSimulatorBlock<Not>(GetDesignBlockReference(), i);
 
 			context.TransferConnectivity(inputs->Item(i), newBlock.GetInputsList()->Item(0));
 			context.TransferConnectivity(outputs->Item(i), newBlock.GetOutputsList()->Item(0));
@@ -85,17 +85,17 @@ void Minus::Elaborate(ISimulatorElaborationContext &context)
 
 	for (size_t i = 0; i < outputsCount; ++i) {
 
-		if (inputs->Item(i).GetType().GetTypeId() != design::NodeType::FIXED_POINT)
+		if (inputs->Item(i).GetType().GetTypeId() != design::NodeType::BOOLEAN)
 			throw Exception(ExceptionCode::Unexpected);
 
-		if (outputs->Item(i).GetType().GetTypeId() != design::NodeType::FIXED_POINT)
+		if (outputs->Item(i).GetType().GetTypeId() != design::NodeType::BOOLEAN)
 			throw Exception(ExceptionCode::Unexpected);
 	}
 }
 
-void Minus::GenerateCode(ISimulatorCodeGenerationContext &context)
+void Not::GenerateCode(ISimulatorCodeGenerationContext &context)
 {
-	EmitMinusCode(context, *GetOutputsList(), *GetInputsList());
+	EmitNotCode(context, *GetOutputsList(), *GetInputsList());
 }
 
 } // namespace oddf::simulator::common::backend::blocks

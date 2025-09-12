@@ -62,12 +62,6 @@ void Constant::Elaborate(ISimulatorElaborationContext &context)
 	auto outputs = GetOutputsList();
 	auto outputsCount = outputs->GetSize();
 
-	if (outputsCount == 0) {
-
-		context.RemoveThisBlock();
-		return;
-	}
-
 	// See comment in the `Elaborate` function of the `BooleanFlat` class.
 	if (outputsCount > 1) {
 

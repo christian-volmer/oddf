@@ -50,8 +50,6 @@ struct BooleanFlatInstructionBase : public SimulatorInstruction {
 template<typename functionT, bool identityValue>
 struct BooleanFlatInstruction : public BooleanFlatInstructionBase {
 
-	using BooleanFlatInstructionBase::m_operands;
-
 	void Operate()
 	{
 		bool result = identityValue;
@@ -74,20 +72,19 @@ using BooleanXorInstruction = BooleanFlatInstruction<std::not_equal_to<bool>, fa
 template<typename T>
 BooleanFlatInstructionBase *CreateBooleanFlatInstruction(ISimulatorCodeGenerationContext &context, size_t inputsCount)
 {
-	// THe static_cast should not be necessary. Bug in GCC?
-	using variadicMemberT = types::Boolean const *(T::*)[1];
-
-	context.StartInstructionVariadic<T>(T::InstructionFunction, static_cast<variadicMemberT>(&T::m_operands), inputsCount);
+	context.StartInstructionVariadic<T>(T::InstructionFunction, &T::m_operands, inputsCount);
 	return context.CommitInstruction<T>();
 }
 
-void EmitBooleanFlatCode(OperationName operationName, ISimulatorCodeGenerationContext &context, size_t inputsCount,
-	size_t outputsCount)
+void EmitBooleanFlatCode(OperationName operationName, ISimulatorCodeGenerationContext &context,
+	IListView<SimulatorBlockOutput const &> const &outputs, IListView<SimulatorBlockInput const &> const &inputs)
 {
-	size_t inputsPerInstruction = inputsCount / outputsCount;
+	size_t outputsCount = outputs.GetSize();
+	size_t inputsPerInstruction = inputs.GetSize() / outputsCount;
 
-	size_t inputsStartIndex = 0;
-	for (size_t outputIndex = 0; outputIndex < outputsCount; ++outputIndex) {
+	for (size_t i = 0; i < outputsCount; ++i) {
+
+		auto const &output = outputs.Item(i);
 
 		BooleanFlatInstructionBase *instruction;
 
@@ -111,28 +108,32 @@ void EmitBooleanFlatCode(OperationName operationName, ISimulatorCodeGenerationCo
 
 		instruction->m_operandCount = inputsPerInstruction;
 
-		for (size_t i = 0; i < inputsPerInstruction; ++i)
-			context.BindInputReference(inputsStartIndex + i, instruction->m_operands[i]);
+		for (size_t j = 0; j < inputsPerInstruction; ++j) {
 
-		context.BindOutput(outputIndex, instruction->m_result);
+			auto const &input = inputs.Item(i * inputsPerInstruction + j);
+			context.BindInputReference(input.GetIndex(), instruction->m_operands[j]);
+		}
 
-		inputsStartIndex += inputsPerInstruction;
+		context.BindOutput(output.GetIndex(), instruction->m_result);
 	}
 }
 
-void EmitBooleanAndCode(ISimulatorCodeGenerationContext &context, size_t inputsCount, size_t outputsCount)
+void EmitBooleanAndCode(ISimulatorCodeGenerationContext &context, IListView<SimulatorBlockOutput const &> const &outputs,
+	IListView<SimulatorBlockInput const &> const &inputs)
 {
-	EmitBooleanFlatCode(OperationName::AND, context, inputsCount, outputsCount);
+	EmitBooleanFlatCode(OperationName::AND, context, outputs, inputs);
 }
 
-void EmitBooleanOrCode(ISimulatorCodeGenerationContext &context, size_t inputsCount, size_t outputsCount)
+void EmitBooleanOrCode(ISimulatorCodeGenerationContext &context, IListView<SimulatorBlockOutput const &> const &outputs,
+	IListView<SimulatorBlockInput const &> const &inputs)
 {
-	EmitBooleanFlatCode(OperationName::OR, context, inputsCount, outputsCount);
+	EmitBooleanFlatCode(OperationName::OR, context, outputs, inputs);
 }
 
-void EmitBooleanXorCode(ISimulatorCodeGenerationContext &context, size_t inputsCount, size_t outputsCount)
+void EmitBooleanXorCode(ISimulatorCodeGenerationContext &context, IListView<SimulatorBlockOutput const &> const &outputs,
+	IListView<SimulatorBlockInput const &> const &inputs)
 {
-	EmitBooleanFlatCode(OperationName::XOR, context, inputsCount, outputsCount);
+	EmitBooleanFlatCode(OperationName::XOR, context, outputs, inputs);
 }
 
 } // namespace oddf::simulator::common::backend::blocks

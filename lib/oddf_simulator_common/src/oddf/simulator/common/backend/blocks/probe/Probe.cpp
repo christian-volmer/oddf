@@ -31,8 +31,6 @@
 #include <oddf/design/blocks/backend/ITaggedBlock.h>
 #include <oddf/Exception.h>
 
-#include <cassert>
-
 namespace oddf::simulator::common::backend::blocks {
 
 Probe::Probe(design::blocks::backend::IDesignBlock const &designBlock) :
@@ -48,15 +46,28 @@ std::string Probe::GetDesignPathHint() const
 
 void Probe::Elaborate(ISimulatorElaborationContext &context)
 {
-	auto outputs = GetOutputsList();
-
-	if (outputs->GetSize() != 0)
-		throw Exception(ExceptionCode::Unsupported);
-
 	auto inputs = GetInputsList();
+	auto inputsCount = inputs->GetSize();
 
-	if (inputs->GetSize() != 1)
+	auto outputs = GetOutputsList();
+	auto outputsCount = outputs->GetSize();
+
+	if (inputsCount != 1)
 		throw Exception(ExceptionCode::Unsupported);
+
+	if (outputsCount != 0)
+		throw Exception(ExceptionCode::Unexpected);
+
+	if (!HasConnections()) {
+
+		// TODO: print warning
+
+		// We have to remove the block because without a driven input we
+		// cannot determine its type.
+
+		context.RemoveThisBlock();
+		return;
+	}
 
 	auto typeId = inputs->Item(0).GetType().GetTypeId();
 
@@ -93,8 +104,6 @@ void Probe::Finalise(ISimulatorFinalisationContext &context)
 	object name ':probes/<parent path of probe block>/<probe tag>'
 
 	*/
-
-	assert(!m_probeTag.empty());
 
 	auto blockPath = this->GetDesignBlockReference()->GetPath().Parent();
 

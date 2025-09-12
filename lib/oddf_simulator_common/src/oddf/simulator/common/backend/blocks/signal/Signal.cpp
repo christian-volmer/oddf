@@ -47,10 +47,22 @@ std::string Signal::GetDesignPathHint() const
 
 void Signal::Elaborate(ISimulatorElaborationContext &)
 {
-	auto outputs = GetOutputsList();
+	auto inputs = GetInputsList();
+	auto inputsCount = inputs->GetSize();
 
-	if (outputs->GetSize() != 1)
+	auto outputs = GetOutputsList();
+	auto outputsCount = outputs->GetSize();
+
+	if (outputsCount != 1)
 		throw Exception(ExceptionCode::Unsupported);
+
+	if (inputsCount != 0)
+		throw Exception(ExceptionCode::Unexpected);
+
+	if (!HasConnections()) {
+
+		// TODO: print warning
+	}
 
 	auto typeId = outputs->Item(0).GetType().GetTypeId();
 
@@ -63,11 +75,6 @@ void Signal::Elaborate(ISimulatorElaborationContext &)
 		default:
 			throw Exception(ExceptionCode::Unsupported);
 	}
-
-	auto inputs = GetInputsList();
-
-	if (inputs->GetSize() != 0)
-		throw Exception(ExceptionCode::Unsupported);
 }
 
 void Signal::GenerateCode(ISimulatorCodeGenerationContext &context)

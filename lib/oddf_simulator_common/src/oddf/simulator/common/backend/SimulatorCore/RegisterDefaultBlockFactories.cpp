@@ -54,7 +54,7 @@ void SimulatorCore::RegisterDefaultBlockFactories()
 	RegisterSimulatorBlockFactory(DesignBlockClass("floor_cast"), MakeSimulatorBlockFactory<blocks::FloorCast>());
 	RegisterSimulatorBlockFactory(DesignBlockClass("identity"), MakeSimulatorBlockFactory<blocks::Identity>());
 	RegisterSimulatorBlockFactory(DesignBlockClass("negate"), MakeSimulatorBlockFactory<blocks::Minus>());
-	RegisterSimulatorBlockFactory(DesignBlockClass("not"), MakeSimulatorBlockFactory<blocks::NotMaster>());
+	RegisterSimulatorBlockFactory(DesignBlockClass("not"), MakeSimulatorBlockFactory<blocks::Not>());
 	RegisterSimulatorBlockFactory(DesignBlockClass("plus"), MakeSimulatorBlockFactory<blocks::Plus>());
 	RegisterSimulatorBlockFactory(DesignBlockClass("probe"), MakeSimulatorBlockFactory<blocks::Probe>());
 	RegisterSimulatorBlockFactory(DesignBlockClass("signal"), MakeSimulatorBlockFactory<blocks::Signal>());

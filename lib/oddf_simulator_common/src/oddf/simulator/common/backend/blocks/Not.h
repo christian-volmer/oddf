@@ -30,20 +30,21 @@
 
 namespace oddf::simulator::common::backend::blocks {
 
-//
-// NotMaster
-//
+class Not : public SimulatorBlockBase {
 
-class NotMaster : public SimulatorBlockBase {
+private:
+
+	// The bus index within the original block, or -1 if this is not applicable.
+	ptrdiff_t m_busIndex;
 
 public:
 
-	NotMaster(design::blocks::backend::IDesignBlock const &designBlock);
+	Not(design::blocks::backend::IDesignBlock const &designBlock);
+	Not(design::blocks::backend::IDesignBlock const *designBlock, ptrdiff_t busIndex);
 
 	virtual std::string GetDesignPathHint() const override;
 
 	virtual void Elaborate(ISimulatorElaborationContext &context) override;
-
 	virtual void GenerateCode(ISimulatorCodeGenerationContext &context) override;
 };
 

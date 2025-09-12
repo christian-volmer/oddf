@@ -28,10 +28,20 @@
 
 #include <oddf/simulator/common/backend/ISimulatorCodeGenerationContext.h>
 
+#include <oddf/simulator/common/backend/SimulatorBlockInput.h>
+#include <oddf/simulator/common/backend/SimulatorBlockOutput.h>
+
+#include <oddf/IListView.h>
+
 namespace oddf::simulator::common::backend::blocks {
 
-void EmitBooleanAndCode(ISimulatorCodeGenerationContext &context, size_t inputsCount, size_t outputsCount);
-void EmitBooleanOrCode(ISimulatorCodeGenerationContext &context, size_t inputsCount, size_t outputsCount);
-void EmitBooleanXorCode(ISimulatorCodeGenerationContext &context, size_t inputsCount, size_t outputsCount);
+void EmitBooleanAndCode(ISimulatorCodeGenerationContext &context, IListView<SimulatorBlockOutput const &> const &outputs,
+	IListView<SimulatorBlockInput const &> const &inputs);
+
+void EmitBooleanOrCode(ISimulatorCodeGenerationContext &context, IListView<SimulatorBlockOutput const &> const &outputs,
+	IListView<SimulatorBlockInput const &> const &inputs);
+
+void EmitBooleanXorCode(ISimulatorCodeGenerationContext &context, IListView<SimulatorBlockOutput const &> const &outputs,
+	IListView<SimulatorBlockInput const &> const &inputs);
 
 } // namespace oddf::simulator::common::backend::blocks

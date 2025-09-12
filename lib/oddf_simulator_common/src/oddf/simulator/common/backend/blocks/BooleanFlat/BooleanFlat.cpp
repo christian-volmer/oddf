@@ -162,21 +162,21 @@ void BooleanFlat::Elaborate(ISimulatorElaborationContext &context)
 
 void BooleanFlat::GenerateCode(ISimulatorCodeGenerationContext &context)
 {
-	size_t inputsCount = GetInputsList()->GetSize();
-	size_t outputsCount = GetOutputsList()->GetSize();
+	auto outputs = GetOutputsList();
+	auto inputs = GetInputsList();
 
 	switch (m_operationName) {
 
 		case OperationName::AND:
-			EmitBooleanAndCode(context, inputsCount, outputsCount);
+			EmitBooleanAndCode(context, *outputs, *inputs);
 			break;
 
 		case OperationName::OR:
-			EmitBooleanOrCode(context, inputsCount, outputsCount);
+			EmitBooleanOrCode(context, *outputs, *inputs);
 			break;
 
 		case OperationName::XOR:
-			EmitBooleanXorCode(context, inputsCount, outputsCount);
+			EmitBooleanXorCode(context, *outputs, *inputs);
 			break;
 
 		default:

@@ -20,35 +20,22 @@
 
 /*
 
-    Simulator support for the 'constant' design block.
+    <no description>
 
 */
 
 #pragma once
 
-#include <oddf/simulator/common/backend/SimulatorBlockBase.h>
+#include <oddf/simulator/common/backend/ISimulatorCodeGenerationContext.h>
+
+#include <oddf/simulator/common/backend/SimulatorBlockInput.h>
+#include <oddf/simulator/common/backend/SimulatorBlockOutput.h>
+
+#include <oddf/IListView.h>
 
 namespace oddf::simulator::common::backend::blocks {
 
-class Constant : public SimulatorBlockBase {
-
-private:
-
-	// The type-id of the constant values.
-	design::NodeType::TypeId m_typeId;
-
-	// The bus index within the original block, or -1 if this is not applicable.
-	ptrdiff_t m_busIndex;
-
-public:
-
-	Constant(design::blocks::backend::IDesignBlock const &designBlock);
-	Constant(design::blocks::backend::IDesignBlock const *designBlock, design::NodeType const &type, ptrdiff_t busIndex);
-
-	virtual std::string GetDesignPathHint() const override;
-
-	virtual void Elaborate(ISimulatorElaborationContext &context) override;
-	virtual void GenerateCode(ISimulatorCodeGenerationContext &context) override;
-};
+void EmitNotCode(ISimulatorCodeGenerationContext &context, IListView<SimulatorBlockOutput const &> const &outputs,
+	IListView<SimulatorBlockInput const &> const &inputs);
 
 } // namespace oddf::simulator::common::backend::blocks

@@ -45,7 +45,6 @@ private:
 public:
 
 	BooleanFlat(design::blocks::backend::IDesignBlock const &designBlock);
-
 	BooleanFlat(design::blocks::backend::IDesignBlock const *designBlock, OperationName operationName,
 		size_t numberOfInputs, ptrdiff_t busIndex);
 
