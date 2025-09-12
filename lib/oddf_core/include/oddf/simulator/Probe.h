@@ -35,3 +35,4 @@ class Probe;
 
 #include "Probe/Probe_Boolean.h"
 #include "Probe/Probe_Integral.h"
+#include "Probe/Probe_Real.h"

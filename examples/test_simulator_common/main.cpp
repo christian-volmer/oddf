@@ -169,13 +169,13 @@ int main()
 
 	b::Probe(state[0], "out");
 
-	b::Probe(-b::Sum(-b::Constant<dynfix>({ 123, 654, 222 })), "testProbe");
+	b::Probe(-b::Sum(-b::Constant<dynfix>({ 123.5, 654, 222 })), "testProbe");
 
 	sim::common::Simulator simulator;
 	simulator.TranslateDesign(design);
 
 	auto out = sim::Probe<bool>(simulator, "out");
-	auto testProbe = sim::Probe<int>(simulator, "testProbe");
+	auto testProbe = sim::Probe<double>(simulator, "testProbe");
 
 	size_t len = (1 << taps.width()) - 1;
 
