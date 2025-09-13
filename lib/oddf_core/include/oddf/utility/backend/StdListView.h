@@ -84,6 +84,16 @@ public:
 	{
 		return std::invoke(m_containerView.m_transformation, m_containerView.m_begin[index]);
 	}
+
+	virtual std::unique_ptr<IListView<referenceT>> Span(size_t firstIndex, size_t lastIndex) const
+	{
+		if (firstIndex > lastIndex)
+			throw Exception(ExceptionCode::InvalidArgument);
+
+		return std::make_unique<StdListView<transformationT, iteratorT, referenceT>>(m_containerView.m_begin + firstIndex,
+			m_containerView.m_begin + lastIndex, lastIndex - firstIndex + 1, m_containerView.m_transformation,
+			m_containerView.m_sentinel);
+	}
 };
 
 } // namespace backend

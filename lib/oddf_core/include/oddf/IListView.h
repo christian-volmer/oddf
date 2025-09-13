@@ -45,6 +45,8 @@ public:
 
 	// Accesses the element at the given index.
 	virtual referenceT Item(size_t index) const = 0;
+
+	virtual std::unique_ptr<IListView<referenceT>> Span(size_t firstIndex, size_t lastIndex) const = 0;
 };
 
 } // namespace oddf
