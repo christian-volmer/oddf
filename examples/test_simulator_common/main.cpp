@@ -122,6 +122,13 @@ int main()
 	/*
 
 	- Next steps
+	    - FloorCast
+	    - !=, ==, <
+	    - Decide
+	    - Select
+	    - Source/Sink
+	    - Replace
+	    - Double
 	    - Simulator options
 	        - Elaboration options (split bus instances yes/no) --> see e.g., BooleanFlat::Elaborate
 	        - Verbosity
@@ -132,12 +139,8 @@ int main()
 	        - Export as CSV
 	        - Print as table
 	        - Get as vector (or copy to std container)
-	    - Boolean
-	        ==, !=, decide, select, replace
-	    - Assertions?
-	    - Models?
-	    - Fixed-Point arithmetic
-	        Helper-block to expand inputs to common type (helps with plus, <=>, decide)
+	    - Models
+	    - Assertions
 	    - Double
 	    - Machine integer
 
@@ -169,7 +172,7 @@ int main()
 
 	b::Probe(state[0], "out");
 
-	b::Probe(-b::Sum(-b::Constant<dynfix>({ 123.5, 654, 222 })), "testProbe");
+	b::Probe(-b::Sum(b::Constant<dynfix>({ 111, 222, 333 }) - b::Constant<dynfix>({ 123.5, 654, 222 })), "testProbe");
 
 	sim::common::Simulator simulator;
 	simulator.TranslateDesign(design);

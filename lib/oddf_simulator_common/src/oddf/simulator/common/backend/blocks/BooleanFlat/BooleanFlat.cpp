@@ -129,14 +129,14 @@ void BooleanFlat::Elaborate(ISimulatorElaborationContext &context)
 
 	if (outputsCount > 1) {
 
-		auto inputsPerOperator = inputsCount / outputsCount;
+		auto inputsPerOutput = inputsCount / outputsCount;
 
 		for (size_t i = 0; i < outputsCount; ++i) {
 
-			auto &newBlock = context.AddSimulatorBlock<BooleanFlat>(GetDesignBlockReference(), m_operationName, inputsPerOperator, i);
+			auto &newBlock = context.AddSimulatorBlock<BooleanFlat>(GetDesignBlockReference(), m_operationName, inputsPerOutput, i);
 
-			for (size_t j = 0; j < inputsPerOperator; ++j)
-				context.TransferConnectivity(inputs->Item(inputsPerOperator * i + j), newBlock.GetInputsList()->Item(j));
+			for (size_t j = 0; j < inputsPerOutput; ++j)
+				context.TransferConnectivity(inputs->Item(inputsPerOutput * i + j), newBlock.GetInputsList()->Item(j));
 
 			context.TransferConnectivity(outputs->Item(i), newBlock.GetOutputsList()->Item(0));
 		}

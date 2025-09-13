@@ -25,165 +25,102 @@
 */
 
 #include "../Plus.h"
+#include "PlusCode.h"
 
 #include <oddf/Exception.h>
-
-#include <cassert>
 
 namespace oddf::simulator::common::backend::blocks {
 
 Plus::Plus(design::blocks::backend::IDesignBlock const &designBlock) :
-	SimulatorBlockBase(designBlock)
+	SimulatorBlockBase(designBlock),
+	m_busIndex(-1)
+{
+}
+
+Plus::Plus(design::blocks::backend::IDesignBlock const *designBlock, design::NodeType const &outputType,
+	size_t numberOfInputs, ptrdiff_t busIndex) :
+	SimulatorBlockBase(designBlock, numberOfInputs, { outputType }),
+	m_busIndex(busIndex)
 {
 }
 
 std::string Plus::GetDesignPathHint() const
 {
-	return GetDesignBlockReference()->GetPath().ToString();
+	if (m_busIndex >= 0)
+		return GetDesignBlockReference()->GetPath().ToString() + "<" + std::to_string(m_busIndex) + ">";
+	else
+		return GetDesignBlockReference()->GetPath().ToString();
 }
 
-void Plus::Elaborate(ISimulatorElaborationContext &)
+void Plus::Elaborate(ISimulatorElaborationContext &context)
 {
-	auto outputs = GetOutputsList();
-
-	if (outputs->GetSize() != 1)
-		throw Exception(ExceptionCode::Unsupported);
-
-	if (outputs->Item(0).GetType().GetTypeId() != design::NodeType::FIXED_POINT)
-		throw Exception(ExceptionCode::Unsupported);
-
 	auto inputs = GetInputsList();
+	auto inputsCount = inputs->GetSize();
 
-	if (inputs->GetSize() < 1)
-		throw Exception(ExceptionCode::Unsupported);
+	auto outputs = GetOutputsList();
+	auto outputsCount = outputs->GetSize();
 
-	auto inputsEnumerator = inputs->GetEnumerator();
-	while (inputsEnumerator->MoveNext())
-		if (inputsEnumerator->GetCurrent().GetType().GetTypeId() != design::NodeType::FIXED_POINT)
-			throw Exception(ExceptionCode::Unsupported);
-}
+	if (outputsCount == 0) {
 
-// CLEANUP
+		if (inputsCount == 0) {
 
-struct PlusInstruction : public SimulatorInstruction {
-
-	size_t m_resultOffset;
-	size_t m_operandCount;
-
-	struct Operand {
-
-		types::FixedPoint const *m_input;
-		size_t m_shiftLeft;
-		bool m_signed;
-
-	} m_operands[1];
-
-private:
-
-	void Operate(types::FixedPoint &result)
-	{
-		using element_type = types::FixedPoint::ElementType;
-		using intermediate_type = types::FixedPoint::IntermediateType;
-
-		auto *dest = result.m_elements;
-		auto dest_length = result.m_length;
-
-		for (size_t dest_i = 0; dest_i < dest_length; ++dest_i)
-			dest[dest_i] = 0;
-
-		for (size_t op_i = 0; op_i < m_operandCount; ++op_i) {
-
-			auto const &op = m_operands[op_i];
-
-			auto src_length = op.m_input->m_length;
-			auto const *src = op.m_input->m_elements;
-			auto src_element_shl = op.m_shiftLeft / types::FixedPoint::ElementBitSize;
-			auto src_bit_shl = op.m_shiftLeft % types::FixedPoint::ElementBitSize;
-
-			intermediate_type temp = 0;
-
-			size_t dest_i = src_element_shl;
-
-			for (size_t src_i = 0; src_i < src_length && dest_i < dest_length; ++src_i, ++dest_i) {
-
-				temp += static_cast<intermediate_type>(dest[dest_i])
-					+ (static_cast<intermediate_type>(src[src_i]) << src_bit_shl);
-
-				dest[dest_i] = static_cast<element_type>(temp);
-
-				temp >>= types::FixedPoint::ElementBitSize;
-			}
-
-			intermediate_type src_extension
-				= op.m_signed && (src_length > 0) && (src[src_length - 1] >= types::FixedPoint::SignedMinimumNegativeElement)
-				? types::FixedPoint::SignedExtension
-				: 0;
-
-			for (; dest_i < dest_length; ++dest_i) {
-
-				temp += static_cast<intermediate_type>(dest[dest_i])
-					+ (src_extension << src_bit_shl);
-
-				dest[dest_i] = static_cast<element_type>(temp);
-
-				temp >>= types::FixedPoint::ElementBitSize;
-			}
-
-			/*
-
-			The output type should be wide enough so that overflows cannot occur.
-			We should therefore not have to fix the bits above the most significant bit.
-
-			*/
+			context.RemoveThisBlock();
+			return;
 		}
+
+		throw Exception(ExceptionCode::Unexpected);
 	}
 
-public:
+	/*
 
-	static void InstructionFunction(PlusInstruction *instruction)
-	{
-		types::FixedPoint &result = instruction->GetRecord<types::FixedPoint>(instruction->m_resultOffset);
-		instruction->Operate(result);
-	}
-};
+	Our Plus operation supports more than two operands. And we support
+	busses, in which case there will be more than one output. Every bus element
+	must do the same operation, so the number of inputs must be an integer
+	multiple of the number of outputs. We check this below.
 
-void EmitPlusInstruction(ISimulatorCodeGenerationContext &context,
-	SimulatorBlockOutput const &output, IListView<SimulatorBlockInput const &> const &inputs)
-{
-	context.StartInstructionVariadic(
-		PlusInstruction::InstructionFunction,
-		&PlusInstruction::m_operands,
-		inputs.GetSize());
+	*/
 
-	auto outputType = output.GetType();
+	if (inputsCount % outputsCount != 0)
+		throw Exception(ExceptionCode::Unexpected);
 
-	size_t resultOffset = context.AddOutputRecord<types::FixedPoint>(outputType);
+	if (outputsCount > 1) {
 
-	auto *instruction = context.CommitInstruction<PlusInstruction>();
+		auto inputsPerOutput = inputsCount / outputsCount;
 
-	instruction->m_resultOffset = resultOffset;
-	instruction->m_operandCount = inputs.GetSize();
+		for (size_t i = 0; i < outputsCount; ++i) {
 
-	for (size_t i = 0; i < inputs.GetSize(); ++i) {
+			auto const &output = outputs->Item(i);
 
-		auto inputType = inputs.Item(i).GetType();
+			auto &newBlock = context.AddSimulatorBlock<Plus>(GetDesignBlockReference(), output.GetType(), inputsPerOutput, i);
 
-		context.BindInputReference(i, instruction->m_operands[i].m_input);
+			for (size_t j = 0; j < inputsPerOutput; ++j)
+				context.TransferConnectivity(inputs->Item(inputsPerOutput * i + j), newBlock.GetInputsList()->Item(j));
 
-		ptrdiff_t shiftLeft = outputType.GetFraction() - inputType.GetFraction();
-		assert(shiftLeft >= 0);
+			context.TransferConnectivity(outputs->Item(i), newBlock.GetOutputsList()->Item(0));
+		}
 
-		instruction->m_operands[i].m_shiftLeft = shiftLeft;
-		instruction->m_operands[i].m_signed = inputType.IsSigned();
+		context.RemoveThisBlock();
+		return;
 	}
 
-	auto &result = instruction->GetRecord<types::FixedPoint>(resultOffset);
-	context.BindOutput(output.GetIndex(), result);
+	if (!HasConnections()) {
+
+		context.RemoveThisBlock();
+		return;
+	}
+
+	for (size_t i = 0; i < inputsCount; ++i)
+		if (inputs->Item(i).GetType().GetTypeId() != design::NodeType::FIXED_POINT)
+			throw Exception(ExceptionCode::Unexpected);
+
+	for (size_t i = 0; i < outputsCount; ++i)
+		if (outputs->Item(i).GetType().GetTypeId() != design::NodeType::FIXED_POINT)
+			throw Exception(ExceptionCode::Unexpected);
 }
 
 void Plus::GenerateCode(ISimulatorCodeGenerationContext &context)
 {
-	EmitPlusInstruction(context, GetOutputsList()->Item(0), *GetInputsList());
+	EmitPlusCode(context, *GetOutputsList(), *GetInputsList());
 }
 
 } // namespace oddf::simulator::common::backend::blocks
