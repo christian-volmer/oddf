@@ -86,10 +86,10 @@ void Minus::Elaborate(ISimulatorElaborationContext &context)
 	for (size_t i = 0; i < outputsCount; ++i) {
 
 		if (inputs->Item(i).GetType().GetTypeId() != design::NodeType::FIXED_POINT)
-			throw Exception(ExceptionCode::Unexpected);
+			throw Exception(ExceptionCode::NotImplemented);
 
 		if (outputs->Item(i).GetType().GetTypeId() != design::NodeType::FIXED_POINT)
-			throw Exception(ExceptionCode::Unexpected);
+			throw Exception(ExceptionCode::NotImplemented);
 	}
 }
 

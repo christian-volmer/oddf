@@ -15,6 +15,7 @@ add_library(oddf_simulator_common
 	"src/oddf/simulator/common/backend/blocks/Minus/Minus.cpp"
 	"src/oddf/simulator/common/backend/blocks/Minus/MinusCode.cpp"
 	"src/oddf/simulator/common/backend/blocks/FloorCast/FloorCast.cpp"
+	"src/oddf/simulator/common/backend/blocks/FloorCast/FloorCastCode.cpp"
 	"src/oddf/simulator/common/backend/blocks/Not/Not.cpp"
 	"src/oddf/simulator/common/backend/blocks/Not/NotCode.cpp"
 	"src/oddf/simulator/common/backend/blocks/Probe/Probe.cpp"

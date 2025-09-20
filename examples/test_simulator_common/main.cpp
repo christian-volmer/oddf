@@ -172,7 +172,9 @@ int main()
 
 	b::Probe(state[0], "out");
 
-	b::Probe(-b::Sum(b::Constant<dynfix>({ 111, 222, 333 }) - b::Constant<dynfix>({ 123.5, 654, 222 })), "testProbe");
+	b::Probe(b::Delay(b::FloorCast<sfix<48, 6>>(
+				 b::Constant<sfix<47, 7>>(-1234567890))),
+		"testProbe");
 
 	sim::common::Simulator simulator;
 	simulator.TranslateDesign(design);
@@ -192,7 +194,7 @@ int main()
 		std::cout << "\n";
 	}
 
-	std::cout << "\ntestProbe = " << testProbe.GetValue() << "\n";
+	std::cout << "\ntestProbe = " << (int64_t)testProbe.GetValue() << "\n";
 
 	return 0;
 }

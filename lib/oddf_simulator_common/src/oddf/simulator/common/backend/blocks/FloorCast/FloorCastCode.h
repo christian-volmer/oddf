@@ -20,33 +20,22 @@
 
 /*
 
-    Simulator support for the 'floor_cast' design block.
+    <no description>
 
 */
 
 #pragma once
 
-#include <oddf/simulator/common/backend/SimulatorBlockBase.h>
+#include <oddf/simulator/common/backend/ISimulatorCodeGenerationContext.h>
+
+#include <oddf/simulator/common/backend/SimulatorBlockInput.h>
+#include <oddf/simulator/common/backend/SimulatorBlockOutput.h>
+
+#include <oddf/IListView.h>
 
 namespace oddf::simulator::common::backend::blocks {
 
-class FloorCast : public SimulatorBlockBase {
-
-private:
-
-	// The bus index within the original block, or -1 if this is not applicable.
-	ptrdiff_t m_busIndex;
-
-public:
-
-	FloorCast(design::blocks::backend::IDesignBlock const &designBlock);
-	FloorCast(design::blocks::backend::IDesignBlock const *designBlock, design::NodeType const &type, ptrdiff_t busIndex);
-
-	virtual std::string GetDesignPathHint() const override;
-
-	virtual void Elaborate(ISimulatorElaborationContext &context) override;
-
-	virtual void GenerateCode(ISimulatorCodeGenerationContext &context) override;
-};
+void EmitFloorCastCode(ISimulatorCodeGenerationContext &context, IListView<SimulatorBlockOutput const &> const &outputs,
+	IListView<SimulatorBlockInput const &> const &inputs);
 
 } // namespace oddf::simulator::common::backend::blocks
