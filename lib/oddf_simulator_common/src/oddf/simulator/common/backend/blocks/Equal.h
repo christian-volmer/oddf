@@ -20,22 +20,37 @@
 
 /*
 
-    Simulator support for the floor-cast operation (rounding numbers towards negative infinity).
+    Simulator support for equality testing.
 
 */
 
 #pragma once
 
-#include <oddf/simulator/common/backend/ISimulatorCodeGenerationContext.h>
-
-#include <oddf/simulator/common/backend/SimulatorBlockInput.h>
-#include <oddf/simulator/common/backend/SimulatorBlockOutput.h>
-
-#include <oddf/IListView.h>
+#include <oddf/simulator/common/backend/SimulatorBlockBase.h>
 
 namespace oddf::simulator::common::backend::blocks {
 
-void EmitFloorCastCode(ISimulatorCodeGenerationContext &context, IListView<SimulatorBlockOutput const &> const &outputs,
-	IListView<SimulatorBlockInput const &> const &inputs);
+class Equal : public SimulatorBlockBase {
+
+private:
+
+	// The type-id of the operands.
+	design::NodeType::TypeId m_typeId;
+
+	// The bus index within the original block, or -1 if this is not applicable.
+	ptrdiff_t m_busIndex;
+
+	void ElaborateFixedPoint(ISimulatorElaborationContext &context);
+
+public:
+
+	Equal(design::blocks::backend::IDesignBlock const &designBlock);
+	Equal(design::blocks::backend::IDesignBlock const *designBlock, ptrdiff_t busIndex);
+
+	virtual std::string GetDesignPathHint() const override;
+
+	virtual void Elaborate(ISimulatorElaborationContext &context) override;
+	virtual void GenerateCode(ISimulatorCodeGenerationContext &context) override;
+};
 
 } // namespace oddf::simulator::common::backend::blocks

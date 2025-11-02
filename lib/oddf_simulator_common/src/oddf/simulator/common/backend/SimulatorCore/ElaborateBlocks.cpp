@@ -169,6 +169,21 @@ void SimulatorCore::ElaborateBlocks()
 			m_blocksForReelaboration.insert(&fromOutput.m_owningBlock);
 			m_blocksForReelaboration.insert(&toOutput.m_owningBlock);
 		}
+
+		virtual void Connect(SimulatorBlockOutput const &output, SimulatorBlockInput const &toInput)
+		{
+			if (toInput.IsConnected())
+				throw Exception(ExceptionCode::InvalidArgument, "Connect(): input referred to by parameter `toInput` must not be connected.");
+
+			// Mutable versions of the parameters
+			auto &output_m = output.m_owningBlock.m_internals->m_outputs[output.GetIndex()];
+			auto &toInput_m = toInput.m_owningBlock.m_internals->m_inputs[toInput.GetIndex()];
+
+			toInput_m.ConnectTo(output_m);
+
+			m_blocksForReelaboration.insert(&output.m_owningBlock);
+			m_blocksForReelaboration.insert(&toInput.m_owningBlock);
+		}
 	};
 
 	/*

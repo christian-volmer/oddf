@@ -31,6 +31,7 @@
 #include "../blocks/BooleanFlat.h"
 #include "../blocks/Constant.h"
 #include "../blocks/Delay.h"
+#include "../blocks/Equal.h"
 #include "../blocks/FloorCast.h"
 #include "../blocks/Identity.h"
 #include "../blocks/Minus.h"
@@ -51,6 +52,7 @@ void SimulatorCore::RegisterDefaultBlockFactories()
 	RegisterSimulatorBlockFactory(DesignBlockClass("xor"), MakeSimulatorBlockFactory<blocks::BooleanFlat>());
 	RegisterSimulatorBlockFactory(DesignBlockClass("constant"), MakeSimulatorBlockFactory<blocks::Constant>());
 	RegisterSimulatorBlockFactory(DesignBlockClass("delay"), MakeSimulatorBlockFactory<blocks::Delay>());
+	RegisterSimulatorBlockFactory(DesignBlockClass("equal"), MakeSimulatorBlockFactory<blocks::Equal>());
 	RegisterSimulatorBlockFactory(DesignBlockClass("floor_cast"), MakeSimulatorBlockFactory<blocks::FloorCast>());
 	RegisterSimulatorBlockFactory(DesignBlockClass("identity"), MakeSimulatorBlockFactory<blocks::Identity>());
 	RegisterSimulatorBlockFactory(DesignBlockClass("negate"), MakeSimulatorBlockFactory<blocks::Minus>());

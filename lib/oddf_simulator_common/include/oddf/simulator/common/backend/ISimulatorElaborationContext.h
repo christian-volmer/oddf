@@ -50,6 +50,9 @@ public:
 	// unless the two outputs have identical types.
 	virtual void TransferConnectivity(SimulatorBlockOutput const &fromOutput, SimulatorBlockOutput const &toOutput) = 0;
 
+	// Connects `output` to `toInput`. Throws if `toInput` is already connected.
+	virtual void Connect(SimulatorBlockOutput const &output, SimulatorBlockInput const &toInput) = 0;
+
 	// Disconnects the specified input. The input must belong to the block that
 	// is currently under elaboration.
 	virtual void DisconnectInput(SimulatorBlockInput const &input) = 0;

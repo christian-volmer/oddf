@@ -20,7 +20,7 @@
 
 /*
 
-    Simulator support for the floor-cast operation (rounding numbers towards negative infinity).
+    Simulator support for equality testing.
 
 */
 
@@ -35,7 +35,8 @@
 
 namespace oddf::simulator::common::backend::blocks {
 
-void EmitFloorCastCode(ISimulatorCodeGenerationContext &context, IListView<SimulatorBlockOutput const &> const &outputs,
+template<typename simulatorT>
+void EmitEqualCode(ISimulatorCodeGenerationContext &context, SimulatorBlockOutput const &output,
 	IListView<SimulatorBlockInput const &> const &inputs);
 
 } // namespace oddf::simulator::common::backend::blocks

@@ -121,17 +121,36 @@ int main()
 {
 	/*
 
+	    - OK FloorCast
+
+	- Cleanup
+	    Naming of inputs and outputs in Instruction structure: m_input/m_output or m_operands/m_result
+	    Ordering of inputs and outputs in Instruction structure:
+	        inputs first then output (because inputs are pointers and outputs may be variadic)
+	    Naming of code generation files. E.g., FloorCastCode should be FloorCastCodeFixedPoint
+	    Introductory comments in file header
+	    ExceptionCode::Unexpected --> ODDF_ASSERT / ODDF_VERIFY?
+	    Equal.cpp: generalise common type for more than 2 inputs, make a helper function?
+
 	- Next steps
-	    - FloorCast
-	    - !=, ==, <
+	    - ==
+	        OK Bool
+	        FixedPoint --> how do we do the naming of the generated 'FloorCast' blocks
+	    - !=
+	        == followed by Not --> how do we do the naming of the generated 'Not'?
+	    - <
+	        FixedPoint
 	    - Decide
 	    - Select
 	    - Source/Sink
 	    - Replace
+	    - BitCompose
+	    - BitExtract
 	    - Double
 	    - Simulator options
 	        - Elaboration options (split bus instances yes/no) --> see e.g., BooleanFlat::Elaborate
 	        - Verbosity
+	        - For debugging: automatic type checks at every output
 	    - Reporting: general, info, warning, error
 	    - Logging
 	        - Busses
@@ -141,8 +160,8 @@ int main()
 	        - Get as vector (or copy to std container)
 	    - Models
 	    - Assertions
-	    - Double
 	    - Machine integer
+	    - Bitvector
 
 	*/
 
@@ -170,7 +189,7 @@ int main()
 						state.most())),
 		reset);
 
-	b::Probe(state[0], "out");
+	b::Probe(/*state[0] &&*/ (b::Constant<ufix<16>>(123) == b::Constant<sfix<17>>(123)), "out");
 
 	b::Probe(b::Delay(b::FloorCast<sfix<48, 6>>(
 				 b::Constant<sfix<47, 7>>(-1234567890))),

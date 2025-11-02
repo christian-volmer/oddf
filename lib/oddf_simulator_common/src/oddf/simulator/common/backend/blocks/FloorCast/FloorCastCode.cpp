@@ -20,7 +20,7 @@
 
 /*
 
-    <no description>
+    Implements the floor-cast operation between fixed-point numbers.
 
 */
 
@@ -176,7 +176,6 @@ void EmitFloorCastInstruction(ISimulatorCodeGenerationContext &context, Simulato
 
 	ptrdiff_t shiftLeft = outputType.GetFraction() - inputType.GetFraction();
 
-	// Shifting of content still has to be implemented.
 	if (shiftLeft >= 0) {
 
 		context.StartInstructionWithOutput(
